@@ -1,0 +1,153 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+
+import { saveMediaAltTranslationsAction } from "@/app/admin/(authed)/content/site-content-actions";
+import type { MediaAdminRow } from "@/lib/queries/media-admin";
+import type { Locale } from "@/lib/i18n";
+import { locales } from "@/lib/i18n";
+
+const LOC_LABEL: Record<Locale, string> = {
+  me: "MNE",
+  en: "EN",
+  ru: "RU",
+  tr: "TR",
+};
+
+export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
+  const router = useRouter();
+  const [uploadMsg, setUploadMsg] = useState<string | null>(null);
+  const [saveMsg, setSaveMsg] = useState<{ ok?: boolean; error?: string } | null>(
+    null,
+  );
+  const [pendingUp, startUpload] = useTransition();
+  const [pendingSave, startSave] = useTransition();
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold text-neutral-900">Mediji</h1>
+        <p className="mt-2 max-w-2xl text-sm text-neutral-600">
+          Galerija fajlova iz baze. Za svaku sliku unesi alt tekst na sva četiri
+          jezika (SEO). Otpremanje ide u{" "}
+          <code className="rounded bg-neutral-100 px-1">public/uploads</code>.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={pendingUp}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                startUpload(async () => {
+                  setUploadMsg(null);
+                  const fd = new FormData();
+                  fd.set("file", file);
+                  const res = await fetch("/api/admin/media/upload", {
+                    method: "POST",
+                    body: fd,
+                  });
+                  const j = (await res.json().catch(() => ({}))) as {
+                    error?: string;
+                  };
+                  if (!res.ok) {
+                    setUploadMsg(j.error ?? "Otpremanje nije uspjelo.");
+                    return;
+                  }
+                  setUploadMsg("Slika je otpremljena.");
+                  router.refresh();
+                });
+              }}
+            />
+            {pendingUp ? "Otpremanje…" : "Otpremi sliku"}
+          </label>
+          {uploadMsg && (
+            <span className="text-sm text-neutral-600">{uploadMsg}</span>
+          )}
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-600">
+          Još nema medija. Otpremi sliku iznad.
+        </p>
+      ) : (
+        <form
+          className="space-y-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            startSave(async () => {
+              setSaveMsg(null);
+              const res = await saveMediaAltTranslationsAction(fd);
+              setSaveMsg(res);
+              if (res.ok) router.refresh();
+            });
+          }}
+        >
+          {saveMsg?.error && (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800">
+              {saveMsg.error}
+            </p>
+          )}
+          {saveMsg?.ok && (
+            <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-900">
+              Alt tekstovi sačuvani.
+            </p>
+          )}
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
+              >
+                <div className="aspect-video bg-neutral-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.publicUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="space-y-2 p-3">
+                  <p className="truncate text-xs font-mono text-neutral-500">
+                    {item.id}
+                  </p>
+                  <p className="truncate text-sm font-medium text-neutral-800">
+                    {item.filename}
+                  </p>
+                  {locales.map((loc) => (
+                    <label key={loc} className="block text-xs">
+                      <span className="font-medium text-neutral-600">
+                        Alt ({LOC_LABEL[loc]})
+                      </span>
+                      <input
+                        name={`alt::${item.id}::${loc}`}
+                        defaultValue={item.altByLocale[loc]}
+                        className="mt-0.5 w-full rounded border border-neutral-200 px-2 py-1 text-sm"
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="submit"
+            disabled={pendingSave}
+            className="rounded-lg bg-neutral-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+          >
+            {pendingSave ? "Čuva se…" : "Sačuvaj alt tekstove"}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1778709239883,
+      "tag": "0000_huge_magik",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1778712348393,
+      "tag": "0001_site_presentation",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1778712999115,
+      "tag": "0002_smiling_tigra",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1778716219661,
+      "tag": "0003_post_cover_media",
+      "breakpoints": true
+    }
+  ]
+}

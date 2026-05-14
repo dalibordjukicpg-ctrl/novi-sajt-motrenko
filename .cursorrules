@@ -1,0 +1,49 @@
+# ARCHITECTURAL BLUEPRINT: Premium Multilingual Headless System
+
+## 1. Core Stack & Portability
+- **Framework:** Next.js 15 (App Router).
+- **Language:** TypeScript (Strict Mode).
+- **Database:** MySQL via Drizzle ORM.
+- **Styling:** Tailwind CSS (Modern, Clean, Premium aesthetic).
+- **Email:** Resend API (Avoid local SMTP for portability).
+
+## 2. Database & Internationalization (i18n)
+- **Strategy:** "Translation Table" pattern. Base tables hold metadata; `_translations` tables hold localized content.
+- **Supported Languages:** me (Montenegrin), en (English), ru (Russian), tr (Turkish).
+- **Fallback:** Default to 'me' if a translation is missing.
+- **Routing:** Use prefix-based routing (e.g., /en/services, /ru/kontakt).
+
+## 3. Media Management (The "New Image" System)
+- **Library:** Create a central `media` table to track all uploads.
+- **Optimization:** Use Next/Image for automatic WebP/AVIF conversion.
+- **Storage:** Abstract the storage layer so we can switch from local `/public/uploads` to S3/Cloudinary via .env change.
+
+## 4. Admin Panel & Security
+- **Interface:** Build a minimalist, high-end dashboard. Use Lucide icons and Shadcn/UI components.
+- **Forms:** Use React Hook Form + Zod for all validations.
+- **Actions:** Use Next.js Server Actions for all DB mutations (Create, Update, Delete).
+
+## 5. Development Principles (Agentic Coding)
+- **SEO:** Every page must have metadata generated based on the current language.
+- **Performance:** Prioritize Server Components. Use 'use client' only when strictly necessary for interactivity.
+- **Clean Code:** Use early returns, descriptive variable names, and modularize components into `/components/ui`, `/components/layout`, and `/components/forms`.
+- **Safety:** Always check if a record exists before updating/deleting. Use transactions for multi-table inserts (e.g., Post + PostTranslations).
+
+## 6. Auth, Environment & Deploy
+- **Admin auth:** Protect all dashboard routes and Server Actions with a single session strategy (e.g., signed httpOnly cookie or Auth.js). Never rely on client-only checks. Add role checks only when multiple admin levels are needed.
+- **Secrets:** Keep API keys and DB credentials in environment variables only; never commit `.env` files. Use `.env.example` with placeholder names and short comments for required keys.
+- **Required env (baseline):** `DATABASE_URL` (MySQL), `RESEND_API_KEY` (and sender domain/address Resend expects), plus storage vars when not local (e.g., `S3_*` or `CLOUDINARY_*`).
+- **Migrations:** Run Drizzle migrations as part of deploy (CI or hosting “release command”) before the app serves traffic; treat migration failures as a failed deploy.
+- **Runtime:** Pin Node to the LTS version supported by Next.js 15 on the host (document it in README or hosting config). Set production `NODE_ENV=production`.
+- **Caching / freshness:** After mutating content that affects public pages, invalidate explicitly (`revalidatePath` / `revalidateTag`) so multilingual routes do not show stale data.
+- **Public URLs:** Set `NEXT_PUBLIC_SITE_URL` (or equivalent) for canonical links, Open Graph, and Resend links; use the same base URL in production as in DNS.
+# 6. UI/UX Style Guide: Backgrounds & Aesthetic
+
+## Primary Background: The "Medical-Fluid" Aesthetic
+- **Concept:** Create a seamless, premium medical aesthetic inspired by a sterile, yet welcoming, environment. It should not look like a sterile hospital, but rather a high-end, futuristic clinic.
+- **Color Palette:** Strictly white and light gray tones.
+- **Style:**
+  - **Flat Design but Fluid:** The base must be flat and clean (all white), but use very subtle, abstract, soft-edged, fluid gradient blobs.
+  - **Muted Colors:** These blobs must be barely perceptible, using extremely muted versions of light gray, a hint of off-white, and perhaps a subtle, very desaturated baby blue, only visible on very high-quality screens.
+  - **Blur:** Apply significant Gaussian blur to these abstract shapes so they are soft, non-distracting, and integrated into the overall white space. They should function as a texture, not an active background element.
+  - **No Sharp Lines:** Ensure there are absolutely no sharp lines or geometric shapes in the background, only organic, fluid transitions.

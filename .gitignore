@@ -1,0 +1,26 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# next
+.next
+out
+
+# env
+.env
+.env*.local
+
+# debug
+npm-debug.log*
+
+# uploads (admin media)
+public/uploads
+
+# ide
+.idea
+.vscode
+
+# os
+.DS_Store
+Thumbs.db

@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Medicinska paleta (dostupna u cijelom projektu). */
+:root {
+  --med-bg: #fafafa;
+  --med-blue: #eef2ff;
+  --med-gray: #f1f5f9;
+}
+
+html {
+  min-height: 100%;
+  background-color: var(--med-gray);
+}
+
+body {
+  margin: 0;
+  background: var(--med-bg);
+}
+
+/* Fiksna medicinska pozadina — čisti CSS (uvijek vidljivo i animirano, bez Framer-a). */
+.medical-bg-root {
+  background-color: color-mix(in srgb, var(--med-blue) 22%, var(--med-bg));
+}
+
+/* Sitna zrnatost kao na kvalitetnom medicinskom papiru (SVG feTurbulence, ponavlja se). */
+.site-paper-grain {
+  z-index: 2;
+  pointer-events: none;
+  /* soft-light: vidljivo na #fafafa; multiply na bijelom gotovo nestaje */
+  opacity: 0.14;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='a' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 140px 140px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-paper-grain {
+    opacity: 0.1;
+  }
+}
+
+.medical-bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+  filter: blur(72px);
+  -webkit-filter: blur(72px);
+}
+
+@keyframes medical-float-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(4vw, -4vh) scale(1.07);
+  }
+  50% {
+    transform: translate(-3vw, 3vh) scale(0.96);
+  }
+  75% {
+    transform: translate(2vw, 2vh) scale(1.03);
+  }
+}
+
+@keyframes medical-float-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-5vw, 4vh) scale(1.05);
+  }
+  66% {
+    transform: translate(4vw, -3vh) scale(0.94);
+  }
+}
+
+@keyframes medical-float-c {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(6vw, 5vh);
+  }
+}
+
+@keyframes medical-float-d {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  40% {
+    transform: translate(-4vw, -5vh) scale(1.08);
+  }
+  80% {
+    transform: translate(3vw, 2vh) scale(0.92);
+  }
+}
+
+@keyframes medical-float-e {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate(-2vw, 6vh);
+    opacity: 1;
+  }
+}
+
+.medical-blob-a {
+  animation: medical-float-a 32s ease-in-out infinite;
+}
+
+.medical-blob-b {
+  animation: medical-float-b 26s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+.medical-blob-c {
+  animation: medical-float-c 20s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+.medical-blob-d {
+  animation: medical-float-d 35s ease-in-out infinite;
+  animation-delay: -8s;
+}
+
+.medical-blob-e {
+  animation: medical-float-e 24s ease-in-out infinite;
+  animation-delay: -6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .medical-blob-a,
+  .medical-blob-b,
+  .medical-blob-c,
+  .medical-blob-d,
+  .medical-blob-e {
+    animation: none !important;
+  }
+}
