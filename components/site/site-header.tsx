@@ -456,19 +456,20 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
 
   return (
     <header
-      className={`fixed left-0 right-0 top-0 z-[200] w-full transition-colors duration-300 ${lightHeader ? "" : "isolation-isolate [transform:translateZ(0)]"} ${headerShell}`}
+      className={`fixed left-0 right-0 top-0 z-[200] w-full transition-colors duration-300 ${headerShell}`}
     >
       {/* Gradijent ispod headera — klasa u globals (meki prelaz u baner). */}
       {!lightHeader ? <div aria-hidden className="site-header-hero-scrim" /> : null}
-      <div className="relative z-[2] mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:gap-6 md:px-10 md:py-3.5 lg:px-14">
+      <div className="relative z-[2] mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-6 md:px-10 md:py-3.5 lg:px-14">
         <Link
           href={`/${locale}`}
-          className="group relative z-20 flex min-w-0 max-w-[48vw] shrink-0 items-center sm:max-w-[44%] md:max-w-[min(100%,680px)] lg:max-w-[min(100%,780px)]"
+          className="group relative z-20 flex min-w-0 max-w-[48vw] shrink-0 items-center justify-self-start sm:max-w-[min(100%,44vw)] md:max-w-[min(100%,420px)] lg:max-w-[min(100%,480px)]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={resolvedLogoSrc}
             alt={s["org.brand"]}
+            decoding="async"
             className="block h-10 w-auto max-w-full shrink-0 object-contain object-left sm:h-14 md:h-[5.25rem] lg:h-[5.75rem]"
           />
         </Link>
@@ -476,7 +477,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
         <nav
           ref={navRef}
           aria-label="Glavna navigacija"
-          className="absolute left-1/2 top-1/2 z-[35] hidden -translate-x-1/2 -translate-y-1/2 md:flex md:items-center md:gap-9 lg:gap-12 xl:gap-14"
+          className="relative z-[35] hidden min-w-0 justify-self-center md:flex md:items-center md:gap-7 lg:gap-10 xl:gap-12"
         >
           {nav.map((item) => (
             <NavDropdown
@@ -490,7 +491,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
           ))}
         </nav>
 
-        <div className="relative z-20 flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
+        <div className="relative z-20 flex min-w-0 shrink-0 items-center justify-self-end gap-1 sm:gap-2 md:justify-self-end">
           <Link
             href={resolvePublicHref(locale, s["header.cta_book_href"])}
             className={`${ctaPrimary} inline-flex max-md:min-w-0 max-md:max-w-[38vw] max-md:truncate max-md:px-3 max-md:py-1.5 max-md:text-[10px] max-md:tracking-[0.07em]`}

@@ -174,84 +174,84 @@ export function HomeHeroMotrenko({
   return (
     <section
       ref={containerRef}
-      className="relative -mt-16 min-h-[400px] overflow-hidden rounded-b-3xl bg-zinc-950 max-md:h-[min(72svh,580px)] max-md:min-h-[400px] md:-mt-[4.5rem] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
+      className="relative -mt-16 overflow-hidden rounded-b-3xl bg-zinc-950 max-md:h-[min(90svh,680px)] max-md:min-h-[480px] md:-mt-[4.5rem] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
     >
+      {/* Slika/video — jedini sloj, bez duplikata */}
       <div
         ref={bgRef}
-        className="absolute inset-x-0 bottom-0 top-0 md:-bottom-[6%] md:-top-[6%]"
+        className="absolute inset-0 overflow-hidden md:-bottom-[6%] md:-top-[6%]"
         style={{ transform: "translateY(var(--py, 0%))" }}
         aria-hidden
       >
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
-          style={{ backgroundImage: `url('${poster}')` }}
-        />
-        <div className="absolute inset-0 overflow-hidden">
-          {isYoutube && url ? (
-            <iframe
-              title=""
-              src={`${url}?autoplay=1&mute=1&controls=0&loop=1&playlist=${url.split("/embed/")[1] ?? ""}&playsinline=1`}
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-[120%] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 scale-[1.35] object-cover"
-              allow="autoplay; encrypted-media"
-            />
-          ) : isVideo && url ? (
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={poster}
-              className="h-full w-full object-cover object-[center_28%] [transform:translateZ(0)] max-md:min-h-full max-md:min-w-full max-md:scale-[1.03] max-md:object-cover md:min-h-0 md:min-w-0 md:scale-100 md:object-center"
-            >
-              <source src={url} type="video/mp4" />
-            </video>
-          ) : url && isLocalImg ? (
-            <div className="relative h-full min-h-[280px] w-full md:min-h-0">
-              <Image
-                src={url}
-                alt=""
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-[center_28%]"
-              />
-            </div>
-          ) : url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={url}
-              alt=""
-              className="h-full w-full object-cover object-[center_28%]"
-            />
-          ) : (
-            <div
-              className="h-full w-full bg-cover bg-center"
-              style={{ backgroundImage: `url('${poster}')` }}
-            />
-          )}
-        </div>
+        {isYoutube && url ? (
+          <iframe
+            title=""
+            src={`${url}?autoplay=1&mute=1&controls=0&loop=1&playlist=${url.split("/embed/")[1] ?? ""}&playsinline=1`}
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-[120%] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 scale-[1.35] object-cover"
+            allow="autoplay; encrypted-media"
+          />
+        ) : isVideo && url ? (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={poster}
+            className="h-full w-full object-cover max-md:object-[center_38%] md:object-[center_28%]"
+          >
+            <source src={url} type="video/mp4" />
+          </video>
+        ) : url && isLocalImg ? (
+          <Image
+            src={url}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover max-md:object-[center_38%] md:object-[center_28%]"
+          />
+        ) : url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={url}
+            alt=""
+            className="h-full w-full object-cover max-md:object-[center_38%] md:object-[center_28%]"
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={poster}
+            alt=""
+            className="h-full w-full object-cover max-md:object-[center_38%] md:object-[center_28%]"
+          />
+        )}
       </div>
 
-      {/* Desktop: jaki gradient s lijeve strane; mobile: blaži, centriran */}
+      {/* Desktop: gradient s lijeve strane za čitljivost teksta */}
       <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-black/8 max-md:bg-gradient-to-b max-md:from-black/48 max-md:via-black/22 max-md:to-transparent"
+        className="absolute inset-0 hidden md:block bg-gradient-to-r from-black/55 via-black/25 to-transparent"
       />
-      {/* Donji fade za čitljivost CTA dugmadi na mobu */}
+      {/* Mobile: lagani header-zona overlay + jaki gradient na dnu za tekst */}
       <div
         aria-hidden
-        className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 via-black/8 to-transparent"
+        className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/30 to-transparent md:hidden"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[52%] bg-gradient-to-t from-black/80 via-black/45 to-transparent md:hidden"
       />
 
-      <div className="relative z-10 flex h-full flex-col justify-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] max-md:justify-center sm:px-14 md:px-24 md:pb-0 md:pt-[calc(4.5rem+env(safe-area-inset-top))]">
-        <div className="max-w-2xl sm:translate-y-0">
+      {/* Tekst i CTA */}
+      <div className="relative z-10 flex h-full flex-col px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] max-md:justify-end max-md:pb-8 sm:px-14 md:justify-center md:px-24 md:pb-0 md:pt-[calc(4.5rem+env(safe-area-inset-top))]">
+        <div className="max-w-2xl">
           <p
             style={{
               opacity: leaving ? 0 : 1,
               transform: leaving ? "translateY(-8px)" : "translateY(0)",
               transition: "opacity 0.55s ease, transform 0.55s ease",
             }}
-            className="mb-3 text-[9px] font-medium uppercase tracking-[0.28em] text-[#ffd0b8] [text-shadow:0_1px_3px_rgba(0,0,0,0.88),0_0_22px_rgba(232,104,42,0.45),0_0_1px_rgba(232,104,42,0.35)] max-md:mb-3 sm:mb-4 sm:text-[10px] sm:tracking-[0.3em]"
+            className="mb-2 text-[9px] font-medium uppercase tracking-[0.28em] text-[#ffd0b8] [text-shadow:0_1px_3px_rgba(0,0,0,0.88),0_0_22px_rgba(232,104,42,0.45)] max-md:mb-2 sm:mb-4 sm:text-[10px] sm:tracking-[0.3em]"
           >
             {slide.eyebrow}
           </p>
@@ -263,19 +263,20 @@ export function HomeHeroMotrenko({
               transition: "opacity 0.6s ease 0.05s, transform 0.6s ease 0.05s",
               fontFamily: "var(--font-playfair), Georgia, serif",
             }}
-            className="text-[clamp(1.55rem,7vw,2.4rem)] font-light leading-[1.12] tracking-tight text-[#fff8f2] [text-shadow:0_2px_10px_rgba(0,0,0,0.7),0_4px_24px_rgba(0,0,0,0.45)] md:whitespace-pre-line md:text-[clamp(2.65rem,5.8vw,5.5rem)] md:leading-[1.04]"
+            className="text-[clamp(1.65rem,7.5vw,2.5rem)] font-light leading-[1.1] tracking-tight text-[#fff8f2] [text-shadow:0_2px_10px_rgba(0,0,0,0.7),0_4px_24px_rgba(0,0,0,0.45)] md:whitespace-pre-line md:text-[clamp(2.65rem,5.8vw,5.5rem)] md:leading-[1.04]"
           >
             <span className="md:hidden">{slide.heading.replace(/\n/g, " ")}</span>
             <span className="hidden md:inline whitespace-pre-line">{slide.heading}</span>
           </h1>
 
+          {/* Podnaslov: sakriven na mobu — beba treba da bude vidljiva */}
           <p
             style={{
               opacity: leaving ? 0 : 1,
               transform: leaving ? "translateY(12px)" : "translateY(0)",
               transition: "opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s",
             }}
-            className="mt-3 max-w-[26rem] text-[0.8125rem] font-medium leading-relaxed text-[#fff8f2] [text-shadow:0_1px_0_rgba(0,0,0,0.92),0_2px_12px_rgba(0,0,0,0.78),0_0_1px_rgba(0,0,0,1)] max-md:mt-3 max-md:max-w-none sm:mt-5 sm:max-w-xl sm:text-[0.9375rem] md:text-[1rem]"
+            className="mt-3 hidden max-w-[26rem] text-[0.8125rem] font-medium leading-relaxed text-[#fff8f2] [text-shadow:0_1px_0_rgba(0,0,0,0.92),0_2px_12px_rgba(0,0,0,0.78)] sm:mt-5 sm:block sm:max-w-xl sm:text-[0.9375rem] md:text-[1rem]"
           >
             {slide.sub}
           </p>
@@ -285,17 +286,17 @@ export function HomeHeroMotrenko({
               opacity: leaving ? 0 : 1,
               transition: "opacity 0.5s ease 0.15s",
             }}
-            className="mt-5 flex w-full flex-col gap-3 max-md:max-w-xs sm:mt-8 sm:flex-row sm:w-auto sm:max-w-none sm:gap-4"
+            className="mt-4 flex w-full flex-col gap-2.5 max-md:flex-row max-md:gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:gap-4"
           >
             <Link
               href={primaryCta.href}
-              className="flex h-12 min-h-[48px] items-center justify-center rounded-md bg-site-brand px-6 text-center text-[11px] font-semibold uppercase leading-tight tracking-[0.16em] text-white shadow-[0_10px_28px_-8px_rgba(243,112,33,0.32)] transition-colors hover:bg-site-brand-hover sm:inline-flex sm:h-11 sm:min-h-0 sm:px-7 sm:text-[10px] sm:font-medium sm:tracking-[0.22em]"
+              className="flex h-11 min-h-[44px] items-center justify-center rounded-md bg-site-brand px-5 text-center text-[10px] font-semibold uppercase leading-tight tracking-[0.16em] text-white shadow-[0_10px_28px_-8px_rgba(243,112,33,0.32)] transition-colors hover:bg-site-brand-hover max-md:flex-1 sm:h-11 sm:px-7 sm:text-[10px] sm:tracking-[0.22em]"
             >
               {primaryCta.label}
             </Link>
             <Link
               href={secondaryCta.href}
-              className="flex h-12 min-h-[48px] items-center justify-center rounded-sm border border-[rgb(232_104_42/0.55)] bg-[rgb(232_104_42/0.10)] px-6 text-center text-[11px] font-semibold uppercase leading-tight tracking-[0.15em] text-[#fff4eb] transition-colors hover:border-[rgb(232_104_42/0.85)] hover:bg-[rgb(232_104_42/0.2)] sm:inline-flex sm:h-11 sm:min-h-0 sm:px-5 sm:text-[10px] sm:font-medium sm:tracking-[0.2em]"
+              className="flex h-11 min-h-[44px] items-center justify-center rounded-sm border border-[rgb(232_104_42/0.55)] bg-[rgb(232_104_42/0.10)] px-5 text-center text-[10px] font-semibold uppercase leading-tight tracking-[0.15em] text-[#fff4eb] transition-colors hover:border-[rgb(232_104_42/0.85)] hover:bg-[rgb(232_104_42/0.2)] max-md:flex-1 sm:h-11 sm:px-5 sm:tracking-[0.2em]"
             >
               {secondaryCta.label} <span className="ml-0.5">→</span>
             </Link>
