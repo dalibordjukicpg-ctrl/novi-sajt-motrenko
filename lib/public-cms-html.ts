@@ -1,0 +1,384 @@
+import { sanitizeWordPressContent } from "@/scripts/lib/sanitize-wordpress-content";
+
+import type { Locale } from "@/lib/i18n";
+import { locales } from "@/lib/i18n";
+
+/** HTML iz CMS-a (TipTap) — isti SSOT pipeline kao migracija, bez env prefiksa. */
+export function sanitizePublicCmsHtml(html: string | null | undefined): string {
+  if (html == null || html === "") return "";
+  return sanitizeWordPressContent(html, { contentKind: "html" });
+}
+
+/**
+ * WP uvoz / stari HTML često imaju `href="/posts/slug"` ili `href="/s/slug"` bez jezika.
+ * U App Routeru su rute `/[locale]/posts/...` i `/[locale]/s/...` — ovaj korak ih usklađuje.
+ */
+export function prefixRootRelativeAppLinks(html: string, locale: Locale): string {
+  if (!html) return html;
+  return html.replace(
+    /href=(["'])\/(posts\/[^"'#\s]*|s\/[^"'#\s]*)/gi,
+    (full, quote, path) => {
+      const first = path.split("/")[0];
+      if (locales.includes(first as Locale)) return full;
+      return `href=${quote}/${locale}/${path}`;
+    },
+  );
+}
+
+const IMG_URL_ATTRS = [
+  "src",
+  "data-src",
+  "data-lazy-src",
+  "data-original",
+  "data-full-url",
+  "data-old-href",
+  "data-large-file",
+] as const;
+
+function extractUrlsFromImgTag(tag: string): string[] {
+  const urls: string[] = [];
+  for (const attr of IMG_URL_ATTRS) {
+    const re = new RegExp(`\\b${attr}=(["'])([^"']*)\\1`, "i");
+    const m = re.exec(tag);
+    if (m?.[2]?.trim()) urls.push(m[2]!.trim());
+  }
+  const setM = /\bsrcset=(["'])([^"']*)\1/i.exec(tag);
+  if (setM?.[2]) {
+    for (const part of setM[2].split(",")) {
+      const u = part.trim().split(/\s+/)[0];
+      if (u) urls.push(u);
+    }
+  }
+  return urls;
+}
+
+function imgTagReferencesCover(tag: string, coverUrl: string): boolean {
+  return extractUrlsFromImgTag(tag).some((u) =>
+    imagePathsComparable(u, coverUrl),
+  );
+}
+
+function normalizePublicSrc(raw: string): string {
+  const s = raw
+    .trim()
+    .replace(/&amp;/g, "&")
+    .replace(/&#038;/g, "&");
+  if (!s) return "";
+  if (s.startsWith("//")) {
+    try {
+      return decodeURIComponent(new URL(`https:${s}`).pathname).toLowerCase();
+    } catch {
+      return s.toLowerCase();
+    }
+  }
+  if (/^https?:\/\//i.test(s)) {
+    try {
+      return decodeURIComponent(new URL(s).pathname).toLowerCase();
+    } catch {
+      return s.toLowerCase();
+    }
+  }
+  const pathOnly = s.split("?")[0] ?? s;
+  try {
+    return decodeURIComponent(pathOnly).toLowerCase();
+  } catch {
+    return pathOnly.toLowerCase();
+  }
+}
+
+function imagePathsComparable(a: string, b: string): boolean {
+  const na = normalizePublicSrc(a);
+  const nb = normalizePublicSrc(b);
+  if (na === nb) return true;
+  const fa = na.split("/").filter(Boolean).pop() ?? na;
+  const fb = nb.split("/").filter(Boolean).pop() ?? nb;
+  return fa === fb && fa.length > 3;
+}
+
+/** Ostatak teksta u bloku nakon uklanjanja slika. */
+function residualTextLengthWithoutImgs(block: string): number {
+  const noImg = block.replace(/<img\b[^>]*>/gi, "");
+  const noScripts = noImg.replace(/<script\b[\s\S]*?<\/script>/gi, "");
+  const plain = noScripts.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return plain.length;
+}
+
+function blockIsDuplicateCoverOnly(block: string, coverUrl: string): boolean {
+  const tags = [...block.matchAll(/<img\b[^>]*>/gi)].map((m) => m[0]);
+  if (tags.length === 0) return false;
+  if (!tags.every((tag) => imgTagReferencesCover(tag, coverUrl))) return false;
+  /* Dupla slika često u istom bloku sa „n“/razmakom iz WP-a — dozvoli duži ostatak */
+  if (residualTextLengthWithoutImgs(block) > 400) return false;
+  return true;
+}
+
+function pIsOnlyCoverImg(inner: string, coverUrl: string): boolean {
+  const innerNoSpan = inner.replace(/<\/?span\b[^>]*>/gi, "");
+  if (
+    !/^[\s\u00a0]*(?:<br\s*\/?>|&nbsp;)*[\s\u00a0]*<img\b[^>]+>[\s\u00a0]*(?:<br\s*\/?>|&nbsp;)*[\s\u00a0]*$/i.test(
+      innerNoSpan,
+    )
+  ) {
+    return false;
+  }
+  const tags = [...inner.matchAll(/<img\b[^>]*>/gi)].map((m) => m[0]);
+  if (tags.length !== 1) return false;
+  return imgTagReferencesCover(tags[0]!, coverUrl);
+}
+
+function scrubEmptyWrappers(html: string): string {
+  let prev = "";
+  let out = html;
+  let guard = 0;
+  while (prev !== out && guard++ < 30) {
+    prev = out;
+    out = out
+      .replace(/<p[^>]*>\s*<\/p>/gi, "")
+      .replace(/<p[^>]*>\s*(?:<br\s*\/?>\s*)+<\/p>/gi, "")
+      .replace(/<p[^>]*>\s*(?:&nbsp;\s*)+<\/p>/gi, "")
+      .replace(/<div\b[^>]*>\s*<\/div>/gi, "");
+  }
+  return out;
+}
+
+/**
+ * Uklanja blokove sa istom slikom kao naslovnica (cijeli HTML, više prolaza).
+ * Tim profil: jedan portret je lijevo iz meta; tijelo ne treba duplikat.
+ */
+export function stripDuplicateTeamCoverFromBody(
+  html: string,
+  coverUrl: string | null | undefined,
+): string {
+  if (!html || !coverUrl?.trim()) return html;
+
+  let rest = html;
+  let iter = 0;
+  while (iter++ < 30) {
+    const before = rest;
+
+    rest = rest.replace(/<figure\b[^>]*>[\s\S]*?<\/figure>/gi, (block) =>
+      blockIsDuplicateCoverOnly(block, coverUrl) ? "" : block,
+    );
+
+    rest = rest.replace(
+      /<div[^>]*\bwp-block-image\b[^>]*>[\s\S]*?<\/div>/gi,
+      (block) => (blockIsDuplicateCoverOnly(block, coverUrl) ? "" : block),
+    );
+
+    rest = rest.replace(
+      /<div[^>]*\bwp-caption\b[^>]*>[\s\S]*?<\/div>/gi,
+      (block) => (blockIsDuplicateCoverOnly(block, coverUrl) ? "" : block),
+    );
+
+    rest = rest.replace(
+      /<div[^>]*>\s*<figure\b[^>]*>[\s\S]*?<\/figure>\s*<\/div>/gi,
+      (block) => (blockIsDuplicateCoverOnly(block, coverUrl) ? "" : block),
+    );
+
+    rest = rest.replace(
+      /<div\b[^>]*>\s*<img[^>]*>\s*<\/div>/gi,
+      (block) => (blockIsDuplicateCoverOnly(block, coverUrl) ? "" : block),
+    );
+
+    rest = rest.replace(
+      /<div\b[^>]*>\s*<img[^>]*\/>\s*<\/div>/gi,
+      (block) => (blockIsDuplicateCoverOnly(block, coverUrl) ? "" : block),
+    );
+
+    rest = rest.replace(/<p\b[^>]*>([\s\S]*?)<\/p>/gi, (full, inner: string) => {
+      if (pIsOnlyCoverImg(inner, coverUrl)) return "";
+      return full;
+    });
+
+    let peel = rest;
+    for (let d = 0; d < 12; d++) {
+      const next = peel.replace(
+        /<div\b[^>]*>((?:(?!<div\b)[\s\S])*)<\/div>/gi,
+        (full) => (blockIsDuplicateCoverOnly(full, coverUrl) ? "" : full),
+      );
+      if (next === peel) break;
+      peel = next;
+    }
+    rest = peel;
+
+    rest = rest.replace(/<img\b[^>]*>/gi, (tag) =>
+      imgTagReferencesCover(tag, coverUrl) ? "" : tag,
+    );
+
+    rest = scrubEmptyWrappers(rest);
+
+    if (before === rest) break;
+  }
+
+  return rest.trim();
+}
+
+/** Puna sadržaja unutar jednog taga bez HTML-a — za detekciju „smeća“. */
+function innerPlainOneLine(inner: string): string {
+  return inner
+    .replace(/[\u200b\u200c\u200d\ufeff]/g, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&#(?:x6e|110);/gi, "n")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Tipičan WP/uvoz artefakt: odlomci koji su samo „n“, „nnnn“, „n n n“ itd.
+ * Dozvoljava samo „n“ i razmake (uklj. više redova).
+ */
+function isSpuriousNNoise(plain: string): boolean {
+  const t = innerPlainOneLine(plain);
+  if (!t) return true;
+  return /^n+(\s+n+)*$/i.test(t);
+}
+
+/** Uklanja segmente odvojene <br> koji su samo „nnnn“. */
+function stripNoiseSegmentsByBr(inner: string): string {
+  const segments = inner.split(/<br\s*\/?>/gi);
+  const kept = segments.filter((seg) => !isSpuriousNNoise(seg));
+  if (kept.length === 0) return "";
+  if (kept.length === segments.length) return inner;
+  return kept.join("<br />");
+}
+
+/**
+ * Uklanja blokove čiji je jedini vidljivi tekst slovo „n“ (i ponavljanja).
+ * Ne dira rečenice gdje je „n“ dio normalnog teksta.
+ */
+export function stripNPlaceholderBlocks(html: string | null | undefined): string {
+  if (html == null || html === "") return "";
+  let out = html.replace(
+    />(?:\s|&nbsp;)*(?:&#(?:x6e|110);(?:\s|&nbsp;)*)+(?=<)/gi,
+    ">",
+  );
+
+  const stripLooseBetweenTags = (s: string): string =>
+    s.replace(
+      />(?:\s|&nbsp;|<br\s*\/?>|\n|\r)*(?:n(?:\s|&nbsp;|<br\s*\/?>|\n|\r)*)+(?=<)/gi,
+      ">",
+    );
+
+  let iter = 0;
+  while (iter++ < 25) {
+    const before = out;
+
+    out = stripLooseBetweenTags(out);
+
+    out = out.replace(
+      /<p(\b[^>]*)>([\s\S]*?)<\/p>/gi,
+      (_full, attrs: string, inner: string) => {
+        const byBr = stripNoiseSegmentsByBr(inner);
+        if (byBr === "") return "";
+        const plain = innerPlainOneLine(byBr);
+        if (isSpuriousNNoise(plain)) return "";
+        if (byBr === inner) return `<p${attrs}>${inner}</p>`;
+        return `<p${attrs}>${byBr}</p>`;
+      },
+    );
+
+    const loneNBlock = (tag: string) =>
+      new RegExp(
+        `<${tag}\\b[^>]*>\\s*(?:<br\\s*\\/?>\\s*|&nbsp;\\s*|\\s)*n+(?:\\s*(?:<br\\s*\\/?>|&nbsp;)\\s*)*</${tag}>`,
+        "gi",
+      );
+    for (const tag of [
+      "div",
+      "span",
+      "section",
+      "article",
+      "aside",
+      "blockquote",
+      "header",
+      "footer",
+      "td",
+      "th",
+    ]) {
+      out = out.replace(loneNBlock(tag), "");
+    }
+
+    out = out.replace(
+      /<h([1-6])(\b[^>]*)>([\s\S]*?)<\/h\1>/gi,
+      (_full, n: string, attrs: string, inner: string) => {
+        const byBr = stripNoiseSegmentsByBr(inner);
+        if (byBr === "") return "";
+        const plain = innerPlainOneLine(byBr);
+        if (isSpuriousNNoise(plain)) return "";
+        if (byBr === inner) return `<h${n}${attrs}>${inner}</h${n}>`;
+        return `<h${n}${attrs}>${byBr}</h${n}>`;
+      },
+    );
+
+    out = out.replace(
+      /<figcaption(\b[^>]*)>([\s\S]*?)<\/figcaption>/gi,
+      (_full, attrs: string, inner: string) => {
+        const byBr = stripNoiseSegmentsByBr(inner);
+        if (byBr === "") return "";
+        const plain = innerPlainOneLine(byBr);
+        if (isSpuriousNNoise(plain)) return "";
+        if (byBr === inner) return `<figcaption${attrs}>${inner}</figcaption>`;
+        return `<figcaption${attrs}>${byBr}</figcaption>`;
+      },
+    );
+
+    out = out.replace(/<li(\b[^>]*)>([\s\S]*?)<\/li>/gi, (_full, attrs, inner: string) => {
+      const byBr = stripNoiseSegmentsByBr(inner);
+      if (byBr === "") return "";
+      const plain = innerPlainOneLine(byBr);
+      if (isSpuriousNNoise(plain)) return "";
+      if (byBr === inner) return `<li${attrs}>${inner}</li>`;
+      return `<li${attrs}>${byBr}</li>`;
+    });
+
+    let peel = out;
+    for (let d = 0; d < 14; d++) {
+      const next = peel.replace(
+        /<div\b[^>]*>((?:(?!<div\b)[\s\S])*)<\/div>/gi,
+        (full, inner: string) => {
+          const byBr = stripNoiseSegmentsByBr(inner);
+          if (byBr === "") return "";
+          const plain = innerPlainOneLine(byBr);
+          if (isSpuriousNNoise(plain)) return "";
+          return full;
+        },
+      );
+      if (next === peel) break;
+      peel = next;
+    }
+    out = peel;
+
+    /* Tekst „nnnn“ između zatvaranja i sljedećeg taga (nije u <p>). */
+    out = out.replace(
+      /(<\/(?:p|div|h[1-6]|li|blockquote|section|article)\b[^>]*>)(?:\s|&nbsp;|\n|\r|(?:<br\s*\/?>)\s*)*(?:n(?:\s|&nbsp;|\n|\r|<br\s*\/?>)*)+(?=<)/gi,
+      "$1",
+    );
+
+    if (before === out) break;
+  }
+
+  out = out
+    .replace(/<p[^>]*>\s*<\/p>/gi, "")
+    .replace(/<div\b[^>]*>\s*<\/div>/gi, "")
+    .replace(/<ul\b[^>]*>\s*<\/ul>/gi, "")
+    .replace(/<ol\b[^>]*>\s*<\/ol>/gi, "");
+
+  return out.trim();
+}
+
+/** Uklanja WP uvoz listu ako prikazujemo dinamički roster sa slikama. */
+export function stripTimPregledSection(html: string | null | undefined): string | null {
+  if (html == null || html === "") return null;
+  const stripped = html
+    .replace(/<section[^>]*\btim-pregled\b[^>]*>[\s\S]*?<\/section>/gi, "")
+    .trim();
+  return stripped.length > 0 ? stripped : null;
+}
+
+/** Sanitizacija + ispravni interni linkovi za javni prikaz. */
+export function preparePublicHtml(html: string | null | undefined, locale: Locale): string {
+  if (html == null || html === "") return "";
+  const linked = prefixRootRelativeAppLinks(sanitizePublicCmsHtml(html), locale);
+  return stripNPlaceholderBlocks(linked);
+}

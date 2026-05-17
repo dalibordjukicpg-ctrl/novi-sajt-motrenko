@@ -3,7 +3,7 @@ import { desc, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { media, mediaAltTranslations } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
-import { isLocale } from "@/lib/i18n";
+import { isLocale, locales } from "@/lib/i18n";
 import { publicUrlFromMediaStorageKey } from "@/lib/media-public";
 
 export type MediaAdminRow = {
@@ -17,6 +17,13 @@ export type MediaAdminRow = {
   publicUrl: string;
   altByLocale: Record<Locale, string>;
 };
+
+function emptyAltByLocale(): Record<Locale, string> {
+  return Object.fromEntries(locales.map((l) => [l, ""])) as Record<
+    Locale,
+    string
+  >;
+}
 
 export async function listMediaForAdmin(): Promise<MediaAdminRow[]> {
   const items = await db
@@ -38,7 +45,7 @@ export async function listMediaForAdmin(): Promise<MediaAdminRow[]> {
 
   const altMap = new Map<string, Record<Locale, string>>();
   for (const id of ids) {
-    altMap.set(id, { me: "", en: "", ru: "", tr: "" });
+    altMap.set(id, emptyAltByLocale());
   }
   for (const r of altRows) {
     const loc = r.locale;
@@ -56,16 +63,16 @@ export async function listMediaForAdmin(): Promise<MediaAdminRow[]> {
     width: m.width,
     height: m.height,
     publicUrl: publicUrlFromMediaStorageKey(m.storageKey),
-    altByLocale: altMap.get(m.id) ?? {
-      me: "",
-      en: "",
-      ru: "",
-      tr: "",
-    },
+    altByLocale: altMap.get(m.id) ?? emptyAltByLocale(),
   }));
 }
 
-export type MediaOption = { id: string; label: string; url: string };
+export type MediaOption = {
+  id: string;
+  label: string;
+  url: string;
+  mimeType: string;
+};
 
 export async function listMediaOptions(): Promise<MediaOption[]> {
   const rows = await db
@@ -73,12 +80,14 @@ export async function listMediaOptions(): Promise<MediaOption[]> {
       id: media.id,
       filename: media.filename,
       storageKey: media.storageKey,
+      mimeType: media.mimeType,
     })
     .from(media)
     .orderBy(desc(media.createdAt));
   return rows.map((r) => ({
     id: r.id,
-    label: r.filename,
+    label: `${r.filename}${r.mimeType.startsWith("video/") ? " (video)" : ""}`,
     url: publicUrlFromMediaStorageKey(r.storageKey),
+    mimeType: r.mimeType,
   }));
 }

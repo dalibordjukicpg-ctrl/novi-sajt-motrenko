@@ -1,4 +1,5 @@
 import { HeroPageClient } from "@/app/admin/(authed)/content/hero/hero-page-client";
+import { AdminPageHeader } from "@/components/admin/admin-panel";
 import { buildSiteStringMatrix } from "@/lib/admin/build-site-matrix";
 import { listMediaOptions } from "@/lib/queries/media-admin";
 import { getSiteGlobalsRow } from "@/lib/queries/site-globals";
@@ -13,16 +14,11 @@ export default async function HeroContentPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-neutral-900">
-          Hero / baner
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-neutral-600">
-          Naslovi, podnaslov i tekstovi dugmadi na jezicima; desno uživo pregled
-          uz odabranu pozadinsku sliku.
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-8">
+      <AdminPageHeader
+        title="Hero baner"
+        description="Pozadina (slika, video, YouTube), naslovi i tekstovi dugmadi na četiri jezika. Desno uživo pregled dok uređujete tekst."
+      />
       <HeroPageClient matrix={matrix} globals={globals} media={media} />
     </div>
   );

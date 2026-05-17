@@ -1,20 +1,21 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import type { MySql2Database } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
+import type { Pool } from "mysql2/promise";
 
+import { createMysqlPoolUtf8mb4 } from "@/lib/create-mysql-pool";
 import { getDatabaseUrl } from "@/lib/database-url";
 
 import * as schema from "./schema";
 
 const globalForPool = globalThis as typeof globalThis & {
-  __dbPool?: mysql.Pool;
+  __dbPool?: Pool;
   __drizzle?: MySql2Database<typeof schema>;
 };
 
-function getPool(): mysql.Pool {
+function getPool(): Pool {
   const url = getDatabaseUrl();
   if (!globalForPool.__dbPool) {
-    globalForPool.__dbPool = mysql.createPool(url);
+    globalForPool.__dbPool = createMysqlPoolUtf8mb4(url);
   }
   return globalForPool.__dbPool;
 }

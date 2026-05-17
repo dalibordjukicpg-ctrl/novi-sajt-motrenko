@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { locales } from "@/lib/i18n";
+
 const slugSchema = z
   .string()
   .trim()
@@ -26,13 +28,14 @@ const coverIdSchema = z
     message: "Nevažeći ID medija",
   });
 
+const articleLocaleShape = Object.fromEntries(
+  locales.map((loc) => [loc, perLocaleSchema]),
+) as Record<(typeof locales)[number], typeof perLocaleSchema>;
+
 export const articleFormSchema = z.object({
   published: z.boolean(),
   coverMediaId: coverIdSchema,
-  me: perLocaleSchema,
-  en: perLocaleSchema,
-  ru: perLocaleSchema,
-  tr: perLocaleSchema,
+  ...articleLocaleShape,
 });
 
 export type ArticleFormValues = z.infer<typeof articleFormSchema>;

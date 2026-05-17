@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { getSession } from "@/lib/auth";
+import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   mediaAltTranslations,
@@ -12,7 +12,7 @@ import {
   siteLocaleStrings,
 } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
-import { isLocale } from "@/lib/i18n";
+import { isLocale, locales } from "@/lib/i18n";
 import { z } from "zod";
 
 import {
@@ -37,6 +37,7 @@ function uuidOrNull(raw: string): string | null {
 
 function revalidateAdminContent(): void {
   revalidatePath("/admin");
+  revalidatePath("/admin/content/header");
   revalidatePath("/admin/content/header-footer");
   revalidatePath("/admin/content/hero");
   revalidatePath("/admin/content/sections");
@@ -61,6 +62,9 @@ export async function saveSiteStringGroupAction(
 ): Promise<{ ok?: boolean; error?: string }> {
   const session = await getSession();
   if (!session) return { error: "Niste prijavljeni." };
+  if (!hasPermission(session.role, PERMISSIONS.SITE_CONTENT_MANAGE)) {
+    return { error: "Nemate dozvolu za izmjenu sadržaja." };
+  }
 
   const group = readGroup(formData);
   if (!group) return { error: "Nepoznata sekcija sadržaja." };
@@ -123,6 +127,13 @@ export async function saveSiteGlobalsAction(
 ): Promise<{ ok?: boolean; error?: string }> {
   const session = await getSession();
   if (!session) return { error: "Niste prijavljeni." };
+  if (!hasPermission(session.role, PERMISSIONS.SITE_CONTENT_MANAGE)) {
+    return { error: "Nemate dozvolu za ova podešavanja." };
+  }
+  const canIntegrations = hasPermission(
+    session.role,
+    PERMISSIONS.INTEGRATIONS_MANAGE,
+  );
 
   try {
     const cur = await getSiteGlobalsRow();
@@ -132,8 +143,18 @@ export async function saveSiteGlobalsAction(
       logoMediaId: cur?.logoMediaId ?? null,
       faviconMediaId: cur?.faviconMediaId ?? null,
       heroBgMediaId: cur?.heroBgMediaId ?? null,
+      heroBgExternalUrl: cur?.heroBgExternalUrl ?? null,
+      teamM1MediaId: cur?.teamM1MediaId ?? null,
+      teamM2MediaId: cur?.teamM2MediaId ?? null,
+      teamM3MediaId: cur?.teamM3MediaId ?? null,
+      teamM4MediaId: cur?.teamM4MediaId ?? null,
       analyticsHeadHtml: cur?.analyticsHeadHtml ?? "",
       analyticsBodyHtml: cur?.analyticsBodyHtml ?? "",
+      maintenanceEnabled: cur?.maintenanceEnabled ?? false,
+      maintenanceTitle: cur?.maintenanceTitle ?? null,
+      maintenanceMessage: cur?.maintenanceMessage ?? null,
+      maintenanceLogoMediaId: cur?.maintenanceLogoMediaId ?? null,
+      maintenanceBypassIps: cur?.maintenanceBypassIps ?? null,
       updatedAt: now,
     };
 
@@ -149,17 +170,61 @@ export async function saveSiteGlobalsAction(
       const v = String(formData.get("heroBgMediaId") ?? "");
       row.heroBgMediaId = uuidOrNull(v);
     }
-    if (formData.has("analyticsHeadHtml")) {
+    if (formData.has("heroBgExternalUrl")) {
+      const v = String(formData.get("heroBgExternalUrl") ?? "").trim();
+      row.heroBgExternalUrl = v.length > 0 ? v.slice(0, 512) : null;
+    }
+    if (formData.get("clearHeroBgExternal") === "1") {
+      row.heroBgExternalUrl = null;
+    }
+    if (formData.has("teamM1MediaId")) {
+      row.teamM1MediaId = uuidOrNull(String(formData.get("teamM1MediaId") ?? ""));
+    }
+    if (formData.has("teamM2MediaId")) {
+      row.teamM2MediaId = uuidOrNull(String(formData.get("teamM2MediaId") ?? ""));
+    }
+    if (formData.has("teamM3MediaId")) {
+      row.teamM3MediaId = uuidOrNull(String(formData.get("teamM3MediaId") ?? ""));
+    }
+    if (formData.has("teamM4MediaId")) {
+      row.teamM4MediaId = uuidOrNull(String(formData.get("teamM4MediaId") ?? ""));
+    }
+    if (formData.has("analyticsHeadHtml") && canIntegrations) {
       row.analyticsHeadHtml = String(formData.get("analyticsHeadHtml") ?? "").slice(
         0,
         50_000,
       );
     }
-    if (formData.has("analyticsBodyHtml")) {
+    if (formData.has("analyticsBodyHtml") && canIntegrations) {
       row.analyticsBodyHtml = String(formData.get("analyticsBodyHtml") ?? "").slice(
         0,
         50_000,
       );
+    }
+
+    const maintenanceFlags = formData
+      .getAll("maintenanceEnabled")
+      .map((v) => String(v));
+    if (maintenanceFlags.length > 0) {
+      row.maintenanceEnabled = maintenanceFlags.some(
+        (v) => v === "1" || v === "on",
+      );
+    }
+    if (formData.has("maintenanceTitle")) {
+      const t = String(formData.get("maintenanceTitle") ?? "").trim();
+      row.maintenanceTitle = t.length > 0 ? t.slice(0, 255) : null;
+    }
+    if (formData.has("maintenanceMessage")) {
+      const t = String(formData.get("maintenanceMessage") ?? "").trim();
+      row.maintenanceMessage = t.length > 0 ? t.slice(0, 8000) : null;
+    }
+    if (formData.has("maintenanceLogoMediaId")) {
+      const v = String(formData.get("maintenanceLogoMediaId") ?? "");
+      row.maintenanceLogoMediaId = uuidOrNull(v);
+    }
+    if (formData.has("maintenanceBypassIps")) {
+      const t = String(formData.get("maintenanceBypassIps") ?? "").trim();
+      row.maintenanceBypassIps = t.length > 0 ? t.slice(0, 8000) : null;
     }
 
     const [globalsExists] = await db
@@ -201,13 +266,16 @@ export async function saveSiteGlobalsFormAction(
   await saveSiteGlobalsAction(formData);
 }
 
-const ALT_RE = /^alt::([^:]+)::(me|en|ru|tr)$/;
+const ALT_RE = new RegExp(`^alt::([^:]+)::(${locales.join("|")})$`);
 
 export async function saveMediaAltTranslationsAction(
   formData: FormData,
 ): Promise<{ ok?: boolean; error?: string }> {
   const session = await getSession();
   if (!session) return { error: "Niste prijavljeni." };
+  if (!hasPermission(session.role, PERMISSIONS.MEDIA_MANAGE)) {
+    return { error: "Nemate dozvolu za alt tekstove." };
+  }
 
   const updates: { mediaId: string; locale: Locale; alt: string }[] = [];
 

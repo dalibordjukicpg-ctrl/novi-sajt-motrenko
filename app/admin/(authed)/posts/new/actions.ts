@@ -2,9 +2,11 @@
 
 import { randomUUID } from "crypto";
 
+import { assertContentMutationAllowed } from "@/lib/auth/content-access";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { postTranslations, posts } from "@/lib/db/schema";
+import { locales } from "@/lib/i18n";
 import { revalidateArticlePaths } from "@/lib/revalidate-content";
 import {
   articleFormSchema,
@@ -25,6 +27,16 @@ export async function createPostWithTranslations(
     return { ok: false, error: "Niste prijavljeni." };
   }
 
+  const gate = await assertContentMutationAllowed(
+    session,
+    "post",
+    undefined,
+    "create",
+  );
+  if (!gate.ok) {
+    return { ok: false, error: gate.error };
+  }
+
   const parsed = articleFormSchema.safeParse(raw);
   if (!parsed.success) {
     const first = parsed.error.flatten().fieldErrors;
@@ -39,15 +51,14 @@ export async function createPostWithTranslations(
   const coverMediaId =
     data.coverMediaId === "" ? null : data.coverMediaId;
 
-  const locales = ["me", "en", "ru", "tr"] as const;
-
   try {
     await db.transaction(async (tx) => {
-      await tx.insert(posts).values({
+        await tx.insert(posts).values({
         id: postId,
         published: data.published,
         publishedAt,
         coverMediaId,
+        contentRole: "blog",
         createdAt: now,
         updatedAt: now,
       });

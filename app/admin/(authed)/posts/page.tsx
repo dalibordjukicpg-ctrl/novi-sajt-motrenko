@@ -42,6 +42,10 @@ export default async function AdminPostsPage() {
                   </p>
                   <p className="mt-0.5 font-mono text-xs text-neutral-500">
                     {r.slugMe ?? "—"} ·{" "}
+                    <span className="text-neutral-600">
+                      {r.contentRole === "team" ? "tim" : "blog"}
+                    </span>{" "}
+                    ·{" "}
                     <span
                       className={
                         r.published ? "text-emerald-700" : "text-amber-700"

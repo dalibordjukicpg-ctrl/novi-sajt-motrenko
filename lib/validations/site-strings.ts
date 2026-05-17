@@ -21,7 +21,7 @@ const urlOrEmpty = z
 const textField = z.string().max(4000);
 
 function fieldSchemaForKey(key: SiteStringKey): z.ZodString {
-  if (key.startsWith("social.")) {
+  if (key.startsWith("social.") || key === "contact.maps_href") {
     return urlOrEmpty;
   }
   return textField;

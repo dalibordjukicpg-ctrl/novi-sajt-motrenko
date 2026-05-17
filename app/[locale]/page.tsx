@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 
 import { HomePageView } from "@/components/site/home-page";
 import { getDbConnectionUserMessage, isDbConnectionError } from "@/lib/db-errors";
+import { FALLBACK_HEADER_NAV, resolveHeaderNav } from "@/lib/fallback-header-nav";
 import { isLocale } from "@/lib/i18n";
 import { listPublishedSummaries } from "@/lib/queries/posts";
 import { getSiteLayoutData } from "@/lib/queries/site";
+import { resolveHeroBackgroundUrl } from "@/lib/fallback-hero-video";
 import { SITE_STRING_DEFAULTS } from "@/lib/site-fields";
 
 export const dynamic = "force-dynamic";
@@ -18,13 +20,16 @@ export default async function LocaleHomePage({ params }: Props) {
   let s = SITE_STRING_DEFAULTS[raw];
   let nav: Awaited<ReturnType<typeof getSiteLayoutData>>["nav"] = [];
   let heroBgUrl: string | null = null;
+  let teamHomePortraitUrls: string[] = [];
   try {
     const data = await getSiteLayoutData(raw);
     s = data.s;
     nav = data.nav;
-    heroBgUrl = data.heroBgUrl;
+    heroBgUrl = resolveHeroBackgroundUrl(data.heroBgUrl);
+    teamHomePortraitUrls = data.teamHomePortraitUrls;
   } catch (e) {
     console.error("[LocaleHomePage getSiteLayoutData]", e);
+    heroBgUrl = resolveHeroBackgroundUrl(null);
   }
 
   let posts: Awaited<ReturnType<typeof listPublishedSummaries>> = [];
@@ -40,15 +45,18 @@ export default async function LocaleHomePage({ params }: Props) {
     }
   }
 
+  const navResolved = resolveHeaderNav(nav.length > 0 ? nav : FALLBACK_HEADER_NAV);
+
   return (
-    <main>
+    <main className="flex flex-col">
       <HomePageView
         locale={raw}
         s={s}
-        nav={nav}
+        nav={navResolved}
         posts={posts}
         dbError={dbError}
         heroBgUrl={heroBgUrl}
+        teamHomePortraitUrls={teamHomePortraitUrls}
       />
     </main>
   );

@@ -8,6 +8,14 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      spacing: {
+        "section-y": "var(--site-section-py)",
+      },
+      boxShadow: {
+        "site-card": "var(--shadow-site-card)",
+        "site-card-lg": "var(--shadow-site-card-lg)",
+        "site-lift": "var(--shadow-site-lift)",
+      },
       keyframes: {
         "hero-drift": {
           "0%": { transform: "scale(1.08) translate(0, 0)" },
@@ -18,16 +26,37 @@ const config: Config = {
         "hero-drift": "hero-drift 28s ease-in-out infinite alternate",
       },
       fontFamily: {
-        sans: [
-          "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "Arial",
+        sans: ["var(--font-lora)", "Georgia", "Cambria", "serif"],
+        serif: ["var(--font-playfair)", "Georgia", "Cambria", "serif"],
+        "header-nav": [
+          "var(--font-header-nav)",
           "system-ui",
+          "Segoe UI",
           "sans-serif",
         ],
-        serif: ["Georgia", "Cambria", "Times New Roman", "serif"],
-      },    },
+      },
+      colors: {
+        site: {
+          canvas: "var(--site-canvas)",
+          "surface-a": "var(--site-surface-a)",
+          "surface-b": "var(--site-surface-b)",
+          "surface-c": "var(--site-surface-c)",
+          card: "var(--site-card)",
+          ink: "var(--site-ink)",
+          muted: "var(--site-muted)",
+          subtle: "var(--site-subtle)",
+          line: "var(--site-line)",
+          border: "var(--site-border)",
+          brand: "rgb(var(--site-brand-rgb) / <alpha-value>)",
+          "brand-solid": "var(--site-brand)",
+          "brand-hover": "var(--site-brand-hover)",
+          "brand-muted": "var(--site-brand-muted)",
+          "header-nav-light": "var(--site-header-nav-on-light)",
+          "header-hero": "rgb(var(--site-header-link-on-hero-rgb) / <alpha-value>)",
+          "header-caret": "var(--site-header-link-caret)",
+        },
+      },
+    },
   },
   plugins: [],
 };

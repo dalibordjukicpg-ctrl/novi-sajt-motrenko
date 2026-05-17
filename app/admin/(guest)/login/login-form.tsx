@@ -1,22 +1,17 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 
 import { loginAction, type LoginState } from "./actions";
 
 const initial: LoginState = { error: null };
 
-export function LoginForm() {
+export function LoginForm({ redirectTo = "/admin" }: { redirectTo?: string }) {
   const [state, formAction, pending] = useActionState(loginAction, initial);
-
-  useEffect(() => {
-    if (state.ok) {
-      window.location.assign("/admin");
-    }
-  }, [state.ok]);
 
   return (
     <form action={formAction} className="mx-auto mt-8 max-w-sm space-y-4">
+      <input type="hidden" name="redirect" value={redirectTo} />
       <div>
         <label
           htmlFor="email"

@@ -1,119 +1,128 @@
-import { saveNavLinkAction } from "@/app/admin/(authed)/site/actions";
+import Link from "next/link";
+
+import { createNavLinkAction } from "@/app/admin/(authed)/site/actions";
+import { AdminPageHeader, AdminPanel } from "@/components/admin/admin-panel";
+import { NavLinkRowForm } from "@/components/admin/nav-link-row-form";
 import { TabbedSiteStringsForm } from "@/components/admin/tabbed-site-strings-form";
 import { buildSiteStringMatrix } from "@/lib/admin/build-site-matrix";
-import type { Locale } from "@/lib/i18n";
-import { locales } from "@/lib/i18n";
+import { listSitePagesForAdmin } from "@/lib/queries/site-pages-admin";
 import { loadNavForAdmin } from "@/lib/queries/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function HeaderFooterContentPage() {
-  const [matrix, navRows] = await Promise.all([
+  const [matrix, navRows, pageOptions] = await Promise.all([
     buildSiteStringMatrix(),
     loadNavForAdmin(),
+    listSitePagesForAdmin(),
   ]);
 
+  const pageSelect = pageOptions.map((p) => ({
+    slug: p.slug,
+    titleMe: p.titleMe,
+  }));
+
+  const footerRows = navRows.filter((r) => r.placement === "footer");
+
   return (
-    <div className="mx-auto max-w-6xl space-y-12">
-      <div>
-        <h1 className="text-2xl font-semibold text-neutral-900">
-          Header i footer
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-neutral-600">
-          Brend, kontakt, footer tekstovi i linkovi društvenih mreža — kartice{" "}
-          <strong>MNE · EN · RU · TR</strong> unutar jedne forme. Ispod: URL-i i
-          nazivi stavki menija.
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-8">
+      <AdminPageHeader
+        title="Footer i kontakt"
+        description="Brend, kontakt podaci, tekstovi u podnožju i linkovi u kolonama. Za gornji meni koristite Header."
+      >
+        <Link
+          href="/admin/content/header"
+          className="rounded-lg border border-[#eadfce] bg-white px-4 py-2 text-sm font-medium text-[#5c4f44] hover:bg-[#fff9f5]"
+        >
+          Header navigacija
+        </Link>
+      </AdminPageHeader>
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-neutral-900">
-          Tekstovi i kontakt
-        </h2>
-        <p className="mt-1 text-sm text-neutral-600">
-          Sačuvaj jednom za sve jezike; grla polja sadrže http(s) URL (Facebook,
-          Instagram, LinkedIn).
-        </p>
-        <div className="mt-6">
-          <TabbedSiteStringsForm group="headerFooter" matrix={matrix} />
+      <AdminPanel title="Tekstovi i kontakt">
+        <TabbedSiteStringsForm group="headerFooter" matrix={matrix} />
+      </AdminPanel>
+
+      <AdminPanel
+        title="Navigacija — footer (kolone)"
+        description="Broj kolone (1–4) grupiše linkove. Preporuka: kolona 1 „O nama”, 2 „Usluge” itd."
+      >
+        <div className="space-y-6">
+          {footerRows.length === 0 ? (
+            <p className="text-sm text-[#6b5f54]">
+              Još nema footer stavki. Dodajte prvu ispod.
+            </p>
+          ) : (
+            footerRows.map((r) => (
+              <NavLinkRowForm
+                key={r.linkId}
+                href={r.href}
+                linkId={r.linkId}
+                sortOrder={r.sortOrder}
+                visible={r.visible}
+                placement="footer"
+                footerColumn={r.footerColumn}
+                labels={r.labels}
+                pageOptions={pageSelect}
+              />
+            ))
+          )}
         </div>
-      </section>
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-neutral-900">
-          Navigacija (header)
-        </h2>
-        <p className="mt-1 text-sm text-neutral-600">
-          Linkovi sa <code className="rounded bg-neutral-100 px-1">#</code>{" "}
-          vode na odlomak na početnoj. Isto polje URL koristi javni sajt.
-        </p>
-        <div className="mt-6 space-y-6">
-          {navRows.map((r) => (
-            <form
-              key={r.linkId}
-              action={saveNavLinkAction}
-              className="rounded-lg border border-neutral-100 bg-neutral-50/50 p-4"
-            >
-              <input type="hidden" name="linkId" value={r.linkId} />
-              <div className="flex flex-wrap items-end gap-4">
-                <label className="block min-w-[200px] flex-1 text-sm">
-                  <span className="font-medium text-neutral-700">
-                    URL / sidro
-                  </span>
-                  <input
-                    name="href"
-                    defaultValue={r.href}
-                    className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2"
-                  />
-                </label>
-                <label className="block w-28 text-sm">
-                  <span className="font-medium text-neutral-700">Redosled</span>
-                  <input
-                    name="sortOrder"
-                    type="number"
-                    defaultValue={r.sortOrder}
-                    className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2"
-                  />
-                </label>
-                <label className="flex items-center gap-2 pb-2 text-sm">
-                  <input
-                    type="checkbox"
-                    name="visible"
-                    defaultChecked={r.visible}
-                    className="rounded border-neutral-300"
-                  />
-                  Vidljivo
-                </label>
-                <button
-                  type="submit"
-                  className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-                >
-                  Sačuvaj stavku
-                </button>
-              </div>
-              {r.parentId && (
-                <p className="mt-2 text-xs text-neutral-500">
-                  Podstavka (parent u bazi)
-                </p>
-              )}
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {locales.map((loc) => (
-                  <label key={loc} className="block text-sm">
-                    <span className="font-medium text-neutral-700">
-                      Naziv ({loc})
-                    </span>
-                    <input
-                      name={`label_${r.linkId}_${loc}`}
-                      defaultValue={r.labels[loc as Locale]}
-                      className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2"
-                    />
-                  </label>
+        <form
+          action={createNavLinkAction}
+          className="mt-8 rounded-xl border border-dashed border-[#e8d9ca] bg-[#fff9f5]/80 p-4"
+        >
+          <input type="hidden" name="placement" value="footer" />
+          <p className="text-sm font-medium text-[#3d342c]">Nova stavka (footer)</p>
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <label className="text-sm">
+              <span className="text-[#6b5f54]">Kolona</span>
+              <select
+                name="footerColumn"
+                className="mt-1 rounded-lg border border-[#eadfce] bg-white px-3 py-2"
+                defaultValue="1"
+              >
+                {[1, 2, 3, 4].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
                 ))}
-              </div>
-            </form>
-          ))}
-        </div>
-      </section>
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="text-[#6b5f54]">URL</span>
+              <input
+                name="href"
+                defaultValue="/s/"
+                className="mt-1 min-w-[180px] rounded-lg border border-[#eadfce] bg-white px-3 py-2"
+              />
+            </label>
+            <label className="text-sm">
+              <span className="text-[#6b5f54]">Redosled</span>
+              <input
+                name="sortOrder"
+                type="number"
+                defaultValue={footerRows.length + 1}
+                className="mt-1 w-24 rounded-lg border border-[#eadfce] bg-white px-3 py-2"
+              />
+            </label>
+            <label className="text-sm">
+              <span className="text-[#6b5f54]">Naziv</span>
+              <input
+                name="defaultLabel"
+                defaultValue="Link"
+                className="mt-1 rounded-lg border border-[#eadfce] bg-white px-3 py-2"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-lg bg-[#f37021] px-4 py-2 text-sm font-medium text-white hover:bg-[#e0651c]"
+            >
+              Dodaj footer link
+            </button>
+          </div>
+        </form>
+      </AdminPanel>
     </div>
   );
 }

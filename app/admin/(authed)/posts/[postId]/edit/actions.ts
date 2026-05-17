@@ -2,9 +2,11 @@
 
 import { and, eq } from "drizzle-orm";
 
+import { assertContentMutationAllowed } from "@/lib/auth/content-access";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { postTranslations, posts } from "@/lib/db/schema";
+import { locales } from "@/lib/i18n";
 import { revalidateArticlePaths } from "@/lib/revalidate-content";
 import {
   articleFormSchema,
@@ -24,6 +26,16 @@ export async function updatePostWithTranslations(
   const session = await getSession();
   if (!session) {
     return { ok: false, error: "Niste prijavljeni." };
+  }
+
+  const gate = await assertContentMutationAllowed(
+    session,
+    "post",
+    postId,
+    "update",
+  );
+  if (!gate.ok) {
+    return { ok: false, error: gate.error };
   }
 
   const parsed = articleFormSchema.safeParse(raw);
@@ -55,8 +67,6 @@ export async function updatePostWithTranslations(
   if (!data.published) {
     publishedAt = null;
   }
-
-  const locales = ["me", "en", "ru", "tr"] as const;
 
   try {
     await db.transaction(async (tx) => {

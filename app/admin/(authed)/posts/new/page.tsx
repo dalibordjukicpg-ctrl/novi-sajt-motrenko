@@ -21,8 +21,7 @@ export default async function AdminNewPostPage() {
           Novi članak
         </h1>
         <p className="mt-1 text-sm text-neutral-600">
-          Jedan zapis u bazi: zajednički post i po jedan prevod (slug, naslov,
-          tekst) za me, en, ru, tr.
+          Jedan zapis u bazi: zajednički post i sadržaj na crnogorskom (MNE).
         </p>
       </div>
       <CreateArticleForm mediaOptions={mediaOptions} />

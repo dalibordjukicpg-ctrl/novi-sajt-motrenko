@@ -18,9 +18,6 @@ import {
 
 const LOCALE_TAB_LABEL: Record<Locale, string> = {
   me: "MNE",
-  en: "EN",
-  ru: "RU",
-  tr: "TR",
 };
 
 function initDraft(
@@ -103,47 +100,77 @@ export function TabbedSiteStringsForm({
             </p>
           )}
 
-          <Tabs
-            value={activeLocale}
-            onValueChange={(v) => {
-              if (locales.includes(v as Locale)) setActiveLocale(v as Locale);
-            }}
-            className="w-full"
-          >
-            <TabsList className="flex h-auto min-h-10 w-full flex-wrap">
-              {locales.map((loc) => (
-                <TabsTrigger key={loc} value={loc} className="flex-1">
-                  {LOCALE_TAB_LABEL[loc]}
-                </TabsTrigger>
+          {locales.length === 1 ? (
+            <div className="space-y-4">
+              {keys.map((key) => (
+                <label key={key} className="block text-sm">
+                  <span className="font-medium text-neutral-700">
+                    {SITE_STRING_LABELS[key]}
+                  </span>
+                  <span className="ml-2 font-mono text-xs text-neutral-400">
+                    {key}
+                  </span>
+                  <textarea
+                    name={`${locales[0]}::${key}`}
+                    rows={key.startsWith("social.") ? 2 : 4}
+                    value={draft[key][locales[0]]}
+                    onChange={(ev) => {
+                      setDraft((prev) => ({
+                        ...prev,
+                        [key]: {
+                          ...prev[key],
+                          [locales[0]]: ev.target.value,
+                        },
+                      }));
+                    }}
+                    className="mt-1 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
+                  />
+                </label>
               ))}
-            </TabsList>
-            {locales.map((loc) => (
-              <TabsContent key={loc} value={loc} className="space-y-4">
-                {keys.map((key) => (
-                  <label key={key} className="block text-sm">
-                    <span className="font-medium text-neutral-700">
-                      {SITE_STRING_LABELS[key]}
-                    </span>
-                    <span className="ml-2 font-mono text-xs text-neutral-400">
-                      {key}
-                    </span>
-                    <textarea
-                      name={`${loc}::${key}`}
-                      rows={key.startsWith("social.") ? 2 : 4}
-                      value={draft[key][loc]}
-                      onChange={(ev) => {
-                        setDraft((prev) => ({
-                          ...prev,
-                          [key]: { ...prev[key], [loc]: ev.target.value },
-                        }));
-                      }}
-                      className="mt-1 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
-                    />
-                  </label>
+            </div>
+          ) : (
+            <Tabs
+              value={activeLocale}
+              onValueChange={(v) => {
+                if (locales.includes(v as Locale)) setActiveLocale(v as Locale);
+              }}
+              className="w-full"
+            >
+              <TabsList className="flex h-auto min-h-10 w-full flex-wrap">
+                {locales.map((loc) => (
+                  <TabsTrigger key={loc} value={loc} className="flex-1">
+                    {LOCALE_TAB_LABEL[loc]}
+                  </TabsTrigger>
                 ))}
-              </TabsContent>
-            ))}
-          </Tabs>
+              </TabsList>
+              {locales.map((loc) => (
+                <TabsContent key={loc} value={loc} className="space-y-4">
+                  {keys.map((key) => (
+                    <label key={key} className="block text-sm">
+                      <span className="font-medium text-neutral-700">
+                        {SITE_STRING_LABELS[key]}
+                      </span>
+                      <span className="ml-2 font-mono text-xs text-neutral-400">
+                        {key}
+                      </span>
+                      <textarea
+                        name={`${loc}::${key}`}
+                        rows={key.startsWith("social.") ? 2 : 4}
+                        value={draft[key][loc]}
+                        onChange={(ev) => {
+                          setDraft((prev) => ({
+                            ...prev,
+                            [key]: { ...prev[key], [loc]: ev.target.value },
+                          }));
+                        }}
+                        className="mt-1 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
+                      />
+                    </label>
+                  ))}
+                </TabsContent>
+              ))}
+            </Tabs>
+          )}
 
           <button
             type="submit"

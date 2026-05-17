@@ -2,34 +2,333 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Medicinska paleta (dostupna u cijelom projektu). */
+/* ─── Javni sajt: premium IVF / ivory editorial — centralni design tokens ─── */
 :root {
-  --med-bg: #fafafa;
-  --med-blue: #eef2ff;
-  --med-gray: #f1f5f9;
+  /* Palette */
+  --site-canvas:    #fdf9f5;
+  --site-surface-a: #faf6f0;
+  --site-surface-b: #f5ede3;
+  --site-surface-c: #ffffff;
+  --site-card:      #ffffff;
+
+  /* Brand */
+  --site-brand:        #e8682a;
+  --site-brand-rgb:    232 104 42;
+  --site-brand-hover:  #d05c22;
+  --site-brand-muted:  #c05018;
+  --site-brand-ambient: rgb(var(--site-brand-rgb) / 0.07);
+
+  /* Peach glow — boja embriona sa slike */
+  --site-peach:     #f2d4be;
+  --site-peach-rgb: 242 212 190;
+
+  /* Tekst */
+  --site-ink:    #1c1917;
+  --site-muted:  #57534e;
+  --site-subtle: #78716c;
+
+  /* Header — čitljivost: na bijelom tamni tekst; na herou bijelo + jedna suptilna senka. */
+  --site-header-nav-on-light: color-mix(in srgb, var(--site-ink) 94%, var(--site-brand-muted) 6%);
+  --site-header-link-on-hero-rgb: 255 255 255;
+
+  --site-header-link-caret: var(--site-muted);
+
+  /* Borders / lines — vrlo suptilno da nema „šavova“ pri skrolu */
+  --site-border: rgb(30 20 10 / 0.035);
+  --site-line:   rgb(30 20 10 / 0.04);
+
+  /* Spacing — smanjen sa clamp(4rem...) na kompaktnije */
+  --site-section-py: clamp(2.5rem, 5vw, 3.75rem);
+
+  /* Shadows */
+  --shadow-site-card:    0 4px 20px rgba(0,0,0,0.05), 0 20px 60px rgba(0,0,0,0.04);
+  --shadow-site-card-lg: 0 6px 28px rgba(0,0,0,0.06), 0 24px 64px rgba(0,0,0,0.05);
+  --shadow-site-lift:    0 8px 32px -4px rgba(232,104,42,0.15), 0 24px 60px rgba(0,0,0,0.08);
+
+  /*
+   * ── Glass card sistem ──────────────────────────────────────────────────────
+   * GDJE KONTROLISATI:
+   *   • Vidljivost kartice   → --glass-bg alpha (0.88 = vidljivo, 0.60 = prozirno)
+   *   • Granica kartice      → --glass-border (rgba vrijednost)
+   *   • Sjena (floating)     → --glass-shadow
+   *   • Blur intenzitet      → u .site-card-glass { backdrop-filter: blur(Xpx) }
+   */
+  --glass-bg:     rgba(255, 255, 255, 0.88);
+  --glass-border: rgba(255, 255, 255, 0.70);
+  /* Sjena: kombinacija mekanog dna + vrhova bijelog refleksa + bočnog peach glowa */
+  --glass-shadow:
+    0 2px 0 rgba(255,255,255,0.95) inset,
+    0 20px 60px rgba(0,0,0,0.05),
+    0 4px 16px rgba(0,0,0,0.04),
+    0 0 0 1px rgba(180,160,140,0.12);
+
+  /* Kompatibilnost */
+  --med-bg:   var(--site-canvas);
+  --med-blue: var(--site-surface-a);
+  --med-gray: var(--site-surface-b);
 }
 
 html {
   min-height: 100%;
-  background-color: var(--med-gray);
+  min-height: 100dvh;
+  scroll-behavior: smooth;
+  /* Izbjegava neželjeno uvećanje teksta u landscape na iOS */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: 4.5rem;
+  isolation: isolate;
 }
 
 body {
   margin: 0;
-  background: var(--med-bg);
+  position: relative;
+  z-index: 0;
+  color: var(--site-ink);
+  -webkit-font-smoothing: antialiased;
+  /* Transparentno — GlobalBackdrop renderuje pozadinu iza svega */
+  background: transparent;
+  /* iOS/Android: suptilan tap highlight u tonu brenda */
+  -webkit-tap-highlight-color: rgb(232 104 42 / 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  opacity: 0;
+}
+
+.fade-in.is-visible {
+  animation: fade-up 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    opacity: 1;
+    transform: none;
+  }
+  .fade-in.is-visible {
+    animation: none;
+  }
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+section,
+footer,
+header,
+main {
+  width: 100%;
+  max-width: 100vw;
+}
+
+@layer components {
+  /* ── Sekcija osnova ── */
+  .site-section {
+    position: relative;
+    isolation: isolate;
+  }
+
+  /*
+   * ── Mekani prelaz između sekcija ─────────────────────────────────────────
+   * ::before i ::after na svakoj sekciji stvaraju gradient fade koji pokriva
+   * oštru granicu tamo gdje kartica jedne sekcije završava i sljedeća počinje.
+   * Mijenjajte visinu (140px) za jači/slabiji fade efekat.
+   */
+  .site-section::before,
+  .site-section::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 140px;
+    z-index: 0;
+  }
+
+  .site-section::before {
+    top: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 252, 248, 0.72) 0%,
+      rgba(255, 250, 245, 0.36) 45%,
+      transparent 100%
+    );
+  }
+
+  .site-section::after {
+    bottom: 0;
+    background: linear-gradient(
+      to top,
+      rgba(255, 252, 248, 0.72) 0%,
+      rgba(255, 250, 245, 0.36) 45%,
+      transparent 100%
+    );
+  }
+
+  .site-section-edge {
+    /* bez box-shadow linije — sekcije se besprijekorno stapaju */
+  }
+
+  /* ── Klasične kartice ── */
+  .site-card-elevated {
+    background: var(--site-card);
+    border-radius: 1rem;
+    border: 1px solid var(--site-border);
+    box-shadow: var(--shadow-site-card);
+  }
+
+  .site-card-elevated-lg {
+    background: var(--site-card);
+    border-radius: 1.25rem;
+    border: 1px solid var(--site-border);
+    box-shadow: var(--shadow-site-card-lg);
+  }
+
+  /*
+   * ── Glass-morphism kartica (IVF premium stil) ──────────────────────────
+   * KONTROLA INTENZITETA — sve ovdje:
+   *   • blur(16px)       → blur intenzitet (8px = suptilno, 24px = jako)
+   *   • border-radius    → zaobljenost (1.25rem = 20px, 1.5rem = 24px)
+   *   • translateY(-4px) → visina hover "lebdenja"
+   *   • transition 0.35s → brzina animacije
+   */
+  .site-card-glass {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border-radius: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.70);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.95) inset,
+      0 20px 60px rgba(0,0,0,0.05),
+      0 4px 16px rgba(0,0,0,0.04),
+      0 0 0 1px rgba(180,160,140,0.12);
+    transition: all 0.35s ease;
+  }
+
+  .site-card-glass:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.95) inset,
+      0 28px 70px rgba(0,0,0,0.07),
+      0 8px 24px rgba(0,0,0,0.05),
+      0 0 0 1px rgba(232,104,42,0.18);
+  }
+
+  /* Veća varijanta — za portret kartice (tim) */
+  .site-card-glass-lg {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.70);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.95) inset,
+      0 20px 60px rgba(0,0,0,0.05),
+      0 4px 16px rgba(0,0,0,0.04),
+      0 0 0 1px rgba(180,160,140,0.12);
+  }
+
+  /* ── Ambient orbs ── */
+  .site-ambient-orb {
+    pointer-events: none;
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(90px);
+    background: rgb(var(--site-brand-rgb) / 0.055);
+  }
+
+  .site-ambient-orb-warm {
+    pointer-events: none;
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(100px);
+    background: radial-gradient(
+      circle,
+      rgb(var(--site-peach-rgb) / 0.45) 0%,
+      rgb(var(--site-brand-rgb) / 0.08) 50%,
+      transparent 75%
+    );
+  }
+
+  /*
+   * ── Section scrim (staklo koje propušta backdrop) ──────────────────────
+   * Koristite na <section> elementima da backdrop "probija" kroz sekcije.
+   * Mijenjajte --section-scrim-opacity (0.0 = potpuno proziran, 1.0 = bijela)
+   */
+  /*
+   * Scrim koji se stapa sa susjednim sekcijama — nema vidljivih linija.
+   * transparent na 0% i 100% = nema oštrog ruba.
+   * Mijenjajte srednju alpha vrijednost za jači/slabiji efekat:
+   *   0.40 = suptilno, 0.65 = jako pokrivena sekcija
+   */
+  /*
+   * Sekcije su potpuno transparentne — GlobalBackdrop prolazi kroz sve.
+   * Više nema lokalnih gradienata koji prave vidljive "šavove" između sekcija.
+   */
+  .site-section-scrim {
+    background: transparent;
+  }
+
+  .site-section-scrim-md {
+    background: transparent;
+  }
+
+  /* ── CTA glow dugme ── */
+  .site-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #f0773a 0%, var(--site-brand) 100%);
+    color: #fff;
+    border-radius: 0.45rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    box-shadow:
+      0 6px 24px -4px rgb(var(--site-brand-rgb) / 0.38),
+      0 2px 8px -2px rgb(var(--site-brand-rgb) / 0.18);
+    transition: box-shadow 0.3s ease, filter 0.3s ease, transform 0.25s ease;
+  }
+
+  .site-btn-primary:hover {
+    filter: brightness(1.06);
+    box-shadow:
+      0 10px 32px -4px rgb(var(--site-brand-rgb) / 0.48),
+      0 4px 12px -2px rgb(var(--site-brand-rgb) / 0.24);
+    transform: translateY(-1px);
+  }
 }
 
 /* Fiksna medicinska pozadina — čisti CSS (uvijek vidljivo i animirano, bez Framer-a). */
 .medical-bg-root {
-  background-color: color-mix(in srgb, var(--med-blue) 22%, var(--med-bg));
+  background-color: color-mix(in srgb, var(--site-surface-a) 72%, var(--site-canvas));
 }
 
-/* Sitna zrnatost kao na kvalitetnom medicinskom papiru (SVG feTurbulence, ponavlja se). */
+/* Sitna zrnatost (dublji sloj uz body::before) */
 .site-paper-grain {
   z-index: 2;
   pointer-events: none;
-  /* soft-light: vidljivo na #fafafa; multiply na bijelom gotovo nestaje */
-  opacity: 0.14;
+  opacity: 0.11;
   mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='a' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E");
   background-repeat: repeat;
@@ -38,7 +337,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .site-paper-grain {
-    opacity: 0.1;
+    opacity: 0.08;
   }
 }
 
@@ -146,4 +445,201 @@ body {
   .medical-blob-e {
     animation: none !important;
   }
+}
+
+/* ─── Javni CMS sadržaj (WordPress / TipTap) — motrenko stil ─── */
+.wp-content h1,
+.wp-content h2,
+.wp-content h3 {
+  font-family: var(--font-playfair), Georgia, serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--site-brand) !important;
+}
+
+.wp-content h2 {
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  /* Bez border-top — na dužim stranicama pravi vidljivu „šav“ liniju pri skrolu */
+  margin-top: 2.75rem;
+  margin-bottom: 1rem;
+  padding-top: 0;
+}
+
+.wp-content > h2:first-child {
+  margin-top: 0;
+}
+
+.wp-content h3 {
+  font-size: clamp(1.25rem, 2vw, 1.85rem);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.wp-content h1 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.wp-content h4 {
+  font-family: var(--font-lora), Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--site-ink);
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.wp-content p {
+  font-size: 1rem;
+  line-height: 1.9;
+  color: #3f3f46;
+  margin-bottom: 1.4rem;
+}
+
+.wp-content > p:first-of-type {
+  font-size: 1.08rem;
+  color: #27272a;
+  line-height: 1.95;
+}
+
+.wp-content ul {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 1.5rem;
+  color: #3f3f46;
+}
+
+.wp-content ul li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  line-height: 1.8;
+  margin-bottom: 0.5rem;
+}
+
+.wp-content ul li::before {
+  content: "";
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--site-brand);
+  margin-top: 0.5rem;
+}
+
+.wp-content a {
+  color: var(--site-brand);
+  text-decoration: none;
+  border-bottom: 1px solid rgb(var(--site-brand-rgb) / 0.14);
+}
+
+.wp-content a:hover {
+  border-bottom-color: rgb(var(--site-brand-rgb) / 0.45);
+}
+
+.wp-content figure {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.04);
+  border: 1px solid rgb(30 20 10 / 0.04);
+}
+
+.wp-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 1rem;
+  margin: 2rem 0;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.04);
+  border: 1px solid rgb(30 20 10 / 0.04);
+}
+
+/* Tim profil: jedan portret lijevo — tijelo bez duplog prvog bloka; čitljiv tekst pored */
+.wp-content.wp-content--team-profile > *:first-child {
+  margin-top: 0 !important;
+}
+
+.wp-content.wp-content--team-profile > p:first-of-type {
+  font-size: 1.1rem;
+  color: #27272a;
+  line-height: 1.85;
+}
+
+/*
+ * Tim + naslovna fotografija: portret je lijevo — u tijelu sakrij ubačene slike (duplikati,
+ * lazy URL, WP blokovi) jer se i dalje renderuju iz HTML-a.
+ */
+.wp-content.wp-content--team-profile--has-cover img,
+.wp-content.wp-content--team-profile--has-cover picture {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  visibility: hidden !important;
+}
+
+.wp-content.wp-content--team-profile--has-cover figure,
+.wp-content.wp-content--team-profile--has-cover .wp-block-image,
+.wp-content.wp-content--team-profile--has-cover .wp-caption {
+  display: none !important;
+}
+
+/* Bočni „O nama“ panel — liste (npr. tim) kao na referentnom layoutu */
+.wp-content.wp-content--inner-panel ul {
+  margin-bottom: 0;
+}
+
+.wp-content.wp-content--inner-panel ul li {
+  display: block;
+  border-bottom: 0;
+  padding: 0.85rem 0;
+  margin-bottom: 0;
+}
+
+.wp-content.wp-content--inner-panel ul li::before {
+  display: none;
+}
+
+.wp-content.wp-content--inner-panel ul li:last-child {
+  border-bottom: 0;
+}
+
+.wp-content.wp-content--inner-panel strong {
+  color: var(--site-brand);
+  font-weight: 600;
+}
+
+/* TipTap / CMS editor i HTML pregled */
+.prose-article p {
+  margin: 0.5rem 0;
+}
+.prose-article p:first-child {
+  margin-top: 0;
+}
+.prose-article ul,
+.prose-article ol {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+.prose-article h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+.prose-article h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0.35rem;
+}
+.prose-article a {
+  color: var(--site-brand-muted);
+  text-decoration: underline;
+}
+.prose-article img {
+  max-width: 100%;
+  border-radius: 0.5rem;
 }

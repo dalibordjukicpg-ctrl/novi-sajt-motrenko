@@ -1,42 +1,48 @@
 "use client";
 
-import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import {
   useForm,
   type FieldErrors,
   type UseFormRegister,
+  type UseFormSetValue,
+  type UseFormWatch,
 } from "react-hook-form";
 
+import { CoverMediaField } from "@/components/admin/cover-media-field";
+import { TiptapEditor } from "@/components/admin/tiptap-editor";
 import type { MediaOption } from "@/lib/queries/media-admin";
+import type { Locale } from "@/lib/i18n";
+import { locales } from "@/lib/i18n";
 import {
   articleFormSchema,
   type ArticleFormValues,
   type ArticleMutationResult,
 } from "@/lib/validations/article";
 
-const localeLabels: Record<
-  keyof Pick<ArticleFormValues, "me" | "en" | "ru" | "tr">,
-  string
-> = {
-  me: "Crnogorski (me)",
-  en: "Engleski (en)",
-  ru: "Ruski (ru)",
-  tr: "Turski (tr)",
-};
+const localeLabels = {
+  me: "Crnogorski (MNE)",
+} satisfies Record<Locale, string>;
 
 function LocaleFields({
   locale,
   label,
   register,
   errors,
+  setValue,
+  watch,
+  mediaOptions,
 }: {
-  locale: keyof typeof localeLabels;
+  locale: Locale;
   label: string;
   register: UseFormRegister<ArticleFormValues>;
   errors: FieldErrors<ArticleFormValues>;
+  setValue: UseFormSetValue<ArticleFormValues>;
+  watch: UseFormWatch<ArticleFormValues>;
+  mediaOptions: MediaOption[];
 }) {
+  const bodyHtml = watch(`${locale}.body`) ?? "";
   const e = errors[locale];
   const fieldClass =
     "mt-1 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm outline-none transition focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800";
@@ -83,11 +89,17 @@ function LocaleFields({
           <label className="text-xs font-medium uppercase tracking-wider text-neutral-500">
             Tijelo (opciono)
           </label>
-          <textarea
-            rows={10}
-            className={fieldClass}
-            {...register(`${locale}.body`)}
-          />
+          <div className="mt-1">
+            <TiptapEditor
+              initialHtml={bodyHtml}
+              mediaOptions={mediaOptions}
+              placeholder="Tekst članka…"
+              onHtmlChange={(html) =>
+                setValue(`${locale}.body`, html, { shouldDirty: true })
+              }
+            />
+          </div>
+          <input type="hidden" {...register(`${locale}.body`)} />
         </div>
         <div>
           <label className="text-xs font-medium uppercase tracking-wider text-neutral-500">
@@ -134,6 +146,7 @@ export function ArticleEditorForm({
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ArticleFormValues>({
     resolver: zodResolver(articleFormSchema),
@@ -142,10 +155,6 @@ export function ArticleEditorForm({
   });
 
   const coverId = watch("coverMediaId");
-  const coverPreview = useMemo(() => {
-    if (!coverId) return null;
-    return mediaOptions.find((m) => m.id === coverId)?.url ?? null;
-  }, [coverId, mediaOptions]);
   const submit = (data: ArticleFormValues) => {
     setServerError(null);
     setBanner(null);
@@ -178,56 +187,25 @@ export function ArticleEditorForm({
         </label>
       </div>
 
-      <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-neutral-900">
-          Naslovna slika (lista novosti)
-        </h3>
-        <p className="mt-1 text-xs text-neutral-600">
-          Prikazuje se na početnoj stranici. Otpremi sliku u{" "}
-          <Link
-            href="/admin/media"
-            className="font-medium text-teal-800 underline"
-          >
-            Mediji
-          </Link>
-          .
-        </p>
-        <select
-          className="mt-3 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
-          {...register("coverMediaId")}
-        >
-          <option value="">Bez slike</option>
-          {mediaOptions.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-        {errors.coverMediaId && (
-          <p className="mt-1 text-xs text-red-600">
-            {errors.coverMediaId.message}
-          </p>
-        )}
-        {coverPreview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={coverPreview}
-            alt=""
-            className="mt-4 max-h-40 w-full max-w-md rounded-lg border border-neutral-200 object-cover"
-          />
-        ) : null}
-      </div>
-      {(Object.keys(localeLabels) as (keyof typeof localeLabels)[]).map(
-        (loc) => (
-          <LocaleFields
-            key={loc}
-            locale={loc}
-            label={localeLabels[loc]}
-            register={register}
-            errors={errors}
-          />
-        ),
-      )}
+      <CoverMediaField
+        mediaOptions={mediaOptions}
+        value={coverId ?? ""}
+        onChange={(id) => setValue("coverMediaId", id, { shouldDirty: true })}
+        error={errors.coverMediaId?.message}
+      />
+      <input type="hidden" {...register("coverMediaId")} />
+      {locales.map((loc) => (
+        <LocaleFields
+          key={loc}
+          locale={loc}
+          label={localeLabels[loc]}
+          register={register}
+          errors={errors}
+          setValue={setValue}
+          watch={watch}
+          mediaOptions={mediaOptions}
+        />
+      ))}
 
       {serverError && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">

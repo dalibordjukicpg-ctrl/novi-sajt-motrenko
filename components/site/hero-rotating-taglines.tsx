@@ -8,6 +8,8 @@ type Props = {
   lines: string[];
   intervalMs?: number;
   className?: string;
+  /** `onDark` — bijeli / svijetli gradijent za tamnu hero pozadinu. */
+  variant?: "default" | "onDark";
 };
 
 /** Rotirajući naslovi u stilu embryolab.eu — suptilan crossfade / vertikalni pomičaj. */
@@ -15,6 +17,7 @@ export function HeroRotatingTaglines({
   lines,
   intervalMs = 5200,
   className,
+  variant = "default",
 }: Props) {
   const filtered = lines.map((l) => l.trim()).filter(Boolean);
   const [index, setIndex] = useState(0);
@@ -42,6 +45,17 @@ export function HeroRotatingTaglines({
 
   const active = reduceMotion ? 0 : index;
 
+  const spanClass =
+    variant === "onDark"
+      ? "absolute left-0 top-0 block max-w-3xl bg-gradient-to-r from-white via-white to-orange-200 bg-clip-text text-transparent transition-all duration-700 ease-out motion-reduce:transition-none"
+      : "absolute left-0 top-0 block max-w-3xl bg-gradient-to-r from-orange-800 to-orange-600 bg-clip-text text-transparent transition-all duration-700 ease-out motion-reduce:transition-none";
+
+  const dotActive = variant === "onDark" ? "w-8 bg-orange-400" : "w-8 bg-orange-600";
+  const dotIdle =
+    variant === "onDark"
+      ? "w-1.5 bg-white/35 hover:bg-white/55"
+      : "w-1.5 bg-slate-300 hover:bg-slate-400";
+
   return (
     <div className={cn("mt-1", className)}>
       <p
@@ -53,7 +67,7 @@ export function HeroRotatingTaglines({
           <span
             key={`${i}-${line.slice(0, 24)}`}
             className={cn(
-              "absolute left-0 top-0 block max-w-3xl bg-gradient-to-r from-teal-800 to-teal-600 bg-clip-text text-transparent transition-all duration-700 ease-out motion-reduce:transition-none",
+              spanClass,
               i === active
                 ? "translate-y-0 opacity-100"
                 : "pointer-events-none translate-y-2 opacity-0",
@@ -78,9 +92,7 @@ export function HeroRotatingTaglines({
               aria-label={`Poruka ${i + 1} od ${filtered.length}`}
               className={cn(
                 "h-1.5 rounded-full transition-all duration-300",
-                i === active
-                  ? "w-8 bg-teal-600"
-                  : "w-1.5 bg-slate-300 hover:bg-slate-400",
+                i === active ? dotActive : dotIdle,
               )}
               onClick={() => setIndex(i)}
             />

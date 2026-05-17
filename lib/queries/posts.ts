@@ -2,14 +2,16 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 
 import type { ArticleFormValues } from "@/lib/validations/article";
 import type { Locale } from "@/lib/i18n";
-import { defaultLocale } from "@/lib/i18n";
+import { defaultLocale, locales } from "@/lib/i18n";
 import { db } from "@/lib/db";
 import { media, postTranslations, posts } from "@/lib/db/schema";
 import { publicUrlFromMediaStorageKey } from "@/lib/media-public";
+import { preparePublicHtml, stripDuplicateTeamCoverFromBody } from "@/lib/public-cms-html";
 
 export type AdminPostRow = {
   id: string;
   published: boolean;
+  contentRole: "blog" | "team";
   updatedAt: Date;
   titleMe: string | null;
   slugMe: string | null;
@@ -20,6 +22,7 @@ export async function listPostsForAdmin(): Promise<AdminPostRow[]> {
     .select({
       id: posts.id,
       published: posts.published,
+      contentRole: posts.contentRole,
       updatedAt: posts.updatedAt,
       titleMe: postTranslations.title,
       slugMe: postTranslations.slug,
@@ -78,19 +81,18 @@ export async function getPostForAdminEdit(
     translations.map((t) => [t.locale, t]),
   ) as Record<string, (typeof translations)[0] | undefined>;
 
-  const need = ["me", "en", "ru", "tr"] as const;
-  for (const loc of need) {
+  for (const loc of locales) {
     if (!byLocale[loc]) return null;
   }
 
-  return {
+  const values: Record<string, unknown> = {
     published: row.published,
     coverMediaId: row.coverMediaId ?? "",
-    me: blockFromRow(byLocale.me!),
-    en: blockFromRow(byLocale.en!),
-    ru: blockFromRow(byLocale.ru!),
-    tr: blockFromRow(byLocale.tr!),
   };
+  for (const loc of locales) {
+    values[loc] = blockFromRow(byLocale[loc]!);
+  }
+  return values as ArticleFormValues;
 }
 
 export type PostSummary = {
@@ -110,7 +112,9 @@ export async function listPublishedSummaries(
       coverMediaId: posts.coverMediaId,
     })
     .from(posts)
-    .where(eq(posts.published, true))
+    .where(
+      and(eq(posts.published, true), eq(posts.contentRole, "blog")),
+    )
     .orderBy(desc(posts.updatedAt));
 
   if (published.length === 0) return [];
@@ -181,8 +185,99 @@ export async function listPublishedSummaries(
   return out;
 }
 
+export type TeamMemberSummary = {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  coverUrl: string | null;
+};
+
+/** Objavljeni profili tima (content_role = team), za stranicu /s/tim. */
+export async function listPublishedTeamSummaries(
+  locale: Locale,
+): Promise<TeamMemberSummary[]> {
+  const published = await db
+    .select({
+      id: posts.id,
+      coverMediaId: posts.coverMediaId,
+    })
+    .from(posts)
+    .where(
+      and(eq(posts.published, true), eq(posts.contentRole, "team")),
+    )
+    .orderBy(desc(posts.updatedAt));
+
+  if (published.length === 0) return [];
+
+  const ids = published.map((p) => p.id);
+  const mediaIds = [
+    ...new Set(
+      published
+        .map((p) => p.coverMediaId)
+        .filter((x): x is string => x != null && x.length > 0),
+    ),
+  ];
+
+  const coverUrlByMediaId = new Map<string, string>();
+  if (mediaIds.length > 0) {
+    const mrows = await db
+      .select({ id: media.id, storageKey: media.storageKey })
+      .from(media)
+      .where(inArray(media.id, mediaIds));
+    for (const m of mrows) {
+      coverUrlByMediaId.set(
+        m.id,
+        publicUrlFromMediaStorageKey(m.storageKey),
+      );
+    }
+  }
+
+  const trans = await db
+    .select()
+    .from(postTranslations)
+    .where(inArray(postTranslations.postId, ids));
+
+  const byPost = new Map<string, Map<string, (typeof trans)[0]>>();
+  for (const t of trans) {
+    let m = byPost.get(t.postId);
+    if (!m) {
+      m = new Map();
+      byPost.set(t.postId, m);
+    }
+    m.set(t.locale, t);
+  }
+
+  const coverByPostId = new Map(
+    published.map((p) => [
+      p.id,
+      p.coverMediaId
+        ? (coverUrlByMediaId.get(p.coverMediaId) ?? null)
+        : null,
+    ]),
+  );
+
+  const out: TeamMemberSummary[] = [];
+  for (const id of ids) {
+    const m = byPost.get(id);
+    if (!m) continue;
+    const primary = m.get(locale);
+    const fallback = m.get(defaultLocale);
+    const t = primary ?? fallback;
+    if (!t) continue;
+    out.push({
+      slug: t.slug,
+      title: t.title,
+      excerpt: t.excerpt,
+      coverUrl: coverByPostId.get(id) ?? null,
+    });
+  }
+
+  return out;
+}
+
 export type PublicPost = {
   postId: string;
+  contentRole: "blog" | "team";
   slug: string;
   title: string;
   excerpt: string | null;
@@ -200,6 +295,7 @@ export async function getPublishedPostBySlug(
   const rows = await db
     .select({
       postId: posts.id,
+      contentRole: posts.contentRole,
       slug: postTranslations.slug,
       title: postTranslations.title,
       excerpt: postTranslations.excerpt,
@@ -223,16 +319,27 @@ export async function getPublishedPostBySlug(
   const [row] = rows;
   if (!row) return null;
 
+  const coverUrl = row.coverKey
+    ? publicUrlFromMediaStorageKey(row.coverKey)
+    : null;
+  const bodyHtml = row.body ? preparePublicHtml(row.body, locale) : null;
+  const bodyProcessed =
+    row.contentRole === "team" && bodyHtml
+      ? stripDuplicateTeamCoverFromBody(
+          bodyHtml,
+          coverUrl ?? undefined,
+        )
+      : bodyHtml;
+
   return {
     postId: row.postId,
+    contentRole: row.contentRole,
     slug: row.slug,
     title: row.title,
     excerpt: row.excerpt,
-    body: row.body,
+    body: bodyProcessed,
     metaTitle: row.metaTitle,
     metaDescription: row.metaDescription,
-    coverUrl: row.coverKey
-      ? publicUrlFromMediaStorageKey(row.coverKey)
-      : null,
+    coverUrl,
   };
 }

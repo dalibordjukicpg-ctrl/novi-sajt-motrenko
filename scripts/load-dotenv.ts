@@ -5,4 +5,5 @@
 import path from "node:path";
 import { config } from "dotenv";
 
-config({ path: path.resolve(process.cwd(), ".env"), override: true });
+/** `override: false` — varijable već postavljene u okruženju (npr. SEED_*) imaju prednost nad .env. */
+config({ path: path.resolve(process.cwd(), ".env"), override: false });

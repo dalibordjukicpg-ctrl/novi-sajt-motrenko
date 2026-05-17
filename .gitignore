@@ -16,10 +16,15 @@ npm-debug.log*
 
 # uploads (admin media)
 public/uploads
+public/wp-media
 
 # ide
 .idea
 .vscode
+.cursor
+
+# ts
+tsconfig.tsbuildinfo
 
 # os
 .DS_Store

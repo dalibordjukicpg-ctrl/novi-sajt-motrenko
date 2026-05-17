@@ -10,9 +10,6 @@ import { locales } from "@/lib/i18n";
 
 const LOC_LABEL: Record<Locale, string> = {
   me: "MNE",
-  en: "EN",
-  ru: "RU",
-  tr: "TR",
 };
 
 export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
@@ -29,15 +26,15 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
       <div>
         <h1 className="text-2xl font-semibold text-neutral-900">Mediji</h1>
         <p className="mt-2 max-w-2xl text-sm text-neutral-600">
-          Galerija fajlova iz baze. Za svaku sliku unesi alt tekst na sva četiri
-          jezika (SEO). Otpremanje ide u{" "}
-          <code className="rounded bg-neutral-100 px-1">public/uploads</code>.
+          Za svaku stavku unesi alt tekst (SEO). Fajlovi idu u{" "}
+          <code className="rounded bg-neutral-100 px-1">public/uploads</code>. Video za
+          hero: kompresuj ispod ~20 MB (idealno 3–8 MB), MP4 H.264.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50">
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,video/mp4,video/webm,video/ogg,video/quicktime,.mp4,.webm,.ogg,.mov"
               className="hidden"
               disabled={pendingUp}
               onChange={(e) => {
@@ -59,12 +56,12 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
                     setUploadMsg(j.error ?? "Otpremanje nije uspjelo.");
                     return;
                   }
-                  setUploadMsg("Slika je otpremljena.");
+                  setUploadMsg("Fajl je otpremljen.");
                   router.refresh();
                 });
               }}
             />
-            {pendingUp ? "Otpremanje…" : "Otpremi sliku"}
+            {pendingUp ? "Otpremanje…" : "Otpremi sliku ili video"}
           </label>
           {uploadMsg && (
             <span className="text-sm text-neutral-600">{uploadMsg}</span>
@@ -74,7 +71,7 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
 
       {items.length === 0 ? (
         <p className="rounded-xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-600">
-          Još nema medija. Otpremi sliku iznad.
+          Još nema medija. Otpremi fajl iznad.
         </p>
       ) : (
         <form
@@ -108,12 +105,23 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
                 className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
               >
                 <div className="aspect-video bg-neutral-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.publicUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
+                  {item.mimeType.startsWith("video/") ? (
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-neutral-800 px-2 text-center text-white">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-white/90">
+                        Video
+                      </span>
+                      <span className="text-[11px] text-white/70">
+                        {(item.sizeBytes / (1024 * 1024)).toFixed(1)} MB
+                      </span>
+                    </div>
+                  ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={item.publicUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2 p-3">
                   <p className="truncate text-xs font-mono text-neutral-500">

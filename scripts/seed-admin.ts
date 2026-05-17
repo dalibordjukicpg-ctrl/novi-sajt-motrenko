@@ -1,14 +1,23 @@
 import "./load-dotenv";
 
-import { hashSync } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
+import {
+  DEFAULT_SUPER_ADMIN_EMAIL,
+  hashPassword,
+} from "../lib/auth";
 import { db } from "../lib/db";
-import { users } from "../lib/db/schema";
+import { users, type UserRole } from "../lib/db/schema";
 
 async function main() {
-  const email = (process.env.SEED_ADMIN_EMAIL ?? "admin@example.com")
+  const superEmail = (
+    process.env.SUPER_ADMIN_EMAIL ?? DEFAULT_SUPER_ADMIN_EMAIL
+  )
+    .trim()
+    .toLowerCase();
+
+  const email = (process.env.SEED_ADMIN_EMAIL ?? superEmail)
     .trim()
     .toLowerCase();
   const password = process.env.SEED_ADMIN_PASSWORD;
@@ -24,15 +33,37 @@ async function main() {
     );
   }
 
-  const [existing] = await db
+  /** Uvijek podigni SUPER_ADMIN ulogu za glavni email (zahtjev projekta). */
+  const [existingSuper] = await db
     .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, superEmail))
+    .limit(1);
+
+  if (existingSuper) {
+    await db
+      .update(users)
+      .set({
+        role: "SUPER_ADMIN",
+        isActive: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, existingSuper.id));
+    console.log(`SUPER_ADMIN uloga osigurana za: ${superEmail}`);
+  }
+
+  const [existing] = await db
+    .select({
+      id: users.id,
+      email: users.email,
+    })
     .from(users)
     .where(eq(users.email, email))
     .limit(1);
 
   if (existing) {
     if (process.env.SEED_UPDATE_PASSWORD === "1") {
-      const passwordHash = hashSync(password, 12);
+      const passwordHash = hashPassword(password);
       const now = new Date();
       await db
         .update(users)
@@ -46,22 +77,32 @@ async function main() {
     console.log(
       "Ako lozinka iz .env ne radi, pokreni: SEED_UPDATE_PASSWORD=1 npm run seed:admin",
     );
-    console.log("(Na Windows PowerShell: $env:SEED_UPDATE_PASSWORD=\"1\"; npm run seed:admin)");
+    console.log(
+      "(Na Windows PowerShell: $env:SEED_UPDATE_PASSWORD=\"1\"; npm run seed:admin)",
+    );
     process.exit(0);
   }
 
-  const passwordHash = hashSync(password, 12);
+  const passwordHash = hashPassword(password);
   const now = new Date();
+
+  let role: UserRole = "ADMIN";
+  if (email === superEmail) {
+    role = "SUPER_ADMIN";
+  }
 
   await db.insert(users).values({
     id: randomUUID(),
     email,
     passwordHash,
+    role,
+    isActive: true,
+    emailVerifiedAt: now,
     createdAt: now,
     updatedAt: now,
   });
 
-  console.log(`Admin korisnik kreiran: ${email}`);
+  console.log(`Admin korisnik kreiran: ${email} (${role})`);
   process.exit(0);
 }
 
