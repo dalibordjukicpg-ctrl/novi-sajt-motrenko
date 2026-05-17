@@ -9,6 +9,7 @@
     "dev:fresh": "node scripts/run-dev.cjs --clean",
     "dev:fresh:turbo": "node scripts/run-dev.cjs --clean --turbo",
     "share:dev": "node scripts/share-dev-tunnel.cjs",
+    "share:dev:cf": "node scripts/share-dev-cloudflare.cjs",
     "vercel:checklist": "node scripts/print-vercel-deploy.mjs",
     "build": "next build",
     "start": "next start",
