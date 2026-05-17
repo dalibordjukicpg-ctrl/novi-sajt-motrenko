@@ -174,7 +174,7 @@ export function HomeHeroMotrenko({
   return (
     <section
       ref={containerRef}
-      className="relative -mt-16 min-h-[380px] overflow-hidden rounded-b-3xl bg-zinc-950 max-md:h-[min(68svh,520px)] max-md:min-h-[380px] md:-mt-[4.5rem] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
+      className="relative -mt-16 min-h-[400px] overflow-hidden rounded-b-3xl bg-zinc-950 max-md:h-[min(72svh,580px)] max-md:min-h-[400px] md:-mt-[4.5rem] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
     >
       <div
         ref={bgRef}
@@ -201,7 +201,7 @@ export function HomeHeroMotrenko({
               loop
               playsInline
               poster={poster}
-              className="h-full w-full object-cover object-[center_28%] will-change-transform [transform:translateZ(0)] max-md:min-h-full max-md:min-w-full max-md:scale-[1.03] max-md:object-cover md:min-h-0 md:min-w-0 md:scale-100 md:object-center"
+              className="h-full w-full object-cover object-[center_28%] [transform:translateZ(0)] max-md:min-h-full max-md:min-w-full max-md:scale-[1.03] max-md:object-cover md:min-h-0 md:min-w-0 md:scale-100 md:object-center"
             >
               <source src={url} type="video/mp4" />
             </video>
@@ -232,16 +232,18 @@ export function HomeHeroMotrenko({
         </div>
       </div>
 
+      {/* Desktop: jaki gradient s lijeve strane; mobile: blaži, centriran */}
       <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-r from-black/58 via-black/38 to-black/12 max-md:from-black/62 max-md:via-black/48 max-md:to-black/22"
+        className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-black/8 max-md:bg-gradient-to-b max-md:from-black/48 max-md:via-black/22 max-md:to-transparent"
       />
+      {/* Donji fade za čitljivost CTA dugmadi na mobu */}
       <div
         aria-hidden
-        className="pointer-events-none absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black/38 via-black/12 to-transparent max-md:h-52"
+        className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 via-black/8 to-transparent"
       />
 
-      <div className="relative z-10 flex h-full flex-col justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[calc(4rem+env(safe-area-inset-top))] max-md:justify-end max-md:pb-16 sm:px-14 md:justify-center md:px-24 md:pb-0 md:pt-[calc(4.5rem+env(safe-area-inset-top))]">
+      <div className="relative z-10 flex h-full flex-col justify-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] max-md:justify-center sm:px-14 md:px-24 md:pb-0 md:pt-[calc(4.5rem+env(safe-area-inset-top))]">
         <div className="max-w-2xl sm:translate-y-0">
           <p
             style={{
@@ -261,7 +263,7 @@ export function HomeHeroMotrenko({
               transition: "opacity 0.6s ease 0.05s, transform 0.6s ease 0.05s",
               fontFamily: "var(--font-playfair), Georgia, serif",
             }}
-            className="text-[clamp(1.65rem,5.5vw,4.75rem)] font-light leading-[1.1] tracking-tight text-[#fff8f2] [text-shadow:0_2px_10px_rgba(0,0,0,0.78),0_4px_32px_rgba(0,0,0,0.55),0_0_48px_rgba(232,104,42,0.2),0_1px_0_rgba(255,180,140,0.15)] md:whitespace-pre-line md:text-[clamp(2.65rem,5.8vw,5.5rem)] md:leading-[1.04]"
+            className="text-[clamp(1.55rem,7vw,2.4rem)] font-light leading-[1.12] tracking-tight text-[#fff8f2] [text-shadow:0_2px_10px_rgba(0,0,0,0.7),0_4px_24px_rgba(0,0,0,0.45)] md:whitespace-pre-line md:text-[clamp(2.65rem,5.8vw,5.5rem)] md:leading-[1.04]"
           >
             <span className="md:hidden">{slide.heading.replace(/\n/g, " ")}</span>
             <span className="hidden md:inline whitespace-pre-line">{slide.heading}</span>
@@ -283,17 +285,17 @@ export function HomeHeroMotrenko({
               opacity: leaving ? 0 : 1,
               transition: "opacity 0.5s ease 0.15s",
             }}
-            className="mt-5 grid w-full grid-cols-2 gap-2 sm:mt-8 sm:flex sm:w-auto sm:max-w-none sm:gap-4"
+            className="mt-5 flex w-full flex-col gap-3 max-md:max-w-xs sm:mt-8 sm:flex-row sm:w-auto sm:max-w-none sm:gap-4"
           >
             <Link
               href={primaryCta.href}
-              className="flex h-11 min-h-[44px] items-center justify-center rounded-md bg-site-brand px-2 text-center text-[8px] font-semibold uppercase leading-tight tracking-[0.12em] text-white shadow-[0_10px_28px_-8px_rgba(243,112,33,0.32)] transition-colors hover:bg-site-brand-hover sm:inline-flex sm:h-11 sm:min-h-0 sm:px-7 sm:text-[10px] sm:font-medium sm:tracking-[0.22em]"
+              className="flex h-12 min-h-[48px] items-center justify-center rounded-md bg-site-brand px-6 text-center text-[11px] font-semibold uppercase leading-tight tracking-[0.16em] text-white shadow-[0_10px_28px_-8px_rgba(243,112,33,0.32)] transition-colors hover:bg-site-brand-hover sm:inline-flex sm:h-11 sm:min-h-0 sm:px-7 sm:text-[10px] sm:font-medium sm:tracking-[0.22em]"
             >
               {primaryCta.label}
             </Link>
             <Link
               href={secondaryCta.href}
-              className="flex h-11 min-h-[44px] items-center justify-center rounded-sm border border-[rgb(232_104_42/0.55)] bg-[rgb(232_104_42/0.12)] px-2 text-center text-[8px] font-semibold uppercase leading-tight tracking-[0.12em] text-[#fff4eb] [text-shadow:0_1px_3px_rgba(0,0,0,0.65),0_0_16px_rgba(232,104,42,0.35)] backdrop-blur-sm transition-colors hover:border-[rgb(232_104_42/0.85)] hover:bg-[rgb(232_104_42/0.2)] sm:inline-flex sm:h-11 sm:min-h-0 sm:px-5 sm:text-[10px] sm:font-medium sm:tracking-[0.2em]"
+              className="flex h-12 min-h-[48px] items-center justify-center rounded-sm border border-[rgb(232_104_42/0.55)] bg-[rgb(232_104_42/0.10)] px-6 text-center text-[11px] font-semibold uppercase leading-tight tracking-[0.15em] text-[#fff4eb] transition-colors hover:border-[rgb(232_104_42/0.85)] hover:bg-[rgb(232_104_42/0.2)] sm:inline-flex sm:h-11 sm:min-h-0 sm:px-5 sm:text-[10px] sm:font-medium sm:tracking-[0.2em]"
             >
               {secondaryCta.label} <span className="ml-0.5">→</span>
             </Link>

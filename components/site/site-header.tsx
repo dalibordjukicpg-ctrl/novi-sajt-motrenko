@@ -452,29 +452,24 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
 
   const ctaPrimary = lightHeader
     ? "site-btn-primary inline-flex items-center justify-center whitespace-nowrap px-5 py-2 font-serif text-[13px] font-medium tracking-[0.12em] md:px-6 md:py-2.5 md:text-[14px] md:tracking-[0.12em]"
-    : "inline-flex items-center justify-center whitespace-nowrap rounded-[3px] border border-white/75 bg-white/5 px-5 py-2 font-serif text-[13px] font-medium uppercase tracking-[0.11em] text-white backdrop-blur-[2px] transition hover:border-site-brand hover:bg-site-brand/15 hover:text-white md:px-6 md:py-2.5 md:text-[14px] md:tracking-[0.11em]";
+    : "inline-flex items-center justify-center whitespace-nowrap rounded-[3px] border border-white/75 bg-white/10 px-5 py-2 font-serif text-[13px] font-medium uppercase tracking-[0.11em] text-white transition hover:border-site-brand hover:bg-site-brand/20 hover:text-white md:px-6 md:py-2.5 md:text-[14px] md:tracking-[0.11em]";
 
   return (
     <header
-      className={`fixed left-0 right-0 top-0 z-[200] w-full transition-colors duration-300 ${headerShell}`}
+      className={`fixed left-0 right-0 top-0 z-[200] w-full transition-colors duration-300 ${lightHeader ? "" : "isolation-isolate [transform:translateZ(0)]"} ${headerShell}`}
     >
-      {/* Gradijent malo niže od headera — mekši spoj sa banerom (nema oštre linije). */}
-      {!lightHeader ? (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-0 right-0 top-0 z-[1] h-[calc(100%+4rem)] bg-gradient-to-b from-black/[0.34] via-black/[0.06] to-transparent"
-        />
-      ) : null}
+      {/* Gradijent ispod headera — klasa u globals (meki prelaz u baner). */}
+      {!lightHeader ? <div aria-hidden className="site-header-hero-scrim" /> : null}
       <div className="relative z-[2] mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:gap-6 md:px-10 md:py-3.5 lg:px-14">
         <Link
           href={`/${locale}`}
-          className="group relative z-20 flex min-w-0 max-w-[min(100%,68vw)] shrink-0 items-center gap-3 sm:max-w-[min(100%,58%)] md:max-w-[min(100%,680px)] lg:max-w-[min(100%,780px)]"
+          className="group relative z-20 flex min-w-0 max-w-[48vw] shrink-0 items-center sm:max-w-[44%] md:max-w-[min(100%,680px)] lg:max-w-[min(100%,780px)]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={resolvedLogoSrc}
             alt={s["org.brand"]}
-            className="block h-16 w-auto max-w-full shrink-0 object-contain object-left sm:h-[4.5rem] md:h-[5.25rem] lg:h-[5.75rem]"
+            className="block h-10 w-auto max-w-full shrink-0 object-contain object-left sm:h-14 md:h-[5.25rem] lg:h-[5.75rem]"
           />
         </Link>
 
@@ -498,7 +493,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
         <div className="relative z-20 flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
           <Link
             href={resolvePublicHref(locale, s["header.cta_book_href"])}
-            className={`${ctaPrimary} inline-flex max-md:min-w-0 max-md:max-w-[42vw] max-md:truncate max-md:px-3 max-md:py-2 max-md:text-[11px] max-md:tracking-[0.08em]`}
+            className={`${ctaPrimary} inline-flex max-md:min-w-0 max-md:max-w-[38vw] max-md:truncate max-md:px-3 max-md:py-1.5 max-md:text-[10px] max-md:tracking-[0.07em]`}
           >
             {s["header.cta_book"]}
           </Link>

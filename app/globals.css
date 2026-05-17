@@ -317,6 +317,26 @@ main {
       0 4px 12px -2px rgb(var(--site-brand-rgb) / 0.24);
     transform: translateY(-1px);
   }
+
+  /**
+   * Samo unutrašnjost headera — ne širi se u hero (izbjegava GPU „raster“ / pucanje sa videom).
+   */
+  .site-header-hero-scrim {
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.3) 0%,
+      rgb(0 0 0 / 0.14) 45%,
+      rgb(0 0 0 / 0.05) 78%,
+      transparent 100%
+    );
+  }
 }
 
 /* Fiksna medicinska pozadina — čisti CSS (uvijek vidljivo i animirano, bez Framer-a). */
