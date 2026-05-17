@@ -11,6 +11,10 @@ out
 .env
 .env*.local
 
+# Vercel Import .env — popunjeni tajni fajl (šablon: vercel.env.production.example)
+vercel.env
+.env.vercel
+
 # debug
 npm-debug.log*
 
