@@ -1,5 +1,5 @@
 /**
- * Uvoz velikog .sql fajla na udaljeni MySQL (npr. Railway).
+ * Uvoz velikog .sql fajla na udaljeni MySQL (bilo koji cloud host — vidi npm run vercel:checklist).
  * XAMPP MariaDB klijent često ne podržava caching_sha2_password (MySQL 8).
  *
  * DATABASE_URL=mysql://user:pass@host:port/db node scripts/import-sql-via-mysql2.mjs [putanja/do/dump.sql]

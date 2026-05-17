@@ -10,7 +10,7 @@ DEPLOY NA VERCEL (radi kad je računar ugašen)
 ================================================================================
 
 1) CLOUD MySQL  (obavezno — Vercel nema MySQL)
-   - Napravi instancu kod provajdera (Hostinger, Railway, Render, itd.).
+   - Napravi instancu kod provajdera (Hostinger, DigitalOcean, Aiven, vlastiti VPS + MariaDB, itd.).
    - Omogući „remote“ pristup ako provajder traži (whitelist IP / public host).
    - Kopiraj connection string: mysql://user:LOZINKA@host:3306/ime_baze
      (specijalni znakovi u lozinci → URL-encode u DATABASE_URL)
