@@ -79,10 +79,24 @@ export function HomePageView({ locale, s, nav, posts, dbError, heroBgUrl, teamHo
   const bannerLines =
     rotateLines.length > 0 ? rotateLines : [s["hero.line2"].trim()].filter(Boolean);
 
+  /** Spriječi dupli naslov kad CMS ili migracija ponovi istu frazu u line1 i rotate/line2. */
+  function combineHeroHeading(line1: string, second: string): string {
+    const a = line1.trim();
+    const b = second.trim();
+    if (!b) return a;
+    const an = a.replace(/\s+/g, " ");
+    const bn = b.replace(/\s+/g, " ");
+    if (an === bn) return a;
+    if (an.includes(bn) || bn.includes(an)) return an.length >= bn.length ? a : b;
+    return `${a}\n${second.trim()}`;
+  }
+
+  const firstBanner = bannerLines[0] ?? s["hero.line2"];
+
   const heroSlides = [
     {
       eyebrow: s["org.brand"].toUpperCase(),
-      heading: `${s["hero.line1"]}\n${bannerLines[0] ?? s["hero.line2"]}`,
+      heading: combineHeroHeading(s["hero.line1"], firstBanner),
       sub: s["hero.subtitle"],
     },
     {

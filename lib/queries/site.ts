@@ -569,15 +569,32 @@ function shouldReplaceLegacyTuesdayHours(tuesday: string, monFri: string): boole
   return mf.length > 0 && mf !== "06302000";
 }
 
+const STAT_VALUE_KEYS = [
+  "stat1.value",
+  "stat2.value",
+  "stat3.value",
+  "stat4.value",
+] as const satisfies readonly SiteStringKey[];
+
+/** Vrijednosti iz CMS-a koje ne treba prikazivati umjesto pravih statistika. */
+function isPlaceholderStatValue(v: string): boolean {
+  const t = v.trim();
+  return t === "0" || t === "0%" || t === "0+" || t === "00%" || t === "00+";
+}
+
 /** Spaja bazu sa podrazumijevanim tekstovima (kad ključ fali). */
 export function mergeSiteStrings(
   locale: Locale,
   fromDb: Partial<Record<SiteStringKey, string>>,
 ): Record<SiteStringKey, string> {
   const base = { ...SITE_STRING_DEFAULTS[locale] };
+  const defs = SITE_STRING_DEFAULTS[locale];
   for (const k of SITE_STRING_KEYS) {
     const v = fromDb[k];
-    if (v != null && v.length > 0) base[k] = v;
+    if (v != null && v.trim().length > 0) base[k] = v.trim();
+  }
+  for (const k of STAT_VALUE_KEYS) {
+    if (isPlaceholderStatValue(base[k])) base[k] = defs[k];
   }
   if (
     shouldReplaceLegacyTuesdayHours(base["hours.tuesday"], base["hours.mon_fri"])

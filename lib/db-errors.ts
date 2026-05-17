@@ -4,13 +4,17 @@ function dbNameFromUnknownDbMessage(sqlMessage: string): string {
   return m?.[1] ?? "ime_baze";
 }
 
-export function isDbConnectionError(e: unknown): boolean {  const err = e as { code?: string };
+export function isDbConnectionError(e: unknown): boolean {
+  const err = e as { code?: string };
   return (
     err.code === "ER_ACCESS_DENIED_ERROR" ||
     err.code === "ER_BAD_DB_ERROR" ||
+    err.code === "ER_NO_SUCH_TABLE" ||
     err.code === "ECONNREFUSED" ||
     err.code === "ENOTFOUND" ||
-    err.code === "ETIMEDOUT"
+    err.code === "ETIMEDOUT" ||
+    err.code === "ECONNRESET" ||
+    err.code === "PROTOCOL_CONNECTION_LOST"
   );
 }
 
@@ -32,6 +36,17 @@ export function getDbConnectionUserMessage(e: unknown): string {
 
   if (err.code === "ECONNREFUSED") {
     return "Ne može da se poveže na MySQL (port 3306?). Pokreni MySQL/MariaDB (npr. XAMPP → Start uz MySQL).";
+  }
+
+  if (err.code === "ER_NO_SUCH_TABLE") {
+    return "U bazi nedostaju tabele. Na serveru pokreni migracije: npm run db:migrate (sa istim DATABASE_URL kao na Vercelu).";
+  }
+
+  if (
+    err.code === "ECONNRESET" ||
+    err.code === "PROTOCOL_CONNECTION_LOST"
+  ) {
+    return "Veza sa bazom je prekinuta. Provjeri DATABASE_URL, SSL i da MySQL na cloudu dopušta konekcije sa Vercela.";
   }
 
   if (err.code === "ENOTFOUND" || err.code === "ETIMEDOUT") {
