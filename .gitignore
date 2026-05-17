@@ -14,9 +14,8 @@ out
 # debug
 npm-debug.log*
 
-# uploads (admin media)
-public/uploads
-public/wp-media
+# Novi uploads (admin panel u produkciji) — čuvaj van gita, koristi cloud storage
+# public/uploads
 
 # ide
 .idea

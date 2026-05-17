@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="sr-RS">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="profile" href="https://gmpg.org/xfn/11">
+<link rel="pingback" href="https://humanreproduction.com/xmlrpc.php">
+<title>Human Reproduction Center &#8211; Centar za humanu reprodukciju</title>
+<meta name='robots' content='max-image-preview:large' />
+<link rel='dns-prefetch' href='//stats.wp.com' />
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel='dns-prefetch' href='//use.fontawesome.com' />
+<link rel="alternate" type="application/rss+xml" title="Human Reproduction Center &raquo; довод" href="https://humanreproduction.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Human Reproduction Center &raquo; довод коментара" href="https://humanreproduction.com/comments/feed/" />
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="https://humanreproduction.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fhumanreproduction.com%2F" />
+<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="https://humanreproduction.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fhumanreproduction.com%2F&#038;format=xml" />
+<style id='wp-img-auto-sizes-contain-inline-css' type='text/css'>
+img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
+/*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+</style>
+<style id='wp-emoji-styles-inline-css' type='text/css'>
+img.wp-smiley, img.emoji {
+display: inline !important;
+border: none !important;
+box-shadow: none !important;
+height: 1em !important;
+width: 1em !important;
+margin: 0 0.07em !important;
+vertical-align: -0.1em !important;
+background: none !important;
+padding: 0 !important;
+}
+/*# sourceURL=wp-emoji-styles-inline-css */
+</style>
+<link rel='stylesheet' id='wp-block-library-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/12af2rqw/472bl.css' type='text/css' media='all' />
+<style id='classic-theme-styles-inline-css' type='text/css'>
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+/*# sourceURL=/wp-includes/css/classic-themes.min.css */
+</style>
+<style id='font-awesome-svg-styles-default-inline-css' type='text/css'>
+.svg-inline--fa {
+display: inline-block;
+height: 1em;
+overflow: visible;
+vertical-align: -.125em;
+}
+/*# sourceURL=font-awesome-svg-styles-default-inline-css */
+</style>
+<link rel='stylesheet' id='font-awesome-svg-styles-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/8mmi4jet/472bl.css' type='text/css' media='all' />
+<style id='font-awesome-svg-styles-inline-css' type='text/css'>
+.wp-block-font-awesome-icon svg::before,
+.wp-rich-text-font-awesome-icon svg::before {content: unset;}
+/*# sourceURL=font-awesome-svg-styles-inline-css */
+</style>
+<style id='global-styles-inline-css' type='text/css'>
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgb(6,147,227) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgb(252,185,0) 0%,rgb(255,105,0) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgb(255,105,0) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);--wp--preset--shadow--crisp: 6px 6px 0px rgb(0, 0, 0);}:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+/*# sourceURL=global-styles-inline-css */
+</style>
+<link rel='stylesheet' id='rt-flaticon-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/9jogzfuw/9y9ke.css' type='text/css' media='all' />
+<link rel='stylesheet' id='rt-tpg-shortcode-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/pxps3cr/9y9ke.css' type='text/css' media='all' />
+<link rel='stylesheet' id='bootstrap-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/zire17t/472bl.css' type='text/css' media='all' />
+<link rel='stylesheet' id='font-awesome-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/88ehk75o/472bl.css' type='text/css' media='all' />
+<link rel='stylesheet' id='shapely-fonts-css' href='//fonts.googleapis.com/css?family=Raleway%3A100%2C300%2C400%2C500%2C600%2C700&#038;display=swap&#038;ver=6.9.4' type='text/css' media='all' />
+<link rel='stylesheet' id='flexslider-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/klnjj2qk/472bl.css' type='text/css' media='all' />
+<link rel='stylesheet' id='shapely-style-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/kxev6zmd/472bl.css' type='text/css' media='all' />
+<link rel='stylesheet' id='shapely-custom-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/mkw3ofck/472bl.css' type='text/css' media='all' />
+<link rel='stylesheet' id='owl.carousel-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/zgjhc55/472bl.css' type='text/css' media='all' />
+<link rel='stylesheet' id='owl.carousel.theme-css' href='//humanreproduction.com/wp-content/cache/wpfc-minified/7m9iyk9k/472bl.css' type='text/css' media='all' />
+<link rel='stylesheet' id='font-awesome-official-css' href='https://use.fontawesome.com/releases/v6.7.2/css/all.css' type='text/css' media='all' integrity="sha384-nRgPTkuX86pH8yjPJUAFuASXQSSl2/bBUiNV47vSYpKFxHJhbcrGnmlYpYJMeD7a" crossorigin="anonymous" />
+<link rel='stylesheet' id='font-awesome-official-v4shim-css' href='https://use.fontawesome.com/releases/v6.7.2/css/v4-shims.css' type='text/css' media='all' integrity="sha384-npPMK6zwqNmU3qyCCxEcWJkLBNYxEFM1nGgSoAWuCCXqVVz0cvwKEMfyTNkOxM2N" crossorigin="anonymous" />
+<script type="text/javascript" src="https://humanreproduction.com/wp-includes/js/jquery/jquery.min.js?ver=3.7.1" id="jquery-core-js"></script>
+<script type="text/javascript" src="https://humanreproduction.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1" id="jquery-migrate-js"></script>
+<link rel="https://api.w.org/" href="https://humanreproduction.com/wp-json/" /><link rel="alternate" title="JSON" type="application/json" href="https://humanreproduction.com/wp-json/wp/v2/pages/1891" /><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://humanreproduction.com/xmlrpc.php?rsd" />
+<meta name="generator" content="WordPress 6.9.4" />
+<link rel="canonical" href="https://humanreproduction.com/" />
+<link rel='shortlink' href='https://humanreproduction.com/' />
+<style>
+:root {
+--tpg-primary-color: #0d6efd;
+--tpg-secondary-color: #0654c4;
+--tpg-primary-light: #c4d0ff
+}
+body .rt-tpg-container .rt-loading,
+body #bottom-script-loader .rt-ball-clip-rotate {
+color: #0367bf !important;
+}
+</style>
+<style>img#wpstats{display:none}</style>
+<style type="text/css">a, .image-bg a, .contact-section .social-icons li a, a:visited, .footer .footer-credits a, .post-content .post-meta li a, .post-content .shapely-category a, .module.widget-handle i {color:#f6821f }a:hover,
+a:active,
+a:focus,
+.post-title a:hover,
+.post-title a:focus,
+.image-bg a:hover,
+.image-bg a:focus,
+.contact-section .social-icons li a:hover,
+.contact-section .social-icons li a:focus,
+.footer .footer-credits a:hover,
+.footer .footer-credits a:focus,
+.post-content .post-meta li a:hover,
+.post-content .post-meta li a:focus,
+.widget.widget_recent_entries ul li a:focus,
+.widget.widget_recent_entries ul li a:hover,
+.widget.widget_recent_comments ul li .comment-author-link a:focus,
+.widget.widget_recent_comments ul li .comment-author-link a:hover,
+.widget.widget_archive > div ul li a:focus,
+.widget.widget_archive > div ul li a:hover,
+.widget.widget_archive ul li a:focus,
+.widget.widget_archive ul li a:hover,
+.widget.widget_categories > div ul li a:focus,
+.widget.widget_categories > div ul li a:hover,
+.widget.widget_categories ul li a:focus,
+.widget.widget_categories ul li a:hover,
+.widget.widget_meta > div ul li a:focus,
+.widget.widget_meta > div ul li a:hover,
+.widget.widget_meta ul li a:focus,
+.widget.widget_meta ul li a:hover,
+.widget.widget_pages > div ul li a:focus,
+.widget.widget_pages > div ul li a:hover,
+.widget.widget_pages ul li a:focus,
+.widget.widget_pages ul li a:hover,
+.widget.widget_nav_menu > div ul li a:focus,
+.widget.widget_nav_menu > div ul li a:hover,
+.widget.widget_nav_menu ul li a:focus,
+.widget.widget_nav_menu ul li a:hover,
+.widget.widget_nav_menu .menu > li a:focus,
+.widget.widget_nav_menu .menu > li a:hover,
+.widget.widget_tag_cloud a:focus,
+.widget.widget_tag_cloud a:hover,
+.widget_product_categories ul.product-categories li a:hover,
+.widget_product_categories ul.product-categories li a:focus,
+.widget_product_tag_cloud .tagcloud a:hover,
+.widget_product_tag_cloud .tagcloud a:focus,
+.widget_products .product_list_widget a:hover,
+.widget_products .product_list_widget a:focus,
+.woocommerce.widget ul.cart_list li a:hover,
+.woocommerce.widget ul.cart_list li a:focus,
+.woocommerce.widget ul.product_list_widget li a:hover,
+.woocommerce.widget ul.product_list_widget li a:focus,
+.woocommerce .widget_layered_nav_filters ul li a:hover,
+.woocommerce .widget_layered_nav_filters ul li a:focus,
+.woocommerce .widget_layered_nav ul li a:hover,
+.woocommerce .widget_layered_nav ul li a:focus,
+.main-navigation .menu > li > ul li:hover > a,
+.main-navigation .menu > li > ul li:focus > a,
+.main-navigation .menu > li > ul .dropdown:hover:after,
+.main-navigation .menu > li > ul .dropdown:focus:after,
+.main-navigation .menu > li > ul li.menu-item-has-children:hover:after,
+.main-navigation .menu > li > ul li.menu-item-has-children:focus:after,
+.main-navigation .menu li a:focus,
+.main-navigation .menu li:focus > a,
+.main-navigation .menu > li > ul li a:focus,
+.post-content .shapely-category a:hover,
+.post-content .shapely-category a:focus,
+.main-navigation .menu li:hover > a,
+.main-navigation .menu li:focus > a,
+.main-navigation .menu > li:hover:after,
+.main-navigation .menu > li:focus-within:after,
+.bg-dark .social-list a:hover,
+.bg-dark .social-list a:focus,
+.shapely-social .shapely-social-icon:hover,
+.shapely-social .shapely-social-icon:focus { color: #f67100;}.btn-filled, .btn-filled:visited, .woocommerce #respond input#submit.alt,
+.woocommerce a.button.alt, .woocommerce button.button.alt,
+.woocommerce input.button.alt, .woocommerce #respond input#submit,
+.woocommerce a.button, .woocommerce button.button,
+.woocommerce input.button,
+.video-widget .video-controls button,
+input[type="submit"],
+button[type="submit"],
+.post-content .more-link { background:#f6821f !important; border: 2px solid #f6821f !important;}.shapely_home_parallax > section:not(.image-bg) .btn-white { color:#f6821f !important; border: 2px solid #f6821f !important; }.btn-filled:hover,
+.btn-filled:focus,
+.woocommerce #respond input#submit.alt:hover,
+.woocommerce #respond input#submit.alt:focus,
+.woocommerce a.button.alt:hover,
+.woocommerce a.button.alt:focus,
+.woocommerce button.button.alt:hover,
+.woocommerce button.button.alt:focus,
+.woocommerce input.button.alt:hover,
+.woocommerce input.button.alt:focus,
+.woocommerce #respond input#submit:hover,
+.woocommerce #respond input#submit:focus,
+.woocommerce a.button:hover,
+.woocommerce a.button:focus,
+.woocommerce button.button:hover,
+.woocommerce button.button:focus,
+.woocommerce input.button:hover,
+.woocommerce input.button:focus,
+.video-widget .video-controls button:hover,
+.video-widget .video-controls button:focus,
+input[type="submit"]:hover,
+input[type="submit"]:focus,
+button[type="submit"]:hover,
+button[type="submit"]:focus,
+.post-content .more-link:hover,
+.post-content .more-link:focus,
+.btn:not(.btn-white):hover,
+.btn:not(.btn-white):focus,
+.button:not(.btn-white):hover,
+.button:not(.btn-white):focus
+{ background: #f67100 !important; border: 2px solid #f67100 !important;}.shapely_home_parallax > section:not(.image-bg) .btn-white:hover,
+.shapely_home_parallax > section:not(.image-bg) .btn-white:focus,
+.pagination span:not( .dots ),
+.pagination a:hover,
+.pagination a:focus,
+.woocommerce-pagination ul.page-numbers span.page-numbers,
+.woocommerce nav.woocommerce-pagination ul li a:focus,
+.woocommerce nav.woocommerce-pagination ul li a:hover,
+.woocommerce nav.woocommerce-pagination ul li span.current { background-color: #f67100 !important; border-color: #f67100 !important;color: #fff !important; }.widget.widget_search .search-form > input#s:hover,
+.widget.widget_search .search-form > input#s:focus,
+.widget.widget_calendar #wp-calendar td:not(.pad):not(#next):not(#prev)#today,
+.widget_product_search .woocommerce-product-search > input.search-field:hover,
+.widget_product_search .woocommerce-product-search > input.search-field:focus,
+.widget.widget_search input[type="text"]:focus + button[type="submit"].searchsubmit,
+.widget.widget_search input[type="text"]:hover + button[type="submit"].searchsubmit,
+textarea:hover,
+textarea:focus,
+input[type="text"]:hover,
+input[type="search"]:hover,
+input[type="email"]:hover,
+input[type="tel"]:hover,
+input[type="password"]:hover,
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="password"]:focus,
+.widget.widget_product_search input[type="text"]:focus + button[type="submit"].searchsubmit,
+.widget.widget_product_search input[type="text"]:hover + button[type="submit"].searchsubmit
+{ border-color: #f67100 !important }.widget.widget_calendar #wp-calendar > caption:after,
+.widget.widget_calendar #wp-calendar td:not(.pad):not(#next):not(#prev)#today:hover,
+.widget.widget_calendar #wp-calendar td:not(.pad):not(#next):not(#prev)#today:focus
+{ background-color: #f67100 }.widget.widget_search input[type="text"]:focus + button[type="submit"].searchsubmit,
+.widget.widget_search input[type="text"]:hover + button[type="submit"].searchsubmit,
+.widget.widget_product_search input[type="text"]:focus + button[type="submit"].searchsubmit,
+.widget.widget_product_search input[type="text"]:hover + button[type="submit"].searchsubmit,
+.image-bg .text-slider .flex-direction-nav li a:focus:before
+{ color: #f67100 }</style><style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style><link rel="icon" href="https://humanreproduction.com/wp-content/uploads/2025/04/cropped-human-reproduction-budva-site-icon-32x32.jpg" sizes="32x32" />
+<link rel="icon" href="https://humanreproduction.com/wp-content/uploads/2025/04/cropped-human-reproduction-budva-site-icon-192x192.jpg" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://humanreproduction.com/wp-content/uploads/2025/04/cropped-human-reproduction-budva-site-icon-180x180.jpg" />
+<meta name="msapplication-TileImage" content="https://humanreproduction.com/wp-content/uploads/2025/04/cropped-human-reproduction-budva-site-icon-270x270.jpg" />
+<style type="text/css" id="wp-custom-css">
+.main-navigation .menu > li {
+margin-right: 13px;
+}
+.main-navigation .menu > li.menu-item-has-children {
+padding-right: 15px;  /* Make space for the arrow */
+}
+body {
+color: #000000;
+font-size: 18px;
+}
+@media all and (max-width: 767px) {
+p {
+font-size: 16px;
+}
+}
+.main-navigation .menu > li > ul li a {
+color: #000000;
+}
+/*Remove the header call out complete*/
+.header-callout {
+display: none;
+}
+.wp-block-gallery.has-nested-images figure.wp-block-image figcaption {
+background: none;
+text-shadow: 0;
+}
+.wp-block-gallery.has-nested-images figure.wp-block-image:has(figcaption):before {
+backdrop-filter: none;
+}
+header.entry-header.nolist {
+display: none;
+}
+body {
+font-family: Tahoma, "Trebuchet MS", sans-serif;
+}
+/*Boja teksta na naslovnoj slici*/
+.image-bg h1 {
+color: #fff;
+background-color: rgba(246, 130, 31, 1);
+padding: 7px;
+font-weight: bold;
+}		</style>
+</head>
+<body class="home wp-singular page-template page-template-page-templates page-template-template-home page-template-page-templatestemplate-home-php page page-id-1891 wp-custom-logo wp-theme-shapely rttpg rttpg-7.9.1 radius-frontend rttpg-body-wrap rttpg-flaticon has-sidebar-right">
+<div id="page" class="site">
+<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+<header id="masthead" class="site-header" role="banner">
+<div class="nav-container">
+<nav  id="site-navigation" class="main-navigation" role="navigation">
+<div class="container nav-bar">
+<div class="flex-row">
+<div class="module left site-title-container">
+<a href="https://humanreproduction.com/" class="custom-logo-link" rel="home" itemprop="url"><img width="135" height="55" src="https://humanreproduction.com/wp-content/uploads/2025/04/human-reproduction-budva-logo-za-sajt.jpg" class="custom-logo logo" alt="Human Reproduction Center" itemprop="logo" decoding="async" /></a>						</div>
+<button class="module widget-handle mobile-toggle right visible-sm visible-xs">
+<i class="fa fa-bars"></i>
+</button>
+<div class="module-group right">
+<div class="module left">
+<div class="collapse navbar-collapse navbar-ex1-collapse"><ul id="menu" class="menu"><li id="menu-item-1971" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-1971 dropdown"><a title="O  nama">O  nama </a><span class="dropdown-toggle shapely-dropdown" data-toggle="dropdown"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+<ul role="menu" class=" dropdown-menu">
+<li id="menu-item-2103" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-2103"><a title="Novosti" href="https://humanreproduction.com/./novosti/">Novosti</a></li>
+<li id="menu-item-1974" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1974"><a title="Opšti podaci" href="https://humanreproduction.com/opsti-podaci/">Opšti podaci</a></li>
+<li id="menu-item-1975" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1975"><a title="Tim" href="https://humanreproduction.com/tim/">Tim</a></li>
+<li id="menu-item-1972" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1972"><a title="Aktivnosti centra" href="https://humanreproduction.com/aktivnosti-centra/">Aktivnosti centra</a></li>
+<li id="menu-item-1976" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1976"><a title="Ustanove sa kojima sarađujemo" href="https://humanreproduction.com/ustanove-sa-kojima-saradujemo/">Ustanove sa kojima sarađujemo</a></li>
+<li id="menu-item-1973" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1973"><a title="Edukacija i naučno-istraživački rad" href="https://humanreproduction.com/edukacija-i-naucno-istrazivacki-rad/">Edukacija i naučno-istraživački rad</a></li>
+</ul>
+</li>
+<li id="menu-item-1977" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-1977 dropdown"><a title="Infertilitet  i  sterilitet">Infertilitet  i  sterilitet </a><span class="dropdown-toggle shapely-dropdown" data-toggle="dropdown"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+<ul role="menu" class=" dropdown-menu">
+<li id="menu-item-1980" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1980"><a title="Fertilnost ljudske rase" href="https://humanreproduction.com/fertilnost-ljudske-rase/">Fertilnost ljudske rase</a></li>
+<li id="menu-item-1981" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1981"><a title="Kada se javiti" href="https://humanreproduction.com/kada-se-javiti/">Kada se javiti</a></li>
+<li id="menu-item-1983" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1983"><a title="Uzroci infertiliteta" href="https://humanreproduction.com/uzroci-infertiliteta/">Uzroci infertiliteta</a></li>
+<li id="menu-item-1978" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1978"><a title="Dijagnostičke metode – muškarac" href="https://humanreproduction.com/dijagnosticke-metode-muskarac/">Dijagnostičke metode – muškarac</a></li>
+<li id="menu-item-1979" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1979"><a title="Dijagnostičke metode – žena" href="https://humanreproduction.com/dijagnosticke-metode-zena/">Dijagnostičke metode – žena</a></li>
+<li id="menu-item-1982" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1982"><a title="Psihološka podrška" href="https://humanreproduction.com/psiholoska-podrska/">Psihološka podrška</a></li>
+</ul>
+</li>
+<li id="menu-item-1984" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-1984 dropdown"><a title="IUI  i  IVF">IUI  i  IVF </a><span class="dropdown-toggle shapely-dropdown" data-toggle="dropdown"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+<ul role="menu" class=" dropdown-menu">
+<li id="menu-item-1993" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1993"><a title="Stimulacija ovulacije" href="https://humanreproduction.com/stimulacija-ovulacije/">Stimulacija ovulacije</a></li>
+<li id="menu-item-1989" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1989"><a title="IUI" href="https://humanreproduction.com/iui/">IUI</a></li>
+<li id="menu-item-1990" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1990"><a title="IVF (In-Vitro Fertilizacija)" href="https://humanreproduction.com/ivf/">IVF (In-Vitro Fertilizacija)</a></li>
+<li id="menu-item-1992" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1992"><a title="Kultivacija embriona – gajenje embriona" href="https://humanreproduction.com/kultivacija-embriona-gajenje-embriona/">Kultivacija embriona – gajenje embriona</a></li>
+<li id="menu-item-1991" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1991"><a title="Krioprezervacija embriona – Zamrzavanje embriona (vitrifikacija embriona)" href="https://humanreproduction.com/krioprezervacija-embriona-zamrzavanje-embriona-vitrifikacija-embriona/">Krioprezervacija embriona – Zamrzavanje embriona (vitrifikacija embriona)</a></li>
+<li id="menu-item-1986" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1986"><a title="Donacija oocita" href="https://humanreproduction.com/donacija-oocita/">Donacija oocita</a></li>
+<li id="menu-item-1988" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1988"><a title="Donacije sperme" href="https://humanreproduction.com/donacije-sperme/">Donacije sperme</a></li>
+<li id="menu-item-1987" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1987"><a title="Donacije embriona" href="https://humanreproduction.com/donacije-embriona/">Donacije embriona</a></li>
+<li id="menu-item-1985" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1985"><a title="Dodatne tehnike" href="https://humanreproduction.com/dodatne-tehnike/">Dodatne tehnike</a></li>
+</ul>
+</li>
+<li id="menu-item-1994" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-1994 dropdown"><a title="Ginekologija">Ginekologija </a><span class="dropdown-toggle shapely-dropdown" data-toggle="dropdown"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+<ul role="menu" class=" dropdown-menu">
+<li id="menu-item-1996" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1996"><a title="Pregledi" href="https://humanreproduction.com/pregledi/">Pregledi</a></li>
+<li id="menu-item-1995" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1995"><a title="Ginekološke intervencije i operacije" href="https://humanreproduction.com/ginekoloske-intervencije-i-operacije/">Ginekološke intervencije i operacije</a></li>
+</ul>
+</li>
+<li id="menu-item-1997" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-1997 dropdown"><a title="Trudnoća">Trudnoća </a><span class="dropdown-toggle shapely-dropdown" data-toggle="dropdown"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+<ul role="menu" class=" dropdown-menu">
+<li id="menu-item-2000" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2000"><a title="Redovni pregledi trudnoće" href="https://humanreproduction.com/redovni-pregledi-trudnoce/">Redovni pregledi trudnoće</a></li>
+<li id="menu-item-2001" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2001"><a title="Spontani pobačaj" href="https://humanreproduction.com/spontani-pobacaj/">Spontani pobačaj</a></li>
+<li id="menu-item-1999" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1999"><a title="Prevremeni porođaj" href="https://humanreproduction.com/prevremeni-porodjaj/">Prevremeni porođaj</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1998"><a title="Patološka stanja u trudnoći" href="https://humanreproduction.com/patoloska-stanja-u-trudnoci/">Patološka stanja u trudnoći</a></li>
+</ul>
+</li>
+<li id="menu-item-2002" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-2002 dropdown"><a title="Prezervacija  fertilnosti">Prezervacija  fertilnosti </a><span class="dropdown-toggle shapely-dropdown" data-toggle="dropdown"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+<ul role="menu" class=" dropdown-menu">
+<li id="menu-item-2004" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2004"><a title="Prezervacija fertilnosti – muškarci" href="https://humanreproduction.com/prezervacija-fertilnosti-muskarci/">Prezervacija fertilnosti – muškarci</a></li>
+<li id="menu-item-2005" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2005"><a title="Prezervacija fertilnosti – žene" href="https://humanreproduction.com/prezervacija-fertilnosti-zene/">Prezervacija fertilnosti – žene</a></li>
+<li id="menu-item-2003" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2003"><a title="Deca pre puberteta" href="https://humanreproduction.com/deca-pre-puberteta/">Deca pre puberteta</a></li>
+</ul>
+</li>
+<li id="menu-item-2006" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2006"><a title="Kontakt" href="https://humanreproduction.com/kontakt/">Kontakt</a></li>
+</ul></div>							</div>
+<!--end of menu module-->
+<div class="module widget-handle search-widget-handle hidden-xs hidden-sm">
+<button class="search">
+<i class="fa fa-search"></i>
+<span class="title">Pretraga</span>
+</button>
+<div class="function">
+<form role="search"  method="get" class="search-form" action="https://humanreproduction.com/" method="get" class="search-form" action="https://humanreproduction.com/">
+<div class="search-form-wrapper">
+<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" />
+<button type="submit" class="search-submit">
+<span class="screen-reader-text">Search</span>
+<i class="fas fa-search" aria-hidden="true"></i>
+</button>
+</div>
+</form>								</div>
+</div>
+</div>
+<!--end of module group-->
+</div>
+</div>
+</nav><!-- #site-navigation -->
+</div>
+</header><!-- #masthead -->
+<div id="content" class="main-container">
+<section class="content-area  pt0 ">
+<div id="main" class="" role="main">
+<div id="shapely_home_parallax-1" class="widget shapely_home_parallax">		<section class="cover fullscreen image-bg">
+<div class="parallax-window fullscreen" data-parallax="scroll" data-image-src="https://humanreproduction.com/wp-content/uploads/2025/07/centar-za-humanu-reprodukciju-budva-naslovna-humanreproduction.jpg" data-ios-fix="true" data-over-scroll-fix="true" data-android-fix="true">
+<div class="align-transform">
+<div class="row">
+<div class="top-parallax-section">
+<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1 text-center">
+<h1>Centar za humanu reprodukciju Budva</h1><div class="mb32"><p>&nbsp;</p>
+<p style="color: #f6821f;padding: 7px;font-weight: bold">Mi stvaramo život i brinemo o onom koji već postoji&#8230;</p>
+</div><a class="btn btn-lg btn-filled" href="https://humanreproduction.com/novosti/centar-za-humanu-reprodukciju-proslavio-1-000-rodjenih-beba-za-deset-godina-postojanja/">HILJADU BEBA</a><a class="btn btn-lg btn-white" href="https://humanreproduction.com/ivf/">Vantelesna oplodnja</a>								</div>
+</div>
+<!--end of row-->
+</div>
+</div>
+</div>
+</section>
+<div class="clearfix"></div>
+</div><div id="shapely_home_parallax-2" class="widget shapely_home_parallax">		<section class="">
+<div class="container">
+<div class="row align-children">
+<div class="col-md-7 col-sm-6 text-center mb-xs-24">
+<img class="img-responsive" alt="Dr Tatjana Motrenko Simić oficir za vezu i relacije ESHRE-a sa UEMS i EBCOG" src="https://humanreproduction.com/wp-content/uploads/2025/07/centar-za-humanu-reprodukciju-budva-eshre-pariz-2025-humanreproduction-scaled.jpg">
+</div>
+<div class="col-md-4 col-md-offset-1 col-sm-5 col-sm-offset-1">
+<div class="">
+<h3>Dr Tatjana Motrenko Simić oficir za vezu i relacije ESHRE-a sa UEMS i EBCOG</h3><div class="mb32"><p>				Na 41. ESHRE kongresu, dr Tatjana Motrenko Simić je nakon 2 godine aktivnog vodjenja certifikacije, sa mesta aktuelnog postala past Certification coordinator i dobila novu dužnost oficira za vezu i relacije ESHRE-a sa UEMS i EBCOG.			</p>
+</div><a class="btn btn-lg btn-filled" href="https://humanreproduction.com/novosti/dr-tatjana-motrenko-simic-oficir-za-vezu-i-relacije-eshre-a-sa-uems-i-ebcog/">Pročitajte više</a>								</div>
+</div>
+<!--end of row-->
+</div>
+</div>
+</section>
+<div class="clearfix"></div>
+</div><div id="shapely_home_parallax-3" class="widget shapely_home_parallax">		<section class="">
+<div class="container">
+<div class="row align-children">
+<div class="col-md-7 col-sm-6 text-center mb-xs-24">
+<img class="img-responsive" alt="Centar za humanu reprodukciju proslavio 1.000 rođenih beba za deset godina postojanja" src="https://humanreproduction.com/wp-content/uploads/2025/07/centar-za-humanu-reprodukciju-budva-1000-beba-naslovna-humanreproduction.jpg">
+</div>
+<div class="col-md-4 col-md-offset-1 col-sm-5 col-sm-offset-1">
+<div class="">
+<h3>Centar za humanu reprodukciju proslavio 1.000 rođenih beba za deset godina postojanja</h3><div class="mb32"><p>				Centar za humanu reprodukciju iz Budve danas je upriličio posebnu svečanost povodom deset godina postojanja tokom kojih je stručni tim ove zdravstvene ustanove zajedno sa roditeljima &#8211; upornim pacijentima, uspio da doprinese rađanju više od 1.000 beba u Crnoj Gori.			</p>
+</div><a class="btn btn-lg btn-filled" href="https://humanreproduction.com/novosti/centar-za-humanu-reprodukciju-proslavio-1-000-rodjenih-beba-za-deset-godina-postojanja/">Pročitajte više</a>								</div>
+</div>
+<!--end of row-->
+</div>
+</div>
+</section>
+<div class="clearfix"></div>
+</div><div id="shapely_home_parallax-4" class="widget shapely_home_parallax">		<section class="">
+<div class="container">
+<div class="row align-children">
+<div class="col-md-7 col-sm-6 text-center mb-xs-24">
+<img class="img-responsive" alt="Dr Tatjana Motrenko Simić odlikovana ordenom rada za rezultate pokazane u oblasti reproduktivne medicine" src="https://humanreproduction.com/wp-content/uploads/2025/07/centar-za-humanu-reprodukciju-budva-dodela-ordena-dr-tatjana-motrenko-simic-humanreproduction.jpg">
+</div>
+<div class="col-md-4 col-md-offset-1 col-sm-5 col-sm-offset-1">
+<div class="">
+<h3>Dr Tatjana Motrenko Simić odlikovana ordenom rada za rezultate pokazane u oblasti reproduktivne medicine</h3><div class="mb32"><p>				Predsednik Crne Gore gosp. Jakov Milatović povodom dana državnosti Crne Gore je odlikovao dr Tatjanu Motrenko Simić ordenom rada za rezultate pokazane u oblasti reproduktivne medicine.			</p>
+</div><a class="btn btn-lg btn-filled" href="https://humanreproduction.com/novosti/dr-tatjana-motrenko-simic-odlikovana-ordenom-rada-za-rezultate-pokazane-u-oblasti-reproduktivne-medicine/">Pročitajte više</a>								</div>
+</div>
+<!--end of row-->
+</div>
+</div>
+</section>
+<div class="clearfix"></div>
+</div>
+
+</div><!-- #main -->
+</section><!-- section -->
+<div class="footer-callout">
+</div>
+<footer id="colophon" class="site-footer footer bg-dark" role="contentinfo">
+<div class="container footer-inner">
+<div class="row">
+</div>
+<div class="row">
+<div class="site-info col-sm-6">
+<div class="copyright-text">
+© 2025 Centar za humanu reprodukciju Budva<br><a href="humanreproduction.com">humanreproduction.com</a> *** <a href="tel:+38267052052">+382 67 052 052</a>				</div>
+</div><!-- .site-info -->
+<div class="col-sm-6 text-right">
+<nav id="social" class="social-icons"><ul id="menu-social-items" class="list-inline social-list"><li id="menu-item-2019" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-2019 instagram"><a href="https://www.instagram.com/human.reproduction.center/"><i class="fa-brands fa-instagram"><span class="screen-reader-text"></span></i></a></li>
+<li id="menu-item-2020" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-2020 facebook"><a href="https://www.facebook.com/human.reproduction.center/"><i class="fa-brands fa-facebook"><span class="screen-reader-text"></span></i></a></li>
+</ul></nav>			</div>
+</div>
+</div>
+<a class="btn btn-sm fade-half back-to-top inner-link" href="#top"><i class="fa fa-angle-up"></i></a>
+</footer><!-- #colophon -->
+</div>
+</div><!-- #page -->
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/shapely/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<script type="text/javascript" src="https://humanreproduction.com/wp-content/themes/shapely/assets/js/skip-link-focus-fix.js?ver=20160115" id="shapely-skip-link-focus-fix-js"></script>
+<script type="text/javascript" src="https://humanreproduction.com/wp-content/themes/shapely/assets/js/flexslider.min.js?ver=20160222" id="flexslider-js"></script>
+<script type="text/javascript" src="https://humanreproduction.com/wp-content/themes/shapely/assets/js/parallax.min.js?ver=20160115" id="shapely-parallax-js"></script>
+<script type="text/javascript" src="https://humanreproduction.com/wp-content/themes/shapely/assets/js/owl-carousel/owl.carousel.min.js?ver=20160115" id="owl.carousel-js"></script>
+<script type="text/javascript" src="https://humanreproduction.com/wp-includes/js/imagesloaded.min.js?ver=5.0.0" id="imagesloaded-js"></script>
+<script type="text/javascript" id="shapely-scripts-js-extra">
+/* <![CDATA[ */
+var ShapelyAdminObject = {"sticky_header":"1"};
+//# sourceURL=shapely-scripts-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://humanreproduction.com/wp-content/themes/shapely/assets/js/shapely-scripts.js?ver=20180423" id="shapely-scripts-js"></script>
+<script type="text/javascript" id="kaliforms-submission-frontend-js-extra">
+/* <![CDATA[ */
+var KaliFormsObject = {"ajaxurl":"https://humanreproduction.com/wp-admin/admin-ajax.php","ajax_nonce":"89ff76f68a"};
+//# sourceURL=kaliforms-submission-frontend-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://humanreproduction.com/wp-content/plugins/kali-forms/public/assets/submissions/frontend/js/kaliforms-submissions.js?ver=2.4.11" id="kaliforms-submission-frontend-js"></script>
+<script type="text/javascript" id="jetpack-stats-js-before">
+/* <![CDATA[ */
+_stq = window._stq || [];
+_stq.push([ "view", {"v":"ext","blog":"229564570","post":"1891","tz":"0","srv":"humanreproduction.com","j":"1:15.8"} ]);
+_stq.push([ "clickTrackerInit", "229564570", "1891" ]);
+//# sourceURL=jetpack-stats-js-before
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://stats.wp.com/e-202620.js" id="jetpack-stats-js" defer="defer" data-wp-strategy="defer"></script>
+<script id="wp-emoji-settings" type="application/json">
+{"baseUrl":"https://s.w.org/images/core/emoji/17.0.2/72x72/","ext":".png","svgUrl":"https://s.w.org/images/core/emoji/17.0.2/svg/","svgExt":".svg","source":{"concatemoji":"https://humanreproduction.com/wp-includes/js/wp-emoji-release.min.js?ver=6.9.4"}}
+</script>
+<script type="module">
+/* <![CDATA[ */
+/*! This file is auto-generated */
+const a=JSON.parse(document.getElementById("wp-emoji-settings").textContent),o=(window._wpemojiSettings=a,"wpEmojiSettingsSupports"),s=["flag","emoji"];function i(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(o,JSON.stringify(t))}catch(e){}}function c(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0);const a=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);return t.every((e,t)=>e===a[t])}function p(e,t){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var n=e.getImageData(16,16,1,1);for(let e=0;e<n.data.length;e++)if(0!==n.data[e])return!1;return!0}function u(e,t,n,a){switch(t){case"flag":return n(e,"\ud83c\udff3\ufe0f\u200d\u26a7\ufe0f","\ud83c\udff3\ufe0f\u200b\u26a7\ufe0f")?!1:!n(e,"\ud83c\udde8\ud83c\uddf6","\ud83c\udde8\u200b\ud83c\uddf6")&&!n(e,"\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f","\ud83c\udff4\u200b\udb40\udc67\u200b\udb40\udc62\u200b\udb40\udc65\u200b\udb40\udc6e\u200b\udb40\udc67\u200b\udb40\udc7f");case"emoji":return!a(e,"\ud83e\u1fac8")}return!1}function f(e,t,n,a){let r;const o=(r="undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?new OffscreenCanvas(300,150):document.createElement("canvas")).getContext("2d",{willReadFrequently:!0}),s=(o.textBaseline="top",o.font="600 32px Arial",{});return e.forEach(e=>{s[e]=t(o,e,n,a)}),s}function r(e){var t=document.createElement("script");t.src=e,t.defer=!0,document.head.appendChild(t)}a.supports={everything:!0,everythingExceptFlag:!0},new Promise(t=>{let n=function(){try{var e=JSON.parse(sessionStorage.getItem(o));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf()<e.timestamp+604800&&"object"==typeof e.supportTests)return e.supportTests}catch(e){}return null}();if(!n){if("undefined"!=typeof Worker&&"undefined"!=typeof OffscreenCanvas&&"undefined"!=typeof URL&&URL.createObjectURL&&"undefined"!=typeof Blob)try{var e="postMessage("+f.toString()+"("+[JSON.stringify(s),u.toString(),c.toString(),p.toString()].join(",")+"));",a=new Blob([e],{type:"text/javascript"});const r=new Worker(URL.createObjectURL(a),{name:"wpTestEmojiSupports"});return void(r.onmessage=e=>{i(n=e.data),r.terminate(),t(n)})}catch(e){}i(n=f(s,u,c,p))}t(n)}).then(e=>{for(const n in e)a.supports[n]=e[n],a.supports.everything=a.supports.everything&&a.supports[n],"flag"!==n&&(a.supports.everythingExceptFlag=a.supports.everythingExceptFlag&&a.supports[n]);var t;a.supports.everythingExceptFlag=a.supports.everythingExceptFlag&&!a.supports.flag,a.supports.everything||((t=a.source||{}).concatemoji?r(t.concatemoji):t.wpemoji&&t.twemoji&&(r(t.twemoji),r(t.wpemoji)))});
+//# sourceURL=https://humanreproduction.com/wp-includes/js/wp-emoji-loader.min.js
+/* ]]> */
+</script>
+</body>
+</html><!-- WP Fastest Cache file was created in 0.411 seconds, on May 15, 2026 @ 7:00 am -->
