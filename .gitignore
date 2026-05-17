@@ -14,6 +14,9 @@ out
 # debug
 npm-debug.log*
 
+# lokalni DB dump (ne commitovati)
+scripts/db-export.sql
+
 # Novi uploads (admin panel u produkciji) — čuvaj van gita, koristi cloud storage
 # public/uploads
 
