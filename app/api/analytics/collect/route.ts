@@ -1,4 +1,3 @@
-import geoip from "geoip-lite";
 import { userAgent } from "next/server";
 import { z } from "zod";
 
@@ -41,27 +40,12 @@ function getClientIp(request: Request): string {
   return request.headers.get("x-real-ip")?.trim().slice(0, 45) ?? "";
 }
 
-function lookupGeo(ip: string) {
-  if (
-    !ip ||
-    ip === "::1" ||
-    ip.startsWith("127.") ||
-    ip.startsWith("::ffff:127.")
-  ) {
-    return {
-      country: null as string | null,
-      region: null as string | null,
-      city: null as string | null,
-    };
-  }
-  const g = geoip.lookup(ip);
-  if (!g) {
-    return { country: null, region: null, city: null };
-  }
+/** Bez geoip-lite — izbjegava ENOENT kada na serveru nema MaxMind/data fajlova u node_modules. */
+function lookupGeo(_ip: string) {
   return {
-    country: g.country ?? null,
-    region: g.region ?? null,
-    city: g.city ?? null,
+    country: null as string | null,
+    region: null as string | null,
+    city: null as string | null,
   };
 }
 

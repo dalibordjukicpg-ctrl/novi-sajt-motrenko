@@ -22,6 +22,7 @@
     "seed:admin": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-admin.ts",
     "db:check": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/db-check.ts",
     "db:create": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/db-create.ts",
+    "db:dump": "node --env-file=.env scripts/dump-database.mjs",
     "import:wordpress": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/import-wordpress.ts",
     "import:wordpress:header-pages": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/import-wordpress.ts --only-header-and-pages",
     "migrate:wp-etl": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/migrate-wordpress-etl.ts",
@@ -49,7 +50,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.40.0",
-    "geoip-lite": "^2.0.2",
     "jose": "^6.0.0",
     "lucide-react": "^1.14.0",
     "mysql2": "^3.14.0",
@@ -63,7 +63,6 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@types/geoip-lite": "^1.4.4",
     "@types/node": "^22.0.0",
     "@types/pdfkit": "^0.17.6",
     "@types/react": "^19.0.0",

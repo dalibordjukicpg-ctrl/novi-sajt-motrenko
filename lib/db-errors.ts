@@ -31,7 +31,12 @@ export function getDbConnectionUserMessage(e: unknown): string {
     if (msg.includes("'user'") || /Access denied for user ['"]user['"]/i.test(msg)) {
       return "U .env je još primjer iz uputstva: korisnik \"user\" i lozinka \"pass\" nisu tvoji pravi MySQL podaci. Zamijeni ih podacima koje koristiš u phpMyAdmin ili XAMPP (često je korisnik root). Ili obriši DATABASE_URL i koristi MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE.";
     }
-    return "Pogrešan MySQL korisnik ili lozinka u .env. Provjeri DATABASE_URL ili MYSQL_*.";
+    return [
+      "Odbijen pristup MySQL-u (Access denied): korisnik, lozinka ili host ne odgovara onome u hosting panelu.",
+      "Na Hostingeru u hPanelu otvori Databases → MySQL i kopiraj tačno ime korisnika, bazu i host (češće `localhost`, ponekad npr. `mysql…hostingersite…`).",
+      "U Node env postavi **`DATABASE_URL`** jednu liniju (bez dodatnih navodnika u vrijednosti) ili zasebno `MYSQL_USER` / `MYSQL_PASSWORD` / `MYSQL_DATABASE` / `MYSQL_HOST`.",
+      "Greška @'127.0.0.1' samo pokazuje da aplikacija ide na TCP do MySQL-a; host u URL‑u za konekciju i dalje mora biti onaj iz panela.",
+    ].join(" ");
   }
 
   if (err.code === "ECONNREFUSED") {

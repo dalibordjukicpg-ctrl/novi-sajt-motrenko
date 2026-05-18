@@ -47,7 +47,6 @@ const nextConfig: NextConfig = {
   serverExternalPackages: [
     "mysql2",
     "drizzle-orm",
-    "geoip-lite",
     "bcryptjs",
   ],
   /** Spriječi Watchpack da dira Windows root sistem fajlove (EINVAL na hiberfil.sys). */

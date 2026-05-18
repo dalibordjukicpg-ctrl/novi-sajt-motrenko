@@ -1,19 +1,49 @@
 /**
- * Jedan od dva načina u .env:
- * 1) DATABASE_URL=mysql://user:pass@host:3306/db  (posebni znakovi u lozinci → encode u URL-u)
+ * Jedan od dva načina u .env / environment (Hostinger hPanel, Vercel…):
+ * 1) DATABASE_URL=mysql://user:pass@host:3306/db  (posebni znakovi u lozinki → URL-encode)
  * 2) MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE (+ opciono MYSQL_HOST, MYSQL_PORT)
+ *
+ * **`DATABASE_URL` ima prednost** nad MYSQL_* ako je postavljen i nije prazan nakon čišćenja.
+ *
+ * Na Hostingeru koristi tačan MySQL hostname iz panela („Databases”) — često **`localhost`**,
+ * ali ponekad **`mysqlXXXX.hostinger.io`** ili slično; kopiraj ono što panel prikaže zajedno
+ * sa korisnikom i bazom koju si kreirao (ne prešifravati ručno ako panel već izveze jedan URL).
  *
  * Za Unicode (utf8mb4) aplikacija koristi {@link createMysqlPoolUtf8mb4} pri `createPool`.
  */
-export function getDatabaseUrl(): string {
-  const direct = process.env.DATABASE_URL?.trim();
-  if (direct) return direct;
 
-  const user = process.env.MYSQL_USER?.trim();
-  const password = process.env.MYSQL_PASSWORD ?? "";
-  const host = process.env.MYSQL_HOST?.trim() || "127.0.0.1";
-  const port = process.env.MYSQL_PORT?.trim() || "3306";
-  const database = process.env.MYSQL_DATABASE?.trim();
+/** BOM + navodnici kojima neki hosting paneli uviju vrijednosti env-a. */
+function cleanEnvScalar(value: string | undefined): string | undefined {
+  if (value === undefined || value === null) return undefined;
+  let s = String(value).trim().replace(/^\uFEFF/, "");
+  if (!s) return undefined;
+  if (
+    (s.startsWith('"') && s.endsWith('"')) ||
+    (s.startsWith("'") && s.endsWith("'"))
+  ) {
+    s = s.slice(1, -1).trim();
+  }
+  return s || undefined;
+}
+
+function normalizeMysqlProtocol(url: string): string {
+  if (/^mysql2:\/\//i.test(url)) {
+    return url.replace(/^mysql2:/i, "mysql:");
+  }
+  return url;
+}
+
+export function getDatabaseUrl(): string {
+  const raw = cleanEnvScalar(process.env.DATABASE_URL);
+  if (raw) {
+    return normalizeMysqlProtocol(raw);
+  }
+
+  const user = cleanEnvScalar(process.env.MYSQL_USER);
+  const password = cleanEnvScalar(process.env.MYSQL_PASSWORD) ?? "";
+  const host = cleanEnvScalar(process.env.MYSQL_HOST) || "127.0.0.1";
+  const port = cleanEnvScalar(process.env.MYSQL_PORT) || "3306";
+  const database = cleanEnvScalar(process.env.MYSQL_DATABASE);
 
   if (user && database) {
     return `mysql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${encodeURIComponent(database)}`;
@@ -29,14 +59,16 @@ export function getDatabaseUrl(): string {
  * WP_DATABASE_URL ili WP_MYSQL_* varijable.
  */
 export function getWpSourceDatabaseUrl(): string {
-  const direct = process.env.WP_DATABASE_URL?.trim();
-  if (direct) return direct;
+  const raw = cleanEnvScalar(process.env.WP_DATABASE_URL);
+  if (raw) {
+    return normalizeMysqlProtocol(raw);
+  }
 
-  const user = process.env.WP_MYSQL_USER?.trim();
-  const password = process.env.WP_MYSQL_PASSWORD ?? "";
-  const host = process.env.WP_MYSQL_HOST?.trim() || "127.0.0.1";
-  const port = process.env.WP_MYSQL_PORT?.trim() || "3306";
-  const database = process.env.WP_MYSQL_DATABASE?.trim();
+  const user = cleanEnvScalar(process.env.WP_MYSQL_USER);
+  const password = cleanEnvScalar(process.env.WP_MYSQL_PASSWORD) ?? "";
+  const host = cleanEnvScalar(process.env.WP_MYSQL_HOST) || "127.0.0.1";
+  const port = cleanEnvScalar(process.env.WP_MYSQL_PORT) || "3306";
+  const database = cleanEnvScalar(process.env.WP_MYSQL_DATABASE);
 
   if (user && database) {
     return `mysql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${encodeURIComponent(database)}`;
