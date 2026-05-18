@@ -517,9 +517,12 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
     return () => document.removeEventListener("keydown", onKey);
   }, [mobileNavOpen]);
 
-  const headerShell = lightHeader
-    ? "border-b border-transparent bg-site-canvas shadow-[0_20px_44px_-22px_rgb(0_0_0/0.06)]"
-    : "border-b border-transparent bg-transparent shadow-none";
+  /* Bez border-b — u Chromiumu često ostavi 1px svijetlu liniju (čak i border-transparent). */
+  const headerShell = mobileNavOpen
+    ? "border-0 bg-[#faf8f6] shadow-none"
+    : lightHeader
+      ? "border-0 bg-site-canvas shadow-[0_12px_32px_-16px_rgb(0_0_0/0.08)]"
+      : "border-0 bg-transparent shadow-none";
 
   const ctaPrimary = lightHeader
     ? "site-btn-primary inline-flex items-center justify-center whitespace-nowrap px-5 py-2 font-serif text-[13px] font-medium tracking-[0.12em] md:px-6 md:py-2.5 md:text-[14px] md:tracking-[0.12em]"
@@ -531,35 +534,27 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
 
   return (
     <header
-      className={`fixed left-0 right-0 top-0 z-[200] w-full pt-[env(safe-area-inset-top)] transition-colors duration-300 ${headerShell}`}
+      className={`fixed left-0 right-0 top-0 z-[200] w-full pt-[env(safe-area-inset-top)] ${lightHeader ? "transition-colors duration-300" : ""} ${headerShell}`}
     >
       {/* ── Header bar ─────────────────────────────────────────── */}
-      <div className="relative z-[2] mx-auto grid max-w-7xl grid-cols-[auto_minmax(0,1fr)] items-center gap-3 px-[max(1rem,env(safe-area-inset-left))] py-3 pe-[max(1rem,env(safe-area-inset-right))] md:grid-cols-[auto_1fr_auto] md:gap-6 md:px-10 md:py-3.5 lg:px-14">
+      <div className="relative z-[2] mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5 ps-[max(0.75rem,env(safe-area-inset-left))] pe-[max(0.75rem,env(safe-area-inset-right))] sm:gap-3 sm:px-4 sm:py-3 md:grid-cols-[auto_1fr_auto] md:gap-6 md:px-10 md:py-3.5 lg:px-14">
         {/* Logo */}
         <Link
           href={`/${locale}`}
-          className="site-header-logo-link group relative z-20 flex max-w-[min(100%,76vw)] shrink-0 items-center justify-self-start rounded-md md:max-w-[min(100%,500px)]"
+          className="site-header-logo-link relative z-20 flex min-w-0 max-w-[52%] items-center justify-self-start sm:max-w-[58%] md:max-w-[min(100%,500px)]"
         >
-          <span
-            className={
-              lightHeader
-                ? "relative isolate inline-flex max-w-full"
-                : "relative isolate inline-flex max-w-full rounded-lg bg-black/22 px-2 py-1 ring-1 ring-white/12 backdrop-blur-[2px]"
-            }
-          >
-            <Image
-              src={resolvedLogoSrc}
-              alt={s["org.brand"]}
-              width={HEADER_LOGO_PIXEL_WIDTH}
-              height={HEADER_LOGO_PIXEL_HEIGHT}
-              priority
-              unoptimized={logoIsRemote}
-              draggable={false}
-              tabIndex={-1}
-              className="pointer-events-none block h-10 w-auto max-h-[2.9rem] max-w-full select-none object-contain object-left drop-shadow-[0_2px_14px_rgba(0,0,0,0.38)] sm:h-12 sm:max-h-[3.45rem] md:h-[4.35rem] md:max-h-[4.55rem] lg:h-[4.75rem]"
-              sizes="(max-width: 768px) 76vw, 540px"
-            />
-          </span>
+          <Image
+            src={resolvedLogoSrc}
+            alt={s["org.brand"]}
+            width={HEADER_LOGO_PIXEL_WIDTH}
+            height={HEADER_LOGO_PIXEL_HEIGHT}
+            priority
+            unoptimized={logoIsRemote}
+            draggable={false}
+            tabIndex={-1}
+            className="pointer-events-none block h-8 w-auto max-h-8 max-w-full select-none object-contain object-left sm:h-9 sm:max-h-9 md:h-[4.35rem] md:max-h-[4.55rem] lg:h-[4.75rem]"
+            sizes="(max-width: 768px) 52vw, 540px"
+          />
         </Link>
 
         {/* Desktop nav */}
@@ -581,11 +576,12 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
         </nav>
 
         {/* Right actions */}
-        <div className="relative z-20 flex min-w-0 shrink-0 items-center justify-self-end gap-1 sm:gap-2 md:justify-self-end">
-          <SiteLanguageSwitcher locale={locale} onLight={lightHeader} />
+        <div className="relative z-20 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 md:justify-self-end">
+          <SiteLanguageSwitcher locale={locale} onLight={lightHeader} compact />
+          {/* CTA u headeru samo na tablet/desktop — na telefonu je u mobilnom meniju (veći, touch-friendly) */}
           <Link
             href={resolvePublicHref(locale, s["header.cta_book_href"] ?? "")}
-            className={`${ctaPrimary} inline-flex max-md:min-w-0 max-md:max-w-[38vw] max-md:truncate max-md:px-3 max-md:py-1.5 max-md:text-[10px] max-md:tracking-[0.07em]`}
+            className={`${ctaPrimary} hidden md:inline-flex`}
           >
             {s["header.cta_book"]}
           </Link>
@@ -594,12 +590,12 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
           <button
             type="button"
             className={[
-              "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200 md:hidden",
+              "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all duration-200 sm:h-10 sm:w-10 sm:rounded-xl md:hidden",
               mobileNavOpen
                 ? "bg-site-brand text-white shadow-[0_4px_14px_rgb(232_104_42/0.4)]"
                 : lightHeader
                   ? "border border-zinc-200/80 bg-white/60 text-zinc-700 shadow-sm hover:border-site-brand/30 hover:bg-site-brand/[0.06] hover:text-site-brand"
-                  : "border border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20",
+                  : "border-0 bg-white/12 text-white backdrop-blur-sm hover:bg-white/20",
             ].join(" ")}
             aria-expanded={mobileNavOpen}
             aria-controls="site-mobile-nav"
@@ -644,17 +640,11 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
             // Premium background
             "bg-[#faf8f6]/[0.98] backdrop-blur-2xl",
             // Shadow beneath
-            "shadow-[0_32px_80px_-16px_rgba(0,0,0,0.22)]",
+            "border-0 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.22)]",
           ].join(" ")}
         >
-          {/* Brand-gradient accent strip */}
-          <div
-            aria-hidden
-            className="h-[2px] shrink-0 bg-gradient-to-r from-transparent via-site-brand to-transparent opacity-50"
-          />
-
           {/* ── Panel header: language + tagline ── */}
-          <div className="flex shrink-0 items-center justify-between border-b border-zinc-100/80 px-5 py-3">
+          <div className="flex shrink-0 items-center justify-between border-0 px-5 py-3">
             <span className="font-header-nav text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
               {s["org.brand"] || ""}
             </span>

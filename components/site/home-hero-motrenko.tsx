@@ -98,7 +98,7 @@ export function HomeHeroMotrenko({
     return (
       <section
         ref={containerRef}
-        className="relative -mt-16 overflow-hidden rounded-b-3xl md:-mt-[4.5rem] md:rounded-b-[2rem]"
+        className="relative -mt-[calc(4.25rem+env(safe-area-inset-top,0px))] overflow-hidden rounded-b-3xl md:-mt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:rounded-b-[2rem]"
       >
         <div aria-hidden className="absolute inset-0 bg-site-surface-c" />
         <div
@@ -174,7 +174,7 @@ export function HomeHeroMotrenko({
   return (
     <section
       ref={containerRef}
-      className="relative isolate -mt-16 overflow-hidden rounded-b-3xl bg-zinc-950 max-md:h-[min(90svh,680px)] max-md:min-h-[480px] md:-mt-[4.5rem] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
+      className="relative isolate -mt-[calc(4.25rem+env(safe-area-inset-top,0px))] overflow-hidden rounded-b-3xl bg-zinc-950 max-md:h-[min(90svh,680px)] max-md:min-h-[480px] md:-mt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
     >
       {/* Slika/video — jedini sloj, bez duplikata */}
       <div

@@ -10,16 +10,18 @@ type Props = {
   locale: Locale;
   /** Header na početnoj iznad hero-a — svjetliji tekst i obrub. */
   onLight: boolean;
+  /** Uži header na telefonu — manji dugmići i tracking. */
+  compact?: boolean;
 };
 
-export function SiteLanguageSwitcher({ locale, onLight }: Props) {
+export function SiteLanguageSwitcher({ locale, onLight, compact = false }: Props) {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const [busy, setBusy] = useState<Locale | null>(null);
 
   const shell = onLight
     ? "border-zinc-200/90 bg-white/85 text-site-header-nav-light shadow-sm"
-    : "border-white/35 bg-black/20 text-white shadow-[0_2px_18px_rgba(0,0,0,0.25)] backdrop-blur-[2px]";
+    : "border-white/15 bg-black/25 text-white shadow-none backdrop-blur-[4px]";
 
   const inactive = onLight
     ? "text-zinc-600 hover:bg-zinc-100 hover:text-site-brand-hover"
@@ -58,11 +60,19 @@ export function SiteLanguageSwitcher({ locale, onLight }: Props) {
       .finally(() => setBusy(null));
   };
 
+  const btnSize = compact
+    ? "min-h-8 min-w-[2.35rem] rounded-md px-1.5 py-0.5 text-[9px] tracking-[0.08em] md:min-h-9 md:min-w-0 md:rounded md:px-2.5 md:py-1 md:text-[11px] md:tracking-[0.12em]"
+    : "min-h-9 min-w-[2.75rem] rounded px-2 py-1 text-[10px] tracking-[0.12em] md:min-w-0 md:px-2.5 md:text-[11px]";
+
   return (
     <div
       role="navigation"
       aria-label="Jezik sajta"
-      className={`flex shrink-0 items-center gap-0 rounded-md border p-0.5 ${shell}`}
+      className={[
+        "flex shrink-0 items-center gap-0 border p-0.5",
+        compact ? "rounded-lg" : "rounded-md",
+        shell,
+      ].join(" ")}
     >
       {locales.map((loc) => {
         const isCurrent = loc === locale;
@@ -74,7 +84,8 @@ export function SiteLanguageSwitcher({ locale, onLight }: Props) {
             aria-current={isCurrent ? "true" : undefined}
             onClick={() => void go(loc)}
             className={[
-              "min-h-9 min-w-[2.75rem] rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] transition md:min-w-0 md:px-2.5 md:text-[11px]",
+              "font-semibold uppercase transition",
+              btnSize,
               isCurrent ? active : inactive,
               busy !== null && busy !== loc ? "opacity-50" : "",
             ].join(" ")}
