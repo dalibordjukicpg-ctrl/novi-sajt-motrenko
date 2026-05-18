@@ -577,7 +577,10 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
 
         {/* Right actions */}
         <div className="relative z-20 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 md:justify-self-end">
-          <SiteLanguageSwitcher locale={locale} onLight={lightHeader} compact />
+          {/* Na mobilnom je switcher unutar menija (linija ~651) — ovdje samo desktop */}
+          <span className="hidden md:contents">
+            <SiteLanguageSwitcher locale={locale} onLight={lightHeader} />
+          </span>
           {/* CTA u headeru samo na tablet/desktop — na telefonu je u mobilnom meniju (veći, touch-friendly) */}
           <Link
             href={resolvePublicHref(locale, s["header.cta_book_href"] ?? "")}
