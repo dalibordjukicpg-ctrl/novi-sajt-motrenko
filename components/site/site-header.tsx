@@ -541,7 +541,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
         {/* Logo */}
         <Link
           href={`/${locale}`}
-          className="site-header-logo-link relative z-20 flex min-w-0 max-w-[52%] items-center justify-self-start sm:max-w-[58%] md:max-w-[min(100%,500px)]"
+          className="site-header-logo-link relative z-20 flex min-w-0 max-w-[min(100%,68vw)] items-center justify-self-start sm:max-w-[min(100%,72vw)] md:max-w-[min(100%,500px)]"
         >
           <Image
             src={resolvedLogoSrc}
@@ -552,8 +552,8 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
             unoptimized={logoIsRemote}
             draggable={false}
             tabIndex={-1}
-            className="pointer-events-none block h-8 w-auto max-h-8 max-w-full select-none object-contain object-left sm:h-9 sm:max-h-9 md:h-[4.35rem] md:max-h-[4.55rem] lg:h-[4.75rem]"
-            sizes="(max-width: 768px) 52vw, 540px"
+            className="pointer-events-none block h-12 w-auto max-h-12 max-w-full select-none object-contain object-left sm:h-[3.35rem] sm:max-h-[3.35rem] md:h-[4.35rem] md:max-h-[4.55rem] lg:h-[4.75rem]"
+            sizes="(max-width: 768px) 72vw, 540px"
           />
         </Link>
 
