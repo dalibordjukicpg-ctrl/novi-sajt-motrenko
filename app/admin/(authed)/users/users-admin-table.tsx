@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useTransition } from "react";
 
+import { adminPath } from "@/lib/admin-base-path";
 import type { UserRole } from "@/lib/db/schema";
 import type { AdminUserRow } from "@/lib/queries/admin-users";
 
@@ -64,7 +65,7 @@ export function UsersAdminTable({
       if (next.active === "1") p.set("active", "1");
       else p.delete("active");
     }
-    router.push(`/admin/users?${p.toString()}`);
+    router.push(`${adminPath("users")}?${p.toString()}`);
   }
 
   return (
@@ -116,7 +117,7 @@ export function UsersAdminTable({
           Primijeni
         </button>
         <Link
-          href="/admin/users"
+          href={adminPath("users")}
           className="text-sm text-[#c55a15] underline-offset-2 hover:underline"
         >
           Reset

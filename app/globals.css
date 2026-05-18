@@ -27,8 +27,8 @@
   --site-muted:  #57534e;
   --site-subtle: #78716c;
 
-  /* Header — čitljivost: na bijelom tamni tekst; na herou bijelo + jedna suptilna senka. */
-  --site-header-nav-on-light: color-mix(in srgb, var(--site-ink) 94%, var(--site-brand-muted) 6%);
+  /* Header navigacija: na herou bijeli tekst; na bijeloj traci (skrol / ostale strane) narandžasta. */
+  --site-header-nav-on-light: var(--site-brand);
   --site-header-link-on-hero-rgb: 255 255 255;
 
   --site-header-link-caret: var(--site-muted);
@@ -71,11 +71,14 @@
 html {
   min-height: 100%;
   min-height: 100dvh;
+  /* Ispod tamnog chrome-a preglednika često se vidi podrazumijevano bijelo —
+     jednobojna pozadina uklanja „kosu“ liniju na vrhu kad je body transparentan. */
+  background-color: var(--site-canvas);
   scroll-behavior: smooth;
   /* Izbjegava neželjeno uvećanje teksta u landscape na iOS */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  scroll-padding-top: 4.5rem;
+  scroll-padding-top: calc(5rem + env(safe-area-inset-top));
   isolation: isolate;
 }
 
@@ -85,10 +88,42 @@ body {
   z-index: 0;
   color: var(--site-ink);
   -webkit-font-smoothing: antialiased;
-  /* Transparentno — GlobalBackdrop renderuje pozadinu iza svega */
+  /* Transparentno — GlobalBackdrop je ispod sadržaja (z-index -1); html ima canvas podlogu protiv bijelog „šafta“. */
   background: transparent;
   /* iOS/Android: suptilan tap highlight u tonu brenda */
   -webkit-tap-highlight-color: rgb(232 104 42 / 0.14);
+}
+
+/*
+ * Logo link u headeru: Chromium/Safari/Electron ostavljaju plavi obrub na :focus
+ * poslije klika mišem; globalni tap-highlight takođe može crtati „kvadrat”.
+ */
+.site-header-logo-link {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.site-header-logo-link:focus,
+.site-header-logo-link:focus:not(:focus-visible),
+.site-header-logo-link:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.site-header-logo-link:focus-visible {
+  outline: 2px solid var(--site-brand) !important;
+  outline-offset: 3px;
+  box-shadow: none !important;
+}
+
+.site-header-logo-link :where(span, img, picture) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.site-header-logo-link img {
+  border: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

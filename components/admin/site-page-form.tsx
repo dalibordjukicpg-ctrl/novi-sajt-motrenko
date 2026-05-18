@@ -1,11 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
+
+import type { TiptapEditorHandle } from "@/components/admin/tiptap-editor";
 
 import {
   createSitePageAction,
   updateSitePageAction,
 } from "@/app/admin/(authed)/pages/actions";
+import { translateSitePageFromMeAction } from "@/app/admin/(authed)/translate/actions";
+import { TranslateFromMeButton } from "@/components/admin/translate-from-me-button";
 import { TiptapEditor } from "@/components/admin/tiptap-editor";
 import type { MediaOption } from "@/lib/queries/media-admin";
 import type { Locale } from "@/lib/i18n";
@@ -14,7 +19,9 @@ import { SITE_PAGE_HEADER_GROUP_OPTIONS } from "@/lib/site-page-header-nav";
 import { slugifyTitle } from "@/lib/slugify";
 
 const localeLabels: Record<Locale, string> = {
-  me: "MNE",
+  me: "ME/SR",
+  en: "EN",
+  ru: "RU",
 };
 
 type ByLocale = Record<Locale, { title: string; body: string }>;
@@ -64,6 +71,9 @@ export function SitePageFormClient(props: Props) {
     return o;
   });
   const [tab, setTab] = useState<Locale>("me");
+  const [editorRevision, setEditorRevision] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
+  const meEditorRef = useRef<TiptapEditorHandle>(null);
 
   const action =
     props.mode === "create" ? createSitePageAction : updateSitePageAction;
@@ -76,7 +86,7 @@ export function SitePageFormClient(props: Props) {
   }
 
   return (
-    <form action={action} className="space-y-8">
+    <form ref={formRef} action={action} className="space-y-8">
       {props.mode === "edit" ? (
         <input type="hidden" name="pageId" value={props.pageId} />
       ) : null}
@@ -139,6 +149,59 @@ export function SitePageFormClient(props: Props) {
         </span>
       </label>
 
+      <TranslateFromMeButton
+        disabled={!titles.me.trim() && !bodies.me.trim()}
+        onGenerate={async () => {
+          const meBody = meEditorRef.current?.getHtml() ?? bodies.me;
+          const meTitle = titles.me.trim();
+          const res = await translateSitePageFromMeAction({
+            title: meTitle,
+            body: meBody,
+          });
+          if (!res.ok) return { error: res.error };
+          const nextTitles = {
+            me: meTitle || titles.me,
+            en: res.translations.en.title,
+            ru: res.translations.ru.title,
+          };
+          const nextBodies = {
+            me: meBody,
+            en: res.translations.en.body,
+            ru: res.translations.ru.body,
+          };
+
+          flushSync(() => {
+            setTitles(nextTitles);
+            setBodies(nextBodies);
+            setEditorRevision((n) => n + 1);
+          });
+
+          const fd = new FormData();
+          if (props.mode === "edit") {
+            fd.set("pageId", props.pageId);
+          }
+          fd.set("slug", slug);
+          fd.set("published", published ? "on" : "off");
+          const headerNavGroup =
+            formRef.current != null
+              ? String(
+                  new FormData(formRef.current).get("header_nav_group") ?? "",
+                )
+              : props.mode === "edit"
+                ? (props.initialHeaderNavGroup ?? "")
+                : "";
+          fd.set("header_nav_group", headerNavGroup);
+          fd.set("title_me", nextTitles.me);
+          fd.set("title_en", nextTitles.en);
+          fd.set("title_ru", nextTitles.ru);
+          fd.set("body_me", nextBodies.me);
+          fd.set("body_en", nextBodies.en);
+          fd.set("body_ru", nextBodies.ru);
+
+          await action(fd);
+        }}
+      />
+
       <div>
         <p className="mb-2 text-sm font-medium text-neutral-700">
           {locales.length > 1 ? "Jezici — naslov i sadržaj" : "Naslov i sadržaj"}
@@ -163,7 +226,15 @@ export function SitePageFormClient(props: Props) {
         ) : null}
 
         {locales.map((loc) => (
-          <div key={loc} className={tab === loc ? "mt-4 block space-y-3" : "hidden"}>
+          <div
+            key={loc}
+            className={
+              tab === loc
+                ? "mt-4 block space-y-3"
+                : "pointer-events-none absolute left-[-9999px] h-0 w-px overflow-hidden opacity-0"
+            }
+            aria-hidden={tab !== loc}
+          >
             <label className="block text-sm">
               <span className="font-medium text-neutral-700">
                 Naslov ({localeLabels[loc]})
@@ -177,6 +248,7 @@ export function SitePageFormClient(props: Props) {
                 onBlur={loc === "me" ? onTitleMeBlur : undefined}
                 className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2"
                 required={loc === "me"}
+                tabIndex={tab === loc ? 0 : -1}
               />
             </label>
             <div>
@@ -184,17 +256,16 @@ export function SitePageFormClient(props: Props) {
                 Sadržaj ({localeLabels[loc]})
               </span>
               <div className="mt-1">
-                {tab === loc ? (
-                  <TiptapEditor
-                    key={`${props.mode === "edit" ? props.pageId : "new"}-${loc}`}
-                    initialHtml={bodies[loc]}
-                    mediaOptions={props.mediaOptions}
-                    placeholder="Sadržaj stranice…"
-                    onHtmlChange={(html) =>
-                      setBodies((s) => ({ ...s, [loc]: html }))
-                    }
-                  />
-                ) : null}
+                <TiptapEditor
+                  ref={loc === "me" ? meEditorRef : undefined}
+                  key={`${props.mode === "edit" ? props.pageId : "new"}-${loc}-${editorRevision}`}
+                  initialHtml={bodies[loc]}
+                  mediaOptions={props.mediaOptions}
+                  placeholder="Sadržaj stranice…"
+                  onHtmlChange={(html) =>
+                    setBodies((s) => ({ ...s, [loc]: html }))
+                  }
+                />
               </div>
             </div>
           </div>

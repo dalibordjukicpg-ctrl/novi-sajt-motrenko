@@ -1,15 +1,18 @@
 "use server";
 
+import { randomUUID } from "crypto";
+
 import { and, eq } from "drizzle-orm";
 
 import { assertContentMutationAllowed } from "@/lib/auth/content-access";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { postTranslations, posts } from "@/lib/db/schema";
-import { locales } from "@/lib/i18n";
+import { defaultLocale, locales } from "@/lib/i18n";
 import { revalidateArticlePaths } from "@/lib/revalidate-content";
 import {
   articleFormSchema,
+  shouldPersistArticleTranslation,
   type ArticleMutationResult,
 } from "@/lib/validations/article";
 
@@ -82,22 +85,48 @@ export async function updatePostWithTranslations(
 
       for (const locale of locales) {
         const block = data[locale];
+        if (locale === defaultLocale) {
+          await tx
+            .update(postTranslations)
+            .set({
+              slug: block.slug.trim(),
+              title: block.title.trim(),
+              excerpt: norm(block.excerpt ?? ""),
+              body: norm(block.body ?? ""),
+              metaTitle: norm(block.metaTitle ?? ""),
+              metaDescription: norm(block.metaDescription ?? ""),
+            })
+            .where(
+              and(
+                eq(postTranslations.postId, postId),
+                eq(postTranslations.locale, locale),
+              ),
+            );
+          continue;
+        }
+
         await tx
-          .update(postTranslations)
-          .set({
-            slug: block.slug.trim(),
-            title: block.title.trim(),
-            excerpt: norm(block.excerpt ?? ""),
-            body: norm(block.body ?? ""),
-            metaTitle: norm(block.metaTitle ?? ""),
-            metaDescription: norm(block.metaDescription ?? ""),
-          })
+          .delete(postTranslations)
           .where(
             and(
               eq(postTranslations.postId, postId),
               eq(postTranslations.locale, locale),
             ),
           );
+
+        if (!shouldPersistArticleTranslation(locale, block)) continue;
+
+        await tx.insert(postTranslations).values({
+          id: randomUUID(),
+          postId,
+          locale,
+          slug: block.slug.trim(),
+          title: block.title.trim(),
+          excerpt: norm(block.excerpt ?? ""),
+          body: norm(block.body ?? ""),
+          metaTitle: norm(block.metaTitle ?? ""),
+          metaDescription: norm(block.metaDescription ?? ""),
+        });
       }
     });
   } catch (e) {

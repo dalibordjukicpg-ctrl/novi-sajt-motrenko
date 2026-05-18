@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CreateArticleForm } from "@/components/forms/create-article-form";
+import { adminPath } from "@/lib/admin-base-path";
 import { listMediaOptions } from "@/lib/queries/media-admin";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ export default async function AdminNewPostPage() {
     <main className="min-h-dvh bg-neutral-100 px-4 py-10">
       <div className="mx-auto max-w-3xl pb-6">
         <Link
-          href="/admin"
+          href={adminPath()}
           className="text-sm font-medium text-neutral-600 underline-offset-4 hover:text-neutral-900 hover:underline"
         >
           ← Admin

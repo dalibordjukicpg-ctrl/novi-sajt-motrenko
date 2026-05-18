@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { SitePageFormClient } from "@/components/admin/site-page-form";
+import { adminPath } from "@/lib/admin-base-path";
 import { listMediaOptions } from "@/lib/queries/media-admin";
 import { listSitePagesForAdmin } from "@/lib/queries/site-pages-admin";
 
@@ -20,7 +21,7 @@ export default async function NewSitePageAdmin({ searchParams }: Props) {
     <div className="mx-auto max-w-4xl space-y-8">
       <div>
         <Link
-          href="/admin/pages"
+          href={adminPath("pages")}
           className="text-sm text-neutral-600 hover:text-neutral-900"
         >
           ← Nazad na stranice

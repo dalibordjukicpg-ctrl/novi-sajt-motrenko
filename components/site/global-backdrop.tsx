@@ -71,8 +71,13 @@ export function GlobalBackdrop() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 select-none overflow-hidden"
-      style={{ zIndex: -1 }}
+      className="pointer-events-none fixed left-0 right-0 select-none overflow-hidden"
+      style={{
+        zIndex: -1,
+        top: -3,
+        height: "calc(100dvh + 6px)",
+        minHeight: "calc(100% + 6px)",
+      }}
     >
       {/* ── Layer 1: Ivory base gradient — unifomrniji, bez oštrih tonalnih skokova ── */}
       <div

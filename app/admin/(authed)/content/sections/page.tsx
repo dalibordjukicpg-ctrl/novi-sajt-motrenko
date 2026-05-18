@@ -14,23 +14,11 @@ export default async function HomeSectionsContentPage() {
     listMediaOptions(),
   ]);
 
-  const teamIds: [
-    string | null,
-    string | null,
-    string | null,
-    string | null,
-  ] = [
-    globals?.teamM1MediaId ?? null,
-    globals?.teamM2MediaId ?? null,
-    globals?.teamM3MediaId ?? null,
-    globals?.teamM4MediaId ?? null,
-  ];
-
   return (
     <div className="mx-auto max-w-6xl space-y-10">
       <AdminPageHeader
         title="Sekcije početne"
-        description="Statistike, naslovi blokova i „Upoznajte tim“ — tekstovi i portreti četiri člana. Raspored na sajtu ostaje iz šablona."
+        description="Statistike, naslovi blokova i „Upoznajte tim“ — tekstovi i jedna fotografija za karticu tima na početnoj."
       />
 
       <AdminPanel title="Statistike i naslovi sekcija">
@@ -39,7 +27,7 @@ export default async function HomeSectionsContentPage() {
 
       <AdminPanel
         title="Blok „Upoznajte tim“"
-        description="Naslovi, uvod, ime i uloga za četiri osobe, tri istaknute kartice i tekst linka. Jezik: tabovi u formi."
+        description="Naslovi, uvod, ime, uloga i uvodni tekst za istaknutog člana, tri istaknute kartice i tekst linka. Jezik: tabovi u formi."
       >
         <div className="team-admin-strings [&_button[type=submit]]:border-0 [&_button[type=submit]]:bg-[#f37021] [&_button[type=submit]]:hover:bg-[#e0651c] [&_textarea]:border-[#eadfce] [&_textarea]:focus:border-[#f37021] [&_textarea]:focus:ring-[#f37021]/30">
           <TabbedSiteStringsForm
@@ -50,7 +38,10 @@ export default async function HomeSectionsContentPage() {
         </div>
       </AdminPanel>
 
-      <TeamHomeMediaEditor mediaOptions={media} initialIds={teamIds} />
+      <TeamHomeMediaEditor
+        mediaOptions={media}
+        initialTeamHeroMediaId={globals?.teamM1MediaId ?? null}
+      />
     </div>
   );
 }

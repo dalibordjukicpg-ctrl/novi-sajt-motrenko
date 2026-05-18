@@ -4,6 +4,7 @@ import { createNavLinkAction } from "@/app/admin/(authed)/site/actions";
 import { AdminPageHeader, AdminPanel } from "@/components/admin/admin-panel";
 import { NavLinkRowForm } from "@/components/admin/nav-link-row-form";
 import { TabbedSiteStringsForm } from "@/components/admin/tabbed-site-strings-form";
+import { adminPath } from "@/lib/admin-base-path";
 import { buildSiteStringMatrix } from "@/lib/admin/build-site-matrix";
 import { listSitePagesForAdmin } from "@/lib/queries/site-pages-admin";
 import { loadNavForAdmin } from "@/lib/queries/site";
@@ -31,7 +32,7 @@ export default async function HeaderFooterContentPage() {
         description="Brend, kontakt podaci, tekstovi u podnožju i linkovi u kolonama. Za gornji meni koristite Header."
       >
         <Link
-          href="/admin/content/header"
+          href={adminPath("content/header")}
           className="rounded-lg border border-[#eadfce] bg-white px-4 py-2 text-sm font-medium text-[#5c4f44] hover:bg-[#fff9f5]"
         >
           Header navigacija

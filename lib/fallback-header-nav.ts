@@ -1,4 +1,12 @@
+import type { Locale } from "@/lib/i18n";
+import { defaultLocale } from "@/lib/i18n";
+import type { MachineTranslateTarget } from "@/lib/machine-translate";
 import type { PublicNavItem } from "@/lib/queries/site";
+import {
+  isMachineTranslateTarget,
+  isNavRuntimeTranslateEnabled,
+  translateNavPlainForLocale,
+} from "@/lib/runtime-translate";
 import {
   applyPublicHeaderNavPolicy,
   consolidateServiceRootsUnderUsluge,
@@ -142,13 +150,60 @@ function ensureFallbackBlog(roots: PublicNavItem[]): PublicNavItem[] {
 /**
  * Spoji podmenije iz seed-a, uskladi sa javnom politikom (O nama, Usluge, Blog, Kontakt).
  * Desktop: jedan mega meni „Usluge“. Mobilni spljoštava kategorije samo u `SiteHeader`.
+ *
+ * Async je zbog finalnog prolaza prevoda fallback labela (id koji počinje sa „fallback-“):
+ * one se hardkodiraju u ME, pa ih u RU/EN moramo dodatno provući kroz mašinski prevod
+ * kako se srpski tekstovi ne bi „provukli“ u prevedeni header (npr. „O nama“, „Naša priča“,
+ * „Naš tim“, „Blog“). DB-nodes su već lokalizovani u `getNavTree`.
  */
-export function resolveHeaderNav(nav: PublicNavItem[]): PublicNavItem[] {
+export async function resolveHeaderNav(
+  nav: PublicNavItem[],
+  locale: Locale = defaultLocale,
+): Promise<PublicNavItem[]> {
   let out = consolidateServiceRootsUnderUsluge(mergeNavWithFallbackSubmenus(nav));
   out = applyPublicHeaderNavPolicy(out);
   out = mergeNavWithFallbackSubmenus(out);
   out = ensureFallbackONama(out);
   out = ensureFallbackBlog(out);
   sortPublicHeaderRoots(out);
+  await localizeFallbackLabelsInPlace(out, locale);
   return out;
+}
+
+/**
+ * Prevedi sve „fallback-“ čvorove (one koji nisu došli iz baze) preko mašinskog prevoda.
+ * DB čvorovi su već lokalizovani u `getNavTree`, pa njih ne diramo.
+ */
+async function localizeFallbackLabelsInPlace(
+  roots: PublicNavItem[],
+  locale: Locale,
+): Promise<void> {
+  if (!isMachineTranslateTarget(locale) || !isNavRuntimeTranslateEnabled()) {
+    return;
+  }
+  const target = locale as MachineTranslateTarget;
+
+  const pending: { node: PublicNavItem; me: string }[] = [];
+  function visit(node: PublicNavItem): void {
+    if (node.id.startsWith("fallback-")) {
+      const me = node.label.trim();
+      if (me.length > 0) pending.push({ node, me });
+    }
+    for (const c of node.children) visit(c);
+  }
+  for (const r of roots) visit(r);
+  if (pending.length === 0) return;
+
+  const uniq = Array.from(new Set(pending.map((p) => p.me)));
+  const cache = new Map<string, string>();
+  await Promise.all(
+    uniq.map(async (src) => {
+      const t = await translateNavPlainForLocale(src, target);
+      if (t && t.trim().length > 0) cache.set(src, t);
+    }),
+  );
+  for (const p of pending) {
+    const t = cache.get(p.me);
+    if (t) p.node.label = t;
+  }
 }

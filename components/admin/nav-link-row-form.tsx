@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { saveNavLinkAction } from "@/app/admin/(authed)/site/actions";
+import { translateLabelFromMeAction } from "@/app/admin/(authed)/translate/actions";
 import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
 
@@ -34,6 +35,9 @@ export function NavLinkRowForm({
     const m = initialHref.trim().match(/^\/s\/([^/?#]+)/);
     return m?.[1] ?? "";
   });
+  const [labels, setLabels] = useState<Record<Locale, string>>(initialLabels);
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState<string | null>(null);
 
   return (
     <form
@@ -127,17 +131,65 @@ export function NavLinkRowForm({
         Stranice: prefiks{" "}
         <code className="rounded bg-neutral-100 px-1">/s/slug</code> na javnom sajtu.
       </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {locales.map((loc) => (
-          <label key={loc} className="block text-sm">
-            <span className="font-medium text-neutral-700">Naziv ({loc})</span>
-            <input
-              name={`label_${linkId}_${loc}`}
-              defaultValue={initialLabels[loc as Locale]}
-              className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2"
-            />
-          </label>
-        ))}
+      <div className="mt-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-neutral-600">Nazivi po jeziku</span>
+          <button
+            type="button"
+            disabled={translating}
+            onClick={async () => {
+              setTranslateError(null);
+              setTranslating(true);
+              try {
+                const res = await translateLabelFromMeAction(labels.me ?? "");
+                if (!res.ok) {
+                  setTranslateError(res.error);
+                  return;
+                }
+                setLabels((prev) => ({
+                  ...prev,
+                  en: res.translations.en,
+                  ru: res.translations.ru,
+                }));
+              } finally {
+                setTranslating(false);
+              }
+            }}
+            className="flex items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-50"
+          >
+            {translating ? (
+              <span className="inline-block size-3 animate-spin rounded-full border-2 border-neutral-400 border-t-transparent" />
+            ) : (
+              <span>🌐</span>
+            )}
+            Prevedi EN/RU
+          </button>
+        </div>
+        {translateError && (
+          <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
+            {translateError}
+          </p>
+        )}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {locales.map((loc) => (
+            <label key={loc} className="block text-sm">
+              <span className="font-medium text-neutral-700">
+                {loc === "me" ? "ME/SR" : loc.toUpperCase()}
+              </span>
+              <input
+                name={`label_${linkId}_${loc}`}
+                value={labels[loc as Locale] ?? ""}
+                onChange={(e) =>
+                  setLabels((prev) => ({
+                    ...prev,
+                    [loc]: e.target.value,
+                  }))
+                }
+                className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2"
+              />
+            </label>
+          ))}
+        </div>
       </div>
     </form>
   );

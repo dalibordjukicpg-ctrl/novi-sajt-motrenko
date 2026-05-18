@@ -84,20 +84,19 @@ export const getSiteBranding = cache(async () => {
 
 const TEAM_FALLBACK_PORTRAITS = [...TEAM_HOME_PORTRAIT_FALLBACKS];
 
-/** Javni URL ili fallback slika za 4 portreta u bloku „tim“ na početnoj. */
+/** Javni URL za veliki portret u bloku „tim“ na početnoj (`team_m1_media_id`); ostali slotovi u bazi su zastarjeli. */
 export const getTeamHomePortraitUrls = cache(async (): Promise<string[]> => {
   try {
     const g = await getSiteGlobalsRow();
-    const ids = [
-      g?.teamM1MediaId,
-      g?.teamM2MediaId,
-      g?.teamM3MediaId,
-      g?.teamM4MediaId,
+    const fb = [...TEAM_FALLBACK_PORTRAITS];
+    const primary = await resolveMediaPublicUrl(g?.teamM1MediaId);
+    const first = primary ?? fb[0] ?? DR_MOTRENKO_PORTRAIT;
+    return [
+      first,
+      fb[1] ?? DR_MOTRENKO_PORTRAIT,
+      fb[2] ?? DR_MOTRENKO_PORTRAIT,
+      fb[3] ?? DR_MOTRENKO_PORTRAIT,
     ];
-    const resolved = await Promise.all(ids.map((id) => resolveMediaPublicUrl(id)));
-    return resolved.map(
-      (u, i) => u ?? TEAM_FALLBACK_PORTRAITS[i] ?? DR_MOTRENKO_PORTRAIT,
-    );
   } catch (e) {
     console.error("[getTeamHomePortraitUrls]", e);
     return [...TEAM_FALLBACK_PORTRAITS];

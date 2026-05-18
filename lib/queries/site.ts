@@ -11,7 +11,7 @@ import {
   sitePages,
 } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
-import { locales } from "@/lib/i18n";
+import { defaultLocale, locales } from "@/lib/i18n";
 import { getSiteBranding, getTeamHomePortraitUrls } from "@/lib/queries/site-globals";
 import { SITE_STRING_DEFAULTS, SITE_STRING_KEYS } from "@/lib/site-fields";
 import type { SiteStringKey } from "@/lib/site-fields";
@@ -24,6 +24,16 @@ import {
   sortUslugeCategoryPillars,
   type CmsNavPageEntry,
 } from "@/lib/site-page-header-nav";
+import {
+  applyRuntimeTranslationToStringMap,
+  isMachineTranslateTarget,
+  isNavRuntimeTranslateEnabled,
+  isRuntimeTranslateEnabled,
+  needsRuntimeTranslation,
+  translateNavPlainForLocale,
+  translatePlainForLocale,
+  translateTextPairsForLocale,
+} from "@/lib/runtime-translate";
 import {
   buildFooterStructuredColumns,
   buildGinekologijaHeaderLinkRows,
@@ -40,6 +50,16 @@ export type PublicNavItem = {
   label: string;
   children: PublicNavItem[];
 };
+
+const HOME_BREADCRUMB_LABEL_ME = "Početna";
+
+/** „Početna“ u hero breadcrumbu — prevodi na EN/RU kad je API podešen. */
+export async function getHomeBreadcrumbLabel(locale: Locale): Promise<string> {
+  if (!isMachineTranslateTarget(locale) || !isNavRuntimeTranslateEnabled()) {
+    return HOME_BREADCRUMB_LABEL_ME;
+  }
+  return translateNavPlainForLocale(HOME_BREADCRUMB_LABEL_ME, locale);
+}
 
 /** Ista normalizacija kao za sprečavanje duplikata — path bez lokala/hash, lower case. */
 function normHrefForNavDedup(href: string): string {
@@ -63,7 +83,9 @@ function collectNavHrefs(nodes: PublicNavItem[]): Set<string> {
 }
 
 /** CMS stranice za header: objavljene, bez naslovne; grupa za ugniježđavanje pod „Uslugama“. */
-async function loadCmsNavPageEntries(locale: Locale): Promise<CmsNavPageEntry[]> {
+async function loadCmsNavPageEntriesForLocale(
+  locale: Locale,
+): Promise<CmsNavPageEntry[]> {
   const rows = await db
     .select({
       slug: sitePages.slug,
@@ -101,6 +123,42 @@ async function loadCmsNavPageEntries(locale: Locale): Promise<CmsNavPageEntry[]>
   return out;
 }
 
+/** CMS stranice u meniju: za EN/RU ako prevod nedostaje — isti skup linkova kao ME. */
+async function loadCmsNavPageEntries(locale: Locale): Promise<CmsNavPageEntry[]> {
+  const base = await loadCmsNavPageEntriesForLocale(defaultLocale);
+  if (locale === defaultLocale) return base;
+  const loc = await loadCmsNavPageEntriesForLocale(locale);
+  const labelBySlug = new Map<string, string>();
+  for (const e of loc) {
+    const slug = e.item.href.replace(/^\/s\//, "").trim();
+    if (slug) labelBySlug.set(slug, e.item.label);
+  }
+  const pairs = base.map((entry) => {
+    const slug = entry.item.href.replace(/^\/s\//, "").trim();
+    const alt = slug ? labelBySlug.get(slug)?.trim() : undefined;
+    const meLabel = entry.item.label;
+    const localized = alt && alt.length > 0 ? alt : meLabel;
+    return { localized, me: meLabel, entry };
+  });
+
+  if (!isMachineTranslateTarget(locale) || !isNavRuntimeTranslateEnabled()) {
+    return pairs.map(({ localized, entry }) => ({
+      ...entry,
+      item: { ...entry.item, label: localized },
+    }));
+  }
+
+  const translated = await translateTextPairsForLocale(
+    pairs.map((p) => ({ localized: p.localized, me: p.me })),
+    locale,
+  );
+
+  return pairs.map((p, i) => ({
+    ...p.entry,
+    item: { ...p.entry.item, label: translated[i] ?? p.localized },
+  }));
+}
+
 /** Slug → `header_nav_group` za objavljene stranice (raspored stavki u mega meniju). */
 async function loadPublishedSlugToHeaderGroup(): Promise<Map<string, string>> {
   const rows = await db
@@ -121,7 +179,7 @@ async function loadPublishedSlugToHeaderGroup(): Promise<Map<string, string>> {
   return m;
 }
 
-async function loadPublishedPagesForFooter(
+async function loadPublishedPagesForFooterLocale(
   locale: Locale,
 ): Promise<{ slug: string; title: string }[]> {
   const rows = await db
@@ -146,6 +204,37 @@ async function loadPublishedPagesForFooter(
     out.push({ slug, title: (r.title ?? "").trim() });
   }
   return out;
+}
+
+/** Liste stranica za footer i kanonske linkove u meniju — EN/RU bez prevoda dobija runtime prevod ME naslova. */
+async function loadPublishedPagesForFooter(
+  locale: Locale,
+): Promise<{ slug: string; title: string }[]> {
+  const fb = await loadPublishedPagesForFooterLocale(defaultLocale);
+  if (locale === defaultLocale) return fb;
+  const loc = await loadPublishedPagesForFooterLocale(locale);
+  const titleBySlug = new Map(loc.map((r) => [r.slug, r.title]));
+
+  const pairs = fb.map((r) => {
+    const fbTitle = (r.title ?? "").trim();
+    const lt = titleBySlug.get(r.slug)?.trim();
+    const localized = lt && lt.length > 0 ? lt : fbTitle;
+    return { slug: r.slug, localized, me: fbTitle };
+  });
+
+  if (!isMachineTranslateTarget(locale) || !isRuntimeTranslateEnabled()) {
+    return pairs.map((p) => ({ slug: p.slug, title: p.localized }));
+  }
+
+  const translated = await translateTextPairsForLocale(
+    pairs.map((p) => ({ localized: p.localized, me: p.me })),
+    locale,
+  );
+
+  return pairs.map((p, i) => ({
+    slug: p.slug,
+    title: translated[i] ?? p.localized,
+  }));
 }
 
 export type { FooterColumnData } from "@/lib/footer-structured-nav";
@@ -173,6 +262,28 @@ export async function getSiteStringsMap(
     map[r.fieldKey as SiteStringKey] = r.value;
   }
   return map;
+}
+
+/** Ključevi iz traženog jezika + nedostajuće vrijednosti iz `defaultLocale` (bez diranja šeme). */
+export async function getSiteStringsMapWithFallback(
+  locale: Locale,
+): Promise<Partial<Record<SiteStringKey, string>>> {
+  const primary = await getSiteStringsMap(locale);
+  if (locale === defaultLocale) return primary;
+  const fb = await getSiteStringsMap(defaultLocale);
+  const merged: Partial<Record<SiteStringKey, string>> = { ...fb };
+  for (const k of SITE_STRING_KEYS) {
+    const v = primary[k];
+    if (v != null && String(v).trim() !== "") merged[k] = v.trim();
+  }
+
+  return applyRuntimeTranslationToStringMap(
+    locale,
+    primary,
+    merged,
+    fb,
+    SITE_STRING_KEYS,
+  );
 }
 
 /** Popuni / zamijeni djecu stub „IUI i IVF“ u mega meniju — 9 canonical stavki kao na referentnoj slici. */
@@ -284,6 +395,133 @@ function applyCanonicalTrudnocaColumnChildren(
 const PREZERVACIJA_MEGA_PILLAR_LABEL =
   "Krioprezervacija embriona – Zamrzavanje embriona (vitrifikacija embriona)";
 
+/** Stubovi menija sa fiksnim ME naslovima (IUI i IVF, Ginekologija, …). */
+/**
+ * Lokalizacija već izgrađenog ME stabla navigacije (labels + href prefiks).
+ *  1) labela iz `nav_link_translations` ako postoji prava (≠ ME), inače mašinski prevod ME-a
+ *  2) za CMS čvorove (`id = "cms-page:slug"`) — naslov iz `site_page_translations` ako postoji
+ *  3) za hrefove tipa `/me/...` zamijeni prefiks lokalom
+ */
+async function localizeNavTreeInPlace(
+  roots: PublicNavItem[],
+  locale: Locale,
+  navTransById: Map<string, { locale: string; label: string }[]>,
+  cmsLocaleTitleBySlug: Map<string, string>,
+): Promise<void> {
+  if (locale === defaultLocale) return;
+
+  type Pending = { node: PublicNavItem; me: string };
+  const pending: Pending[] = [];
+
+  /** Da li je DB prevod stvarno upotrebljiv (nije identičan ME, a za RU sadrži ćirilicu). */
+  function isUsableTranslation(
+    candidate: string,
+    me: string,
+    target: Locale,
+  ): boolean {
+    const c = candidate.trim();
+    if (!c) return false;
+    if (c.toLowerCase() === me.trim().toLowerCase()) return false;
+    if (target === "ru" && !/[\u0400-\u04FF]/.test(c)) return false;
+    return true;
+  }
+
+  function maybeMt(node: PublicNavItem, meSource: string): void {
+    const me = meSource.trim();
+    if (!me) return;
+    pending.push({ node, me });
+  }
+
+  const DBG = process.env.NAV_TRANSLATE_DEBUG === "1";
+  function dbg(...args: unknown[]): void {
+    if (DBG) console.log("[localizeNavTree]", ...args);
+  }
+
+  function visit(node: PublicNavItem): void {
+    const trans = navTransById.get(node.id);
+    if (trans) {
+      const me = labelForLocale(trans, defaultLocale);
+      const locLabel = labelForLocale(trans, locale);
+      const usable = isUsableTranslation(locLabel, me, locale);
+      dbg(
+        `nav_link "${me}"  → DB[${locale}]="${locLabel}"  usable=${usable}`,
+      );
+      if (usable) {
+        node.label = locLabel;
+      } else {
+        maybeMt(node, me || node.label);
+      }
+    } else if (node.id.startsWith("cms-page:")) {
+      const slug = node.id.slice("cms-page:".length);
+      const locLabel = cmsLocaleTitleBySlug.get(slug) ?? "";
+      const usable = isUsableTranslation(locLabel, node.label, locale);
+      dbg(
+        `cms-page "${node.label}"  slug=${slug}  → DB[${locale}]="${locLabel}"  usable=${usable}`,
+      );
+      if (usable) {
+        node.label = locLabel.trim();
+      } else {
+        maybeMt(node, node.label);
+      }
+    } else {
+      const href = node.href ?? "";
+      const slugMatch = href.match(/\/s\/([^/?#]+)/);
+      if (slugMatch) {
+        const slug = slugMatch[1]!;
+        const locLabel = cmsLocaleTitleBySlug.get(slug) ?? "";
+        const usable = isUsableTranslation(locLabel, node.label, locale);
+        dbg(
+          `synthetic+slug "${node.label}"  slug=${slug}  → DB[${locale}]="${locLabel}"  usable=${usable}`,
+        );
+        if (usable) {
+          node.label = locLabel.trim();
+        } else {
+          maybeMt(node, node.label);
+        }
+      } else {
+        dbg(`synthetic "${node.label}"  (id=${node.id})  → maybeMt`);
+        maybeMt(node, node.label);
+      }
+    }
+    for (const c of node.children) visit(c);
+  }
+  for (const r of roots) visit(r);
+
+  if (
+    pending.length > 0 &&
+    isMachineTranslateTarget(locale) &&
+    isNavRuntimeTranslateEnabled()
+  ) {
+    const cache = new Map<string, string>();
+    const uniq = Array.from(
+      new Set(pending.map((p) => p.me).filter((s) => s.trim().length > 0)),
+    );
+    dbg(`MT batch (${locale}):`, uniq);
+    await Promise.all(
+      uniq.map(async (src) => {
+        const t = await translateNavPlainForLocale(src, locale);
+        dbg(`  MT "${src}" → "${t}"`);
+        cache.set(src, t);
+      }),
+    );
+    for (const p of pending) {
+      const t = cache.get(p.me);
+      if (t && t.trim().length > 0) p.node.label = t;
+    }
+  }
+
+  function rewriteHrefs(node: PublicNavItem): void {
+    const h = (node.href ?? "").trim();
+    if (h.startsWith(`/${defaultLocale}/`)) {
+      node.href = `/${locale}${h.slice(defaultLocale.length + 1)}`;
+    } else if (h === `/${defaultLocale}`) {
+      node.href = `/${locale}`;
+    }
+    for (const c of node.children) rewriteHrefs(c);
+  }
+  for (const r of roots) rewriteHrefs(r);
+}
+
 /** Popuni / zamijeni djecu stub „Prezervacija fertilnosti“ — 3 canonical stavke kao na referentnoj slici. */
 function applyCanonicalPrezervacijaColumnChildren(
   roots: PublicNavItem[],
@@ -325,7 +563,30 @@ function labelForLocale(
   locale: Locale,
 ): string {
   const row = translations.find((t) => t.locale === locale);
-  return row?.label ?? translations[0]?.label ?? "";
+  const v = row?.label?.trim();
+  if (v) return v;
+  const fb = translations.find((t) => t.locale === defaultLocale);
+  const fv = fb?.label?.trim();
+  if (fv) return fv;
+  return translations[0]?.label?.trim() ?? "";
+}
+
+async function labelForLocaleResolved(
+  translations: { locale: string; label: string }[],
+  locale: Locale,
+): Promise<string> {
+  const me = labelForLocale(translations, defaultLocale);
+  const label = labelForLocale(translations, locale);
+  if (locale === defaultLocale) return label;
+  const hasLocaleRow = translations.some(
+    (t) => t.locale === locale && (t.label ?? "").trim().length > 0,
+  );
+  if (hasLocaleRow && !needsRuntimeTranslation(label, me)) return label;
+  if (!isMachineTranslateTarget(locale) || !isNavRuntimeTranslateEnabled()) {
+    return label;
+  }
+  if (!me.trim()) return label;
+  return translateNavPlainForLocale(me, locale);
 }
 
 /** MariaDB / stariji MySQL: bez Drizzle relational `with` (LATERAL + json_arrayagg). */
@@ -379,76 +640,34 @@ async function navLinksWithTranslations(
   }));
 }
 
-function summarizeNavTreeForDebug(
-  nodes: PublicNavItem[],
-  depth = 0,
-  maxDepth = 4,
-): { id: string; href: string; labelPreview: string; childCount: number }[] {
-  if (depth > maxDepth) return [];
-  const out: ReturnType<typeof summarizeNavTreeForDebug> = [];
-  for (const n of nodes) {
-    out.push({
-      id: n.id,
-      href: n.href,
-      labelPreview: (n.label ?? "").slice(0, 60),
-      childCount: n.children.length,
-    });
-    out.push(...summarizeNavTreeForDebug(n.children, depth + 1, maxDepth));
-  }
-  return out;
-}
-
 /** Drvo za header: korijeni su samo placement=header; djeca mogu biti header ili footer (isti parentId u bazi). */
 export async function getNavTree(locale: Locale): Promise<PublicNavItem[]> {
-  /** Privremeni debug za Hostinger runtime — obriši nakon dijagnostike. */
-  const NAV_DEBUG_PREFIX = "[getNavTree DEBUG]";
-
   const rows = await navLinksWithTranslations(true, "all");
 
-  const distinctPlacements = [...new Set(rows.map(({ link: l }) => l.placement))];
-  let linksWithExactLocaleTranslation = 0;
-  let linksWithFallbackOnly = 0;
-  const distinctTranslationLocales = new Set<string>();
-  let totalTranslationRows = 0;
-  for (const { link: r, translations } of rows) {
-    totalTranslationRows += translations.length;
-    for (const t of translations) distinctTranslationLocales.add(t.locale);
-    const exact = translations.some((t) => t.locale === locale);
-    if (exact) linksWithExactLocaleTranslation++;
-    else if (translations.length > 0) linksWithFallbackOnly++;
-  }
-
-  console.log(`${NAV_DEBUG_PREFIX} locale=`, locale);
-  console.log(
-    `${NAV_DEBUG_PREFIX} SQL filter: visibleOnly=true, placement=all (bez placement u WHERE; zasebna JS pravila za header korijene)`,
-  );
-  console.log(
-    `${NAV_DEBUG_PREFIX} broj_nav_links_prije_filtra_korijena(rows.length)=`,
-    rows.length,
-    "| distinct placement u rezultatu:",
-    distinctPlacements,
-    "(nemamo enum 'primary' u šemi — samo header|footer)",
-  );
-
+  /*
+   * KORAK 1 — Izgradi cijelo stablo i sve strukturne transformacije u ME/SR.
+   * Razlog: `looksLikeUslugeParent`, `matchNavNodeToUslugeGroupKey`, itd.
+   * rade nad labelima — moraju biti u izvornom jeziku da bi kategorizacija prošla.
+   */
   const byId = new Map<string, PublicNavItem>();
   const sortOrderById = new Map<string, number>();
+  const navTransById = new Map<
+    string,
+    { locale: string; label: string }[]
+  >();
+
   for (const { link: r, translations } of rows) {
     sortOrderById.set(r.id, r.sortOrder);
+    navTransById.set(r.id, translations);
     byId.set(r.id, {
       id: r.id,
       href: r.href,
-      label: labelForLocale(translations, locale),
+      label: labelForLocale(translations, defaultLocale),
       children: [],
     });
   }
 
   const roots: PublicNavItem[] = [];
-  const skippedNotHeaderPlacement: {
-    id: string;
-    placement: string;
-    parentId: string | null;
-  }[] = [];
-
   for (const { link: r } of rows) {
     const node = byId.get(r.id)!;
     if (r.parentId && byId.has(r.parentId)) {
@@ -458,33 +677,7 @@ export async function getNavTree(locale: Locale): Promise<PublicNavItem[]> {
       (!r.parentId || !byId.has(r.parentId))
     ) {
       roots.push(node);
-    } else if (r.placement !== "header") {
-      skippedNotHeaderPlacement.push({
-        id: r.id,
-        placement: r.placement,
-        parentId: r.parentId,
-      });
     }
-  }
-
-  console.log(
-    `${NAV_DEBUG_PREFIX} broj_korijena_poslije_header_js_filter(roots.length)=`,
-    roots.length,
-  );
-  console.log(
-    `${NAV_DEBUG_PREFIX} prevodi: ukupno_nav_link_translation_redova=` +
-      totalTranslationRows +
-      ", linkova_sa_tacnim_locale='" +
-      locale +
-      "'=" +
-      linksWithExactLocaleTranslation +
-      ", linkova_sa_samo_fallback_label=" +
-      linksWithFallbackOnly +
-      "| distinct_translation_locale_kolone=",
-    [...distinctTranslationLocales].sort().join(","),
-  );
-  if (skippedNotHeaderPlacement.length > 0 && skippedNotHeaderPlacement.length <= 15) {
-    console.log(`${NAV_DEBUG_PREFIX} uzorak NIJE-header (ne idu u korijene):`, skippedNotHeaderPlacement.slice(0, 8));
   }
 
   function normNavLabelForSort(label: string): string {
@@ -512,38 +705,59 @@ export async function getNavTree(locale: Locale): Promise<PublicNavItem[]> {
 
   const navRoots = consolidateServiceRootsUnderUsluge(roots);
 
+  // Sve helper liste — u ME (locale-specifične prevode dohvatamo zasebno za finalnu lokalizaciju).
+  let cmsLocaleTitleBySlug = new Map<string, string>();
   try {
     const used = collectNavHrefs(navRoots);
-    const cmsEntries = await loadCmsNavPageEntries(locale);
+    const cmsEntriesMe = await loadCmsNavPageEntries(defaultLocale);
     const slugToGroup = await loadPublishedSlugToHeaderGroup();
     if (navRoots.some((r) => looksLikeUslugeParent(r))) {
       attachCmsPagesUnderUsluge(
         navRoots,
-        cmsEntries,
+        cmsEntriesMe,
         used,
         normHrefForNavDedup,
       );
       nestUslugeLeavesIntoCategoryColumns(navRoots, slugToGroup);
     }
-    const pagesForIuiIvf = await loadPublishedPagesForFooter(locale);
-    applyCanonicalIuiIvfColumnChildren(navRoots, locale, pagesForIuiIvf);
-    applyCanonicalGinekologijaColumnChildren(navRoots, locale, pagesForIuiIvf);
-    applyCanonicalTrudnocaColumnChildren(navRoots, locale, pagesForIuiIvf);
-    applyCanonicalPrezervacijaColumnChildren(navRoots, locale, pagesForIuiIvf);
+    const pagesForIuiIvfMe = await loadPublishedPagesForFooter(defaultLocale);
+    applyCanonicalIuiIvfColumnChildren(navRoots, defaultLocale, pagesForIuiIvfMe);
+    applyCanonicalGinekologijaColumnChildren(navRoots, defaultLocale, pagesForIuiIvfMe);
+    applyCanonicalTrudnocaColumnChildren(navRoots, defaultLocale, pagesForIuiIvfMe);
+    applyCanonicalPrezervacijaColumnChildren(navRoots, defaultLocale, pagesForIuiIvfMe);
     sortUslugeCategoryPillars(navRoots);
-    for (const { item } of cmsEntries) {
+    for (const { item } of cmsEntriesMe) {
       if (used.has(normHrefForNavDedup(item.href))) continue;
       navRoots.push({ ...item, children: [] });
       used.add(normHrefForNavDedup(item.href));
+    }
+
+    if (locale !== defaultLocale) {
+      const pagesForLocale = await loadPublishedPagesForFooterLocale(locale);
+      for (const p of pagesForLocale) {
+        if (p.title?.trim()) {
+          cmsLocaleTitleBySlug.set(p.slug, p.title.trim());
+        }
+      }
     }
   } catch (e) {
     console.error("[getNavTree] CMS stranice za header", e);
   }
 
-  console.log(
-    `${NAV_DEBUG_PREFIX} finalni_nav_tree_korijeni=${navRoots.length} (summarize prvih slojeva)`,
-    JSON.stringify(summarizeNavTreeForDebug(navRoots).slice(0, 45)),
-  );
+  /*
+   * KORAK 2 — Lokalizacija već izgrađenog stabla:
+   *  - label preuzmi iz nav_link_translations / site_page_translations ako postoji
+   *  - inače mašinski prevedi ME label (uz batch + keš)
+   *  - hrefove prefiksirane sa "/me/" prepiši na ciljni jezik
+   */
+  if (locale !== defaultLocale) {
+    await localizeNavTreeInPlace(
+      navRoots,
+      locale,
+      navTransById,
+      cmsLocaleTitleBySlug,
+    );
+  }
 
   return navRoots;
 }
@@ -592,7 +806,7 @@ export async function getFooterNavColumns(
     const list = byCol.get(c) ?? [];
     list.push({
       href: link.href,
-      label: labelForLocale(translations, locale),
+      label: await labelForLocaleResolved(translations, locale),
     });
     byCol.set(c, list);
   }
@@ -671,8 +885,16 @@ export function mergeSiteStrings(
   locale: Locale,
   fromDb: Partial<Record<SiteStringKey, string>>,
 ): Record<SiteStringKey, string> {
-  const base = { ...SITE_STRING_DEFAULTS[locale] };
-  const defs = SITE_STRING_DEFAULTS[locale];
+  /*
+   * Bazni layer su uvijek ME defaultne vrijednosti — jer su `SITE_STRING_DEFAULTS.en` i `.ru`
+   * trenutno samo kopije ME-a (vidi `lib/site-fields.ts`). Da nemamo praznine ako baza nema
+   * EN/RU red, prvo namjestimo ME default, pa zatim primijenimo DB vrijednost za traženi jezik.
+   */
+  const base = { ...SITE_STRING_DEFAULTS[defaultLocale] } as Record<
+    SiteStringKey,
+    string
+  >;
+  const defs = SITE_STRING_DEFAULTS[defaultLocale];
   for (const k of SITE_STRING_KEYS) {
     const v = fromDb[k];
     if (v != null && v.trim().length > 0) base[k] = v.trim();
@@ -694,9 +916,9 @@ export { resolvePublicHref } from "@/lib/resolve-public-href";
 export const getSiteLayoutData = cache(async (locale: Locale) => {
   let map: Partial<Record<SiteStringKey, string>> = {};
   try {
-    map = await getSiteStringsMap(locale);
+    map = await getSiteStringsMapWithFallback(locale);
   } catch (e) {
-    console.error("[getSiteStringsMap]", e);
+    console.error("[getSiteStringsMapWithFallback]", e);
   }
 
   const s = mergeSiteStrings(locale, map);

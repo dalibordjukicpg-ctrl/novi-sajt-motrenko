@@ -1,6 +1,14 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { LoginForm } from "./login-form";
+import { ADMIN_BASE_PATH, adminPath } from "@/lib/admin-base-path";
+import {
+  DEFAULT_HEADER_LOGO,
+  HEADER_LOGO_PIXEL_HEIGHT,
+  HEADER_LOGO_PIXEL_WIDTH,
+} from "@/lib/clinic-assets";
+import { getSiteBranding } from "@/lib/queries/site-globals";
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -15,45 +23,58 @@ export default async function AdminLoginPage({ searchParams }: Props) {
         ? sp.next[0]
         : "";
   const redirectTo =
-    rawNext.startsWith("/admin") && !rawNext.startsWith("//")
+    rawNext.startsWith(`${ADMIN_BASE_PATH}/`) && !rawNext.startsWith("//")
       ? rawNext
-      : "/admin";
+      : ADMIN_BASE_PATH;
+
+  let logoSrc = DEFAULT_HEADER_LOGO;
+  try {
+    const b = await getSiteBranding();
+    const u = b.logoUrl?.trim();
+    if (u) logoSrc = u;
+  } catch {
+    /* ignore */
+  }
+  const logoRemote = /^https?:\/\//i.test(logoSrc);
 
   return (
-    <main className="min-h-dvh bg-neutral-100 px-4 py-16">
-      <div className="mx-auto max-w-md text-center">
-        <h1 className="text-2xl font-semibold text-neutral-900">Admin</h1>
-        <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-          Prijava za upravljačku ploču.
-        </p>
-        <p className="mt-3 rounded-lg border border-neutral-200/80 bg-white px-3 py-2 text-left text-xs leading-relaxed text-neutral-600">
-          <span className="font-medium text-neutral-800">Lokalni URL: </span>
-          dev server koristi port iz{" "}
-          <code className="rounded bg-neutral-100 px-1">DEV_PORT</code> u .env
-          (obično{" "}
-          <a
-            href="http://localhost:7392/admin/login"
-            className="font-medium text-neutral-900 underline-offset-2 hover:underline"
-          >
-            :7392
-          </a>
-          ), ne podrazumijevani 3000.
-        </p>
-        <LoginForm redirectTo={redirectTo} />
-        <p className="mt-4 text-center text-sm">
-          <Link
-            href="/admin/forgot-password"
-            className="text-neutral-600 underline-offset-2 hover:underline"
-          >
-            Zaboravljena lozinka
-          </Link>
-        </p>
-        <p className="mt-8 text-xs text-neutral-500">
-          Prvi korisnik:{" "}
-          <code className="rounded bg-neutral-200 px-1 py-0.5">
-            npm run seed:admin
-          </code>
-        </p>
+    <main className="relative min-h-dvh bg-site-canvas px-4 py-14 md:py-20">
+      <div className="mx-auto max-w-md">
+        <div className="text-center">
+          <div className="flex justify-center">
+            <Image
+              src={logoSrc}
+              alt="Human Reproduction Center"
+              width={HEADER_LOGO_PIXEL_WIDTH}
+              height={HEADER_LOGO_PIXEL_HEIGHT}
+              priority
+              unoptimized={logoRemote}
+              className="h-14 w-auto max-h-[4rem] max-w-[min(100%,280px)] object-contain md:h-[4.25rem]"
+            />
+          </div>
+
+          <p className="mt-8 font-header-nav text-[11px] font-semibold uppercase tracking-[0.22em] text-site-brand-muted">
+            Administracija
+          </p>
+          <h1 className="mt-2 font-serif text-[1.65rem] font-semibold leading-snug tracking-tight text-site-ink md:text-[1.85rem]">
+            Prijava
+          </h1>
+          <p className="mx-auto mt-2 max-w-[20rem] text-sm leading-relaxed text-site-muted">
+            Siguran pristup upravljačkoj ploči.
+          </p>
+        </div>
+
+        <div className="mt-10 rounded-2xl border border-site-border bg-white/95 p-8 shadow-site-card backdrop-blur-sm md:p-9">
+          <LoginForm redirectTo={redirectTo} />
+          <p className="mt-6 text-center text-sm">
+            <Link
+              href={adminPath("forgot-password")}
+              className="font-medium text-site-brand-muted underline-offset-4 transition hover:text-site-brand hover:underline"
+            >
+              Zaboravljena lozinka
+            </Link>
+          </p>
+        </div>
       </div>
     </main>
   );

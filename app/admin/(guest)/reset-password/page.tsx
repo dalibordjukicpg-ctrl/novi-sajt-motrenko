@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { adminPath } from "@/lib/admin-base-path";
 import { parseCompoundToken } from "@/lib/auth/parse-compound-token";
 
 import { ResetPasswordForm } from "./reset-form";
@@ -29,7 +30,7 @@ export default async function ResetPasswordPage({ searchParams }: Props) {
             </p>
             <p className="mt-6">
               <Link
-                href="/admin/forgot-password"
+                href={adminPath("forgot-password")}
                 className="text-sm text-neutral-700 underline-offset-2 hover:underline"
               >
                 Zaboravljena lozinka

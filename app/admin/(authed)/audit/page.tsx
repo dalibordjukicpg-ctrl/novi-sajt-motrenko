@@ -1,4 +1,5 @@
 import { listAuditLogs } from "@/lib/queries/audit-logs-admin";
+import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { redirect, unauthorized } from "next/navigation";
 
@@ -10,7 +11,7 @@ type Props = {
 
 export default async function AuditLogPage({ searchParams }: Props) {
   const session = await getSession();
-  if (!session) redirect("/admin/login");
+  if (!session) redirect(adminPath("login"));
   if (!hasPermission(session.role, PERMISSIONS.AUDIT_VIEW)) {
     unauthorized();
   }

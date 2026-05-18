@@ -32,7 +32,10 @@
     "nav:collapse-usluge": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/collapse-header-usluge.ts",
     "nav:link-header-pages": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/link-header-nav-to-pages-by-title.ts",
     "nav:fix-labels": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/fix-nav-link-labels.ts",
-    "db:strip-personal-email": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/strip-personal-email.ts"
+    "db:strip-personal-email": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/strip-personal-email.ts",
+    "test:openai": "node scripts/test-openai-key.cjs",
+    "test:translate": "node scripts/test-translate-once.cjs",
+    "test:nav-translate": "node scripts/test-nav-translate.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

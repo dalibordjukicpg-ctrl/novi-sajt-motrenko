@@ -113,7 +113,7 @@ export function HomePageView({ locale, s, nav, posts, dbError, heroBgUrl, teamHo
 
   const portraitFallback = [...TEAM_HOME_PORTRAIT_FALLBACKS];
   const portraitUrls =
-    teamHomePortraitUrls && teamHomePortraitUrls.length === 4
+    teamHomePortraitUrls && teamHomePortraitUrls.length >= 4
       ? teamHomePortraitUrls
       : portraitFallback;
 
@@ -168,9 +168,9 @@ export function HomePageView({ locale, s, nav, posts, dbError, heroBgUrl, teamHo
 
       <HomeNewsMotrenko
         locale={locale}
-        eyebrow="Blog"
+        eyebrow={s["home.news_eyebrow"]}
         heading={s["section.news_title"]}
-        readLabel="Pročitajte"
+        readLabel={s["home.news_read_label"]}
         archiveHref={`/${locale}#novosti`}
         posts={dbError ? [] : posts}
         loadError={dbError}
@@ -180,9 +180,9 @@ export function HomePageView({ locale, s, nav, posts, dbError, heroBgUrl, teamHo
         locale={locale}
         privacyHref={resolvePublicHref(locale, s["footer.privacy_href"])}
         s={s}
-        eyebrow="Vaš put počinje ovdje"
-        headingLine1="Zakažite konsultaciju"
-        headingLine2="s našim stručnjacima"
+        eyebrow={s["home.cta_eyebrow"]}
+        headingLine1={s["home.cta_heading_line1"]}
+        headingLine2={s["home.cta_heading_line2"]}
       />
     </>
   );

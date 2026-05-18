@@ -63,7 +63,8 @@ export function HomeTeamTeaser({
                     src={featured.imageSrc}
                     alt={featured.name || "Dr Tatjana Motrenko Simić"}
                     fill
-                    sizes="(min-width: 1024px) 380px, 90vw"
+                    sizes="(min-width: 1280px) 520px, (min-width: 1024px) 42vw, (min-width: 640px) 85vw, 92vw"
+                    quality={88}
                     priority
                     className="object-cover object-[center_18%]"
                   />

@@ -10,6 +10,7 @@ import {
   uploadAdminMediaFile,
 } from "@/components/admin/admin-media-picker";
 import { AdminPanel } from "@/components/admin/admin-panel";
+import { adminPath } from "@/lib/admin-base-path";
 import {
   isHeroBackgroundVideoUrl,
   isHeroBackgroundYoutubeUrl,
@@ -168,7 +169,7 @@ export function HeroBackgroundField({
           </select>
           <p className="text-xs text-[#6b5f54]">
             Sve datoteke su u{" "}
-            <Link href="/admin/media" className="text-[#c55a15] underline">
+            <Link href={adminPath("media")} className="text-[#c55a15] underline">
               Mediji
             </Link>
             .

@@ -39,6 +39,14 @@ export const SITE_STRING_KEYS = [
   "section.about_lead",
   "section.news_title",
 
+  "home.news_eyebrow",
+  "home.news_read_label",
+  "home.cta_eyebrow",
+  "home.cta_heading_line1",
+  "home.cta_heading_line2",
+  "home.hours_mon_fri_label",
+  "home.hours_sat_sun_label",
+
   "team.eyebrow",
   "team.title",
   "team.lead",
@@ -139,6 +147,14 @@ export const SITE_STRING_LABELS: Record<SiteStringKey, string> = {
   "section.about_lead": "O nama — uvod",
   "section.news_title": "Novosti / blog — naslov",
 
+  "home.news_eyebrow": "Početna — eyebrow iznad bloga (npr. „Blog“)",
+  "home.news_read_label": "Početna — tekst dugmeta na kartici članka (npr. „Pročitajte“)",
+  "home.cta_eyebrow": "Početna CTA — mali naslov iznad (eyebrow)",
+  "home.cta_heading_line1": "Početna CTA — prvi red naslova",
+  "home.cta_heading_line2": "Početna CTA — drugi red naslova (kurziv)",
+  "home.hours_mon_fri_label": "Početna CTA / kontakt — oznaka „Pon – Pet“",
+  "home.hours_sat_sun_label": "Početna CTA / kontakt — oznaka „Sub – Ned“",
+
   "team.eyebrow": "Tim — mali naslov (iznad glavnog)",
   "team.title": "Tim — glavni naslov",
   "team.lead": "Tim — uvodni tekst",
@@ -203,8 +219,7 @@ export const SITE_STRING_LABELS: Record<SiteStringKey, string> = {
 type Defaults = Record<Locale, Record<SiteStringKey, string>>;
 
 /** Početni sadržaj inspirišan humanom reprodukcijom / prezentacionim kliničkim sajtom. */
-export const SITE_STRING_DEFAULTS: Defaults = {
-  me: {
+const ME_SITE_STRING_DEFAULTS = {
     "org.brand": "Human Reproduction Center Budva",
     "org.subtitle": "Centar za humanu reprodukciju",
     "header.cta_book": "Zakaži pregled",
@@ -241,6 +256,14 @@ export const SITE_STRING_DEFAULTS: Defaults = {
     "section.about_lead":
       "Posvećeni ste najnovijim dostignućima u reproduktivnoj medicini uz human pristup i jasnu komunikaciju.",
     "section.news_title": "Novosti iz centra i nauke",
+
+    "home.news_eyebrow": "Blog",
+    "home.news_read_label": "Pročitajte",
+    "home.cta_eyebrow": "Vaš put počinje ovdje",
+    "home.cta_heading_line1": "Zakažite konsultaciju",
+    "home.cta_heading_line2": "s našim stručnjacima",
+    "home.hours_mon_fri_label": "Pon – Pet",
+    "home.hours_sat_sun_label": "Sub – Ned",
 
     "team.eyebrow": "Naš tim",
     "team.title": "Dr Tatjana Motrenko Simić i multidisciplinarni tim uz vas",
@@ -305,7 +328,13 @@ export const SITE_STRING_DEFAULTS: Defaults = {
     "hours.tuesday": "08:00 – 20:00",
     "hours.sat": "Zatvoreno",
     "hours.sun": "Zatvoreno",
-  },
+} satisfies Record<SiteStringKey, string>;
+
+/** EN i RU počinju kao kopija ME dok CMS ne dobije posebne prevode (fallback na javnom sajtu). */
+export const SITE_STRING_DEFAULTS: Defaults = {
+  me: ME_SITE_STRING_DEFAULTS,
+  en: { ...ME_SITE_STRING_DEFAULTS },
+  ru: { ...ME_SITE_STRING_DEFAULTS },
 };
 
 export function allSiteStringKeys(): SiteStringKey[] {
@@ -391,6 +420,13 @@ export const SITE_STRING_GROUPS = {
     "section.about_title",
     "section.about_lead",
     "section.news_title",
+    "home.news_eyebrow",
+    "home.news_read_label",
+    "home.cta_eyebrow",
+    "home.cta_heading_line1",
+    "home.cta_heading_line2",
+    "home.hours_mon_fri_label",
+    "home.hours_sat_sun_label",
   ] as const satisfies readonly SiteStringKey[],
 
   team: [

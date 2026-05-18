@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { adminPath } from "@/lib/admin-base-path";
 import { parseCompoundToken } from "@/lib/auth/parse-compound-token";
 
 import { VerifyEmailForm } from "./verify-form";
@@ -31,7 +32,7 @@ export default async function VerifyEmailPage({ searchParams }: Props) {
             </p>
             <p className="mt-6">
               <Link
-                href="/admin/login"
+                href={adminPath("login")}
                 className="text-sm text-neutral-700 underline-offset-2 hover:underline"
               >
                 Prijava

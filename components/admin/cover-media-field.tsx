@@ -8,6 +8,7 @@ import {
   AdminMediaPicker,
   uploadAdminMediaFile,
 } from "@/components/admin/admin-media-picker";
+import { adminPath } from "@/lib/admin-base-path";
 import type { MediaOption } from "@/lib/queries/media-admin";
 
 type Props = {
@@ -49,7 +50,7 @@ export function CoverMediaField({ mediaOptions, value, onChange, error }: Props)
       <h3 className="text-sm font-semibold text-neutral-900">Naslovna slika (lista novosti)</h3>
       <p className="mt-1 text-xs text-neutral-600">
         Izaberi iz galerije ili otpremi novu. Sve slike su u{" "}
-        <Link href="/admin/media" className="font-medium text-[#c55a15] underline">
+        <Link href={adminPath("media")} className="font-medium text-[#c55a15] underline">
           Mediji
         </Link>
         .

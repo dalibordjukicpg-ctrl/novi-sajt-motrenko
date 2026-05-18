@@ -1,7 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import type { RefObject } from "react";
 import {
   useForm,
   type FieldErrors,
@@ -10,8 +11,13 @@ import {
   type UseFormWatch,
 } from "react-hook-form";
 
+import { translateArticleFromMeAction } from "@/app/admin/(authed)/translate/actions";
 import { CoverMediaField } from "@/components/admin/cover-media-field";
-import { TiptapEditor } from "@/components/admin/tiptap-editor";
+import { TranslateFromMeButton } from "@/components/admin/translate-from-me-button";
+import {
+  TiptapEditor,
+  type TiptapEditorHandle,
+} from "@/components/admin/tiptap-editor";
 import type { MediaOption } from "@/lib/queries/media-admin";
 import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
@@ -22,7 +28,9 @@ import {
 } from "@/lib/validations/article";
 
 const localeLabels = {
-  me: "Crnogorski (MNE)",
+  me: "Crnogorski / srpski (ME)",
+  en: "Engleski (EN, opciono)",
+  ru: "Ruski (RU, opciono)",
 } satisfies Record<Locale, string>;
 
 function LocaleFields({
@@ -33,6 +41,8 @@ function LocaleFields({
   setValue,
   watch,
   mediaOptions,
+  editorRef,
+  editorKey,
 }: {
   locale: Locale;
   label: string;
@@ -41,6 +51,8 @@ function LocaleFields({
   setValue: UseFormSetValue<ArticleFormValues>;
   watch: UseFormWatch<ArticleFormValues>;
   mediaOptions: MediaOption[];
+  editorRef?: RefObject<TiptapEditorHandle | null>;
+  editorKey?: string;
 }) {
   const bodyHtml = watch(`${locale}.body`) ?? "";
   const e = errors[locale];
@@ -91,6 +103,8 @@ function LocaleFields({
           </label>
           <div className="mt-1">
             <TiptapEditor
+              ref={editorRef}
+              key={editorKey ?? locale}
               initialHtml={bodyHtml}
               mediaOptions={mediaOptions}
               placeholder="Tekst članka…"
@@ -139,13 +153,16 @@ export function ArticleEditorForm({
 }: Props) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
+  const [editorRevision, setEditorRevision] = useState(0);
   const [pending, startTransition] = useTransition();
+  const meEditorRef = useRef<TiptapEditorHandle>(null);
 
   const {
     register,
     handleSubmit,
     reset,
     watch,
+    getValues,
     setValue,
     formState: { errors },
   } = useForm<ArticleFormValues>({
@@ -176,7 +193,7 @@ export function ArticleEditorForm({
       onSubmit={handleSubmit(submit)}
       className="mx-auto max-w-3xl space-y-8"
     >
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <div className="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-800">
           <input
             type="checkbox"
@@ -185,6 +202,49 @@ export function ArticleEditorForm({
           />
           Objavi
         </label>
+        <TranslateFromMeButton
+          disabled={pending}
+          className="w-full sm:max-w-md"
+          onGenerate={async () => {
+            const meBlock = getValues("me");
+            const meBody = meEditorRef.current?.getHtml() ?? meBlock.body ?? "";
+            const me = { ...meBlock, body: meBody };
+            if (!me.title.trim() && !meBody.trim()) {
+              return {
+                error: "Unesite naslov ili sadržaj na ME/SR prije prijevoda.",
+              };
+            }
+            const res = await translateArticleFromMeAction(me);
+            if (!res.ok) return { error: res.error };
+
+            const base = getValues();
+            const toSave: ArticleFormValues = {
+              ...base,
+              me,
+              en: res.en,
+              ru: res.ru,
+            };
+
+            for (const loc of ["en", "ru"] as const) {
+              const block = res[loc];
+              setValue(`${loc}.slug`, block.slug, { shouldDirty: true });
+              setValue(`${loc}.title`, block.title, { shouldDirty: true });
+              setValue(`${loc}.excerpt`, block.excerpt, { shouldDirty: true });
+              setValue(`${loc}.body`, block.body, { shouldDirty: true });
+              setValue(`${loc}.metaTitle`, block.metaTitle, { shouldDirty: true });
+              setValue(`${loc}.metaDescription`, block.metaDescription, { shouldDirty: true });
+            }
+            setEditorRevision((n) => n + 1);
+
+            const result = await onSubmit(toSave);
+            if (!result.ok) {
+              setServerError(result.error);
+              return { error: result.error };
+            }
+            setBanner(successMessage(result.postId));
+            if (resetOnSuccess) reset(initialValues);
+          }}
+        />
       </div>
 
       <CoverMediaField
@@ -204,6 +264,8 @@ export function ArticleEditorForm({
           setValue={setValue}
           watch={watch}
           mediaOptions={mediaOptions}
+          editorRef={loc === "me" ? meEditorRef : undefined}
+          editorKey={`${loc}-${editorRevision}`}
         />
       ))}
 

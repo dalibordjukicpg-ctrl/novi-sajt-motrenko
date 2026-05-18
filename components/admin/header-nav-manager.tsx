@@ -12,6 +12,7 @@ import {
   NavLinkRowForm,
   type PageOption,
 } from "@/components/admin/nav-link-row-form";
+import { adminPath } from "@/lib/admin-base-path";
 import type { AdminNavRow } from "@/lib/queries/site";
 
 function nextSortOrder(rows: AdminNavRow[]): number {
@@ -224,13 +225,13 @@ export function HeaderNavManager({ rows, pageOptions }: Props) {
       <p className="text-sm text-[#6b5f54]">
         Brend, kontakt i footer linkovi:{" "}
         <Link
-          href="/admin/content/header-footer"
+          href={adminPath("content/header-footer")}
           className="font-medium text-[#c55a15] underline"
         >
           Footer i kontakt
         </Link>
         . CMS stranice:{" "}
-        <Link href="/admin/pages" className="font-medium text-[#c55a15] underline">
+        <Link href={adminPath("pages")} className="font-medium text-[#c55a15] underline">
           Stranice
         </Link>
         .

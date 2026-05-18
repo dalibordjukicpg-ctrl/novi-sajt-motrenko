@@ -9,7 +9,9 @@ import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
 
 const LOC_LABEL: Record<Locale, string> = {
-  me: "MNE",
+  me: "ME/SR",
+  en: "EN",
+  ru: "RU",
 };
 
 export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {

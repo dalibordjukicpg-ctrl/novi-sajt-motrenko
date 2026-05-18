@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 
+import { ADMIN_BASE_PATH } from "@/lib/admin-base-path";
 import { extractReferrerHost } from "@/lib/analytics/referrer-host";
 import { buildVisitorHash } from "@/lib/analytics/visitor-hash";
 import { db } from "@/lib/db";
@@ -43,7 +44,12 @@ export async function recordPublicVisit(
   input: RecordPublicVisitInput,
 ): Promise<void> {
   const path = normalizePath(input.path);
-  if (path.startsWith("/admin") || path.startsWith("/api")) {
+  if (
+    path.startsWith("/admin") ||
+    path === ADMIN_BASE_PATH ||
+    path.startsWith(`${ADMIN_BASE_PATH}/`) ||
+    path.startsWith("/api")
+  ) {
     return;
   }
 

@@ -4,8 +4,14 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { ADMIN_BASE_PATH } from "@/lib/admin-base-path";
 import { createSession, verifyPassword, writeAuditLog } from "@/lib/auth";
 import { requireEmailVerifiedForLogin } from "@/lib/auth/constants";
+import {
+  clearLoginRateLimit,
+  getLoginRateLimitState,
+  registerLoginFailure,
+} from "@/lib/auth/login-rate-limit";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 
@@ -30,6 +36,12 @@ async function requestAuditMeta(): Promise<{
   }
 }
 
+function formatRetryAfter(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.ceil(seconds / 60);
+  return `${m} min`;
+}
+
 export async function loginAction(
   _prev: LoginState,
   formData: FormData,
@@ -37,13 +49,28 @@ export async function loginAction(
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const rawRedirect = String(formData.get("redirect") ?? "").trim();
+  /*
+   * Sigurnost redirekta:
+   *   - mora počinjati novom admin bazom (`/hrc-panel-74x/...`)
+   *   - ne smije biti protocol-relative (`//host...`)
+   */
   const redirectTo =
-    rawRedirect.startsWith("/admin") && !rawRedirect.startsWith("//")
+    rawRedirect.startsWith(`${ADMIN_BASE_PATH}/`) && !rawRedirect.startsWith("//")
       ? rawRedirect
-      : "/admin";
+      : ADMIN_BASE_PATH;
 
   if (!email || !password) {
     return { error: "Unesite email i lozinku." };
+  }
+
+  const meta = await requestAuditMeta();
+
+  // Rate limit — provjeri prije ikakvog DB lookupa.
+  const rl = getLoginRateLimitState(meta.ip, email);
+  if (rl.blocked) {
+    return {
+      error: `Previše neuspjelih pokušaja. Pokušajte ponovo za ${formatRetryAfter(rl.retryAfterSec)}.`,
+    };
   }
 
   try {
@@ -54,10 +81,16 @@ export async function loginAction(
       .limit(1);
 
     if (!user) {
-      return { error: "Pogrešan email ili lozinka." };
+      const state = registerLoginFailure(meta.ip, email);
+      return {
+        error: state.blocked
+          ? `Previše neuspjelih pokušaja. Pokušajte ponovo za ${formatRetryAfter(state.retryAfterSec)}.`
+          : "Pogrešan email ili lozinka.",
+      };
     }
 
     if (!user.isActive) {
+      registerLoginFailure(meta.ip, email);
       return { error: "Nalog je deaktiviran." };
     }
 
@@ -72,12 +105,30 @@ export async function loginAction(
 
     const okPass = verifyPassword(password, user.passwordHash);
     if (!okPass) {
-      return { error: "Pogrešan email ili lozinka." };
+      const state = registerLoginFailure(meta.ip, email);
+      // Audit pogrešne lozinke (pomaže pri istrazi pokušaja proboja)
+      try {
+        await writeAuditLog({
+          actorUserId: user.id,
+          action: "auth.login_failed",
+          subjectType: "user",
+          subjectId: user.id,
+          ipAddress: meta.ip,
+          userAgent: meta.userAgent,
+        });
+      } catch {
+        /* audit ne smije srušiti login flow */
+      }
+      return {
+        error: state.blocked
+          ? `Previše neuspjelih pokušaja. Pokušajte ponovo za ${formatRetryAfter(state.retryAfterSec)}.`
+          : "Pogrešan email ili lozinka.",
+      };
     }
 
     await createSession(user.id);
+    clearLoginRateLimit(meta.ip, email);
 
-    const meta = await requestAuditMeta();
     await writeAuditLog({
       actorUserId: user.id,
       action: "auth.login",

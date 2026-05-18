@@ -60,7 +60,11 @@ export function looksLikeUslugeParent(item: PublicNavItem): boolean {
     return true;
   }
 
-  if (item.label.toLowerCase().includes("услуге")) return true;
+  // RU: „Услуги“ (русский) и „Услуге“ (српска ћирилица)
+  const lower = item.label.toLowerCase();
+  if (lower.includes("услуге") || lower.includes("услуги")) return true;
+  if (compact === "услуги" || compact === "услуга") return true;
+  if (/\bуслуг[иае]\b/.test(compact) && compact.length <= 36) return true;
 
   const h = item.href.trim().toLowerCase();
   const hashIdx = h.indexOf("#");
@@ -140,6 +144,11 @@ export function looksLikeONamaNavRoot(item: PublicNavItem): boolean {
   if (compact === "about us" || compact === "about" || /\babout us\b/.test(compact)) {
     return true;
   }
+  // RU: „О нас“ / „О компании“
+  if (compact === "о нас" || compact.startsWith("о нас ")) return true;
+  if (/\bо нас\b/.test(compact) && compact.length <= 48) return true;
+  if (compact === "о компании" || /\bо компании\b/.test(compact)) return true;
+  if (compact === "о клинике" || /\bо клинике\b/.test(compact)) return true;
   const h = item.href.trim().toLowerCase();
   if (h.includes("#o-nama") || h.includes("/o-nama")) return true;
   const path = h.replace(/^https?:\/\/[^/]+/i, "");
@@ -152,6 +161,9 @@ export function looksLikeBlogNavRoot(item: PublicNavItem): boolean {
   const compact = L.replace(/\s+/g, " ").trim();
   if (compact === "blog" || /\bblog\b/.test(compact)) return true;
   if (compact === "novosti" && compact.length <= 24) return true;
+  // RU: „Блог“ / „Новости“
+  if (compact === "блог" || /\bблог\b/.test(compact)) return true;
+  if (compact === "новости" || /\bновости\b/.test(compact)) return true;
   const h = item.href.trim().toLowerCase();
   const path = h.replace(/^https?:\/\/[^/]+/i, "");
   if (h.includes("#novosti") || path.includes("/blog")) return true;
@@ -163,6 +175,8 @@ function looksLikeKontaktNavRoot(item: PublicNavItem): boolean {
   const L = normNavLabel(item.label);
   const h = item.href.trim().toLowerCase();
   if (/\bkontakt\b/.test(L) || /\bcontact\b/.test(L)) return true;
+  // RU: „Контакт“ / „Контакты“
+  if (/\bконтакт(ы)?\b/.test(L)) return true;
   if (h.includes("#kontakt") || h.includes("/kontakt") || h.includes("/contact")) {
     return true;
   }
@@ -427,6 +441,36 @@ function looksLikeNonServiceHeaderRoot(item: PublicNavItem): boolean {
     "cjenovnik",
     "faq",
     "partneri",
+    // EN
+    "about us",
+    "about",
+    "contact",
+    "contact us",
+    "our team",
+    "home",
+    "homepage",
+    "gallery",
+    "pricing",
+    "price list",
+    "partners",
+    // RU
+    "о нас",
+    "о компании",
+    "о клинике",
+    "контакт",
+    "контакты",
+    "блог",
+    "новости",
+    "наша команда",
+    "наш коллектив",
+    "главная",
+    "главная страница",
+    "галерея",
+    "цены",
+    "прайс-лист",
+    "прайс лист",
+    "партнёры",
+    "партнеры",
   ];
   for (const k of skip) {
     if (L === k || L.startsWith(k + " ")) return true;

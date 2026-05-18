@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { adminPath } from "@/lib/admin-base-path";
+
 import { ForgotPasswordForm } from "./forgot-form";
 
 export default function ForgotPasswordPage() {
@@ -15,7 +17,7 @@ export default function ForgotPasswordPage() {
         <ForgotPasswordForm />
         <p className="mt-6">
           <Link
-            href="/admin/login"
+            href={adminPath("login")}
             className="text-sm text-neutral-600 underline-offset-2 hover:underline"
           >
             Nazad na prijavu

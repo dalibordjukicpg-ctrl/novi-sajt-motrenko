@@ -3,9 +3,11 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import { ADMIN_BASE_PATH } from "@/lib/admin-base-path";
+
 /**
  * Jedna posjeta po navigaciji (RSC-safe): sendBeacon nakon promjene putanje.
- * Ne šalje za /admin.
+ * Ne šalje za /admin niti za novu privatnu admin bazu.
  */
 export function PublicAnalyticsCollector() {
   const pathname = usePathname();
@@ -16,6 +18,9 @@ export function PublicAnalyticsCollector() {
     const qs = searchParams?.toString();
     const path = `${pathname || "/"}${qs ? `?${qs}` : ""}`;
     if (path.startsWith("/admin")) return;
+    if (path === ADMIN_BASE_PATH || path.startsWith(`${ADMIN_BASE_PATH}/`)) {
+      return;
+    }
 
     const now = Date.now();
     const last = lastRef.current;

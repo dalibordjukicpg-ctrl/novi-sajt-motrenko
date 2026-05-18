@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { adminPath } from "@/lib/admin-base-path";
 import {
   getSession,
   hasPermission,
@@ -18,13 +19,13 @@ const ALL_CARDS: {
   {
     title: "Header",
     description: "Glavne kategorije i podkategorije u gornjem meniju.",
-    href: "/admin/content/header",
+    href: adminPath("content/header"),
     anyPermission: [PERMISSIONS.SITE_CONTENT_MANAGE],
   },
   {
     title: "Stranice (CMS)",
     description: "Statičke stranice — /s/slug na sajtu.",
-    href: "/admin/pages",
+    href: adminPath("pages"),
     anyPermission: [
       PERMISSIONS.SITE_CONTENT_MANAGE,
       PERMISSIONS.ASSIGNED_CONTENT_MANAGE,
@@ -33,25 +34,25 @@ const ALL_CARDS: {
   {
     title: "Hero baner",
     description: "Pozadina, naslovi i dugmad na početnoj.",
-    href: "/admin/content/hero",
+    href: adminPath("content/hero"),
     anyPermission: [PERMISSIONS.SITE_CONTENT_MANAGE],
   },
   {
     title: "Footer i kontakt",
     description: "Tekstovi, kontakt i linkovi u podnožju.",
-    href: "/admin/content/header-footer",
+    href: adminPath("content/header-footer"),
     anyPermission: [PERMISSIONS.SITE_CONTENT_MANAGE],
   },
   {
     title: "Početna — sekcije",
     description: "Statistike i naslovi sekcija.",
-    href: "/admin/content/sections",
+    href: adminPath("content/sections"),
     anyPermission: [PERMISSIONS.SITE_CONTENT_MANAGE],
   },
   {
     title: "Blog",
     description: "Lista i uređivanje članaka.",
-    href: "/admin/posts",
+    href: adminPath("posts"),
     anyPermission: [
       PERMISSIONS.SITE_CONTENT_MANAGE,
       PERMISSIONS.ASSIGNED_CONTENT_MANAGE,
@@ -60,31 +61,38 @@ const ALL_CARDS: {
   {
     title: "Mediji",
     description: "Galerija i alt tekstovi.",
-    href: "/admin/media",
+    href: adminPath("media"),
     anyPermission: [PERMISSIONS.MEDIA_MANAGE],
+  },
+  {
+    title: "Prevodi (ME → EN/RU)",
+    description:
+      "Masovni mašinski prevod stranica, članaka, navigacije i tekstova sajta.",
+    href: adminPath("translate"),
+    anyPermission: [PERMISSIONS.SITE_CONTENT_MANAGE],
   },
   {
     title: "Podešavanja",
     description: "Logo, favicon, analitika (SUPER_ADMIN za skripte).",
-    href: "/admin/settings",
+    href: adminPath("settings"),
     anyPermission: [PERMISSIONS.SITE_CONTENT_MANAGE],
   },
   {
     title: "Korisnici",
     description: "Uloge, aktivacija, pozivnice.",
-    href: "/admin/users",
+    href: adminPath("users"),
     anyPermission: [PERMISSIONS.USERS_VIEW],
   },
   {
     title: "Audit",
     description: "Pregled audit zapisa.",
-    href: "/admin/audit",
+    href: adminPath("audit"),
     anyPermission: [PERMISSIONS.AUDIT_VIEW],
   },
   {
     title: "Analitika (pregled)",
     description: "Zarezervisano za izvještaje.",
-    href: "/admin/analytics",
+    href: adminPath("analytics"),
     anyPermission: [PERMISSIONS.ANALYTICS_VIEW],
   },
 ];

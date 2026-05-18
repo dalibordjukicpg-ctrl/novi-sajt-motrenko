@@ -6,15 +6,16 @@ import { useEffect, useState } from "react";
 
 import { logoutAction } from "@/app/admin/actions";
 import { ClearSiteCacheButton } from "@/components/admin/clear-site-cache-button";
+import { adminPath } from "@/lib/admin-base-path";
 import type { UserRole } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 
 const SITE_CONTENT = [
-  { href: "/admin/content/header", label: "Header" },
-  { href: "/admin/content/header-footer", label: "Footer i kontakt" },
-  { href: "/admin/pages", label: "Stranice (CMS)" },
-  { href: "/admin/content/hero", label: "Hero baner" },
-  { href: "/admin/content/sections", label: "Početna — sekcije" },
+  { href: adminPath("content/header"), label: "Header" },
+  { href: adminPath("content/header-footer"), label: "Footer i kontakt" },
+  { href: adminPath("pages"), label: "Stranice (CMS)" },
+  { href: adminPath("content/hero"), label: "Hero baner" },
+  { href: adminPath("content/sections"), label: "Početna — sekcije" },
 ] as const;
 
 export type AdminShellNavFlags = {
@@ -57,10 +58,10 @@ function NavItem({
 }
 
 function isActive(pathname: string, href: string): boolean {
-  if (href === "/admin/pages") {
-    return pathname === href || pathname.startsWith("/admin/pages/");
+  if (href === adminPath("pages")) {
+    return pathname === href || pathname.startsWith(`${href}/`);
   }
-  if (href === "/admin/content/header") {
+  if (href === adminPath("content/header")) {
     return pathname === href;
   }
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -77,9 +78,9 @@ function SidebarNav({
 }) {
   return (
     <>
-      <div className="border-b border-[#f0e6dc] px-4 py-5">
+      <div className="border-b border-[#eadfce]/70 px-4 py-5">
         <Link
-          href="/admin"
+          href={adminPath()}
           onClick={onNavigate}
           className="font-serif text-lg font-semibold text-[#2a2118]"
         >
@@ -101,33 +102,33 @@ function SidebarNav({
             <div className="space-y-1">
               {navFlags.showUsers ? (
                 <NavItem
-                  href="/admin/users"
+                  href={adminPath("users")}
                   label="Korisnici i uloge"
-                  active={pathname.startsWith("/admin/users")}
+                  active={pathname.startsWith(adminPath("users"))}
                   onNavigate={onNavigate}
                 />
               ) : null}
               {navFlags.showAudit ? (
                 <NavItem
-                  href="/admin/audit"
+                  href={adminPath("audit")}
                   label="Audit log"
-                  active={pathname.startsWith("/admin/audit")}
+                  active={pathname.startsWith(adminPath("audit"))}
                   onNavigate={onNavigate}
                 />
               ) : null}
               {navFlags.showAnalyticsCard ? (
                 <NavItem
-                  href="/admin/analytics"
+                  href={adminPath("analytics")}
                   label="Analitika"
-                  active={pathname.startsWith("/admin/analytics")}
+                  active={pathname.startsWith(adminPath("analytics"))}
                   onNavigate={onNavigate}
                 />
               ) : null}
               {navFlags.showBookings ? (
                 <NavItem
-                  href="/admin/bookings"
+                  href={adminPath("bookings")}
                   label="Zahtjevi za termin"
-                  active={pathname.startsWith("/admin/bookings")}
+                  active={pathname.startsWith(adminPath("bookings"))}
                   onNavigate={onNavigate}
                 />
               ) : null}
@@ -153,9 +154,9 @@ function SidebarNav({
               : null}
             {navFlags.showPagesEntry && !navFlags.showGlobalSiteContent ? (
               <NavItem
-                href="/admin/pages"
+                href={adminPath("pages")}
                 label="Stranice (CMS)"
-                active={isActive(pathname, "/admin/pages")}
+                active={isActive(pathname, adminPath("pages"))}
                 onNavigate={onNavigate}
               />
             ) : null}
@@ -168,19 +169,19 @@ function SidebarNav({
           </p>
           <div className="space-y-1">
             <NavItem
-              href="/admin/posts"
+              href={adminPath("posts")}
               label="Lista članaka"
               active={
-                pathname.startsWith("/admin/posts") &&
-                !pathname.startsWith("/admin/posts/new")
+                pathname.startsWith(adminPath("posts")) &&
+                !pathname.startsWith(adminPath("posts/new"))
               }
               onNavigate={onNavigate}
             />
             {navFlags.allowCreatePost ? (
               <NavItem
-                href="/admin/posts/new"
+                href={adminPath("posts/new")}
                 label="Novi članak"
-                active={pathname === "/admin/posts/new"}
+                active={pathname === adminPath("posts/new")}
                 onNavigate={onNavigate}
               />
             ) : null}
@@ -191,21 +192,34 @@ function SidebarNav({
             Mediji
           </p>
           <NavItem
-            href="/admin/media"
+            href={adminPath("media")}
             label="Galerija i alt tekstovi"
-            active={pathname.startsWith("/admin/media")}
+            active={pathname.startsWith(adminPath("media"))}
             onNavigate={onNavigate}
           />
         </div>
+        {navFlags.showGlobalSiteContent ? (
+          <div>
+            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-[#c55a15]/80">
+              Prevodi
+            </p>
+            <NavItem
+              href={adminPath("translate")}
+              label="Mašinski prevod (ME → EN/RU)"
+              active={pathname.startsWith(adminPath("translate"))}
+              onNavigate={onNavigate}
+            />
+          </div>
+        ) : null}
         {navFlags.showSiteSettings ? (
         <div>
           <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-[#c55a15]/80">
             Podešavanja
           </p>
           <NavItem
-            href="/admin/settings"
+            href={adminPath("settings")}
             label="Sajt i skripte"
-            active={pathname.startsWith("/admin/settings")}
+            active={pathname.startsWith(adminPath("settings"))}
             onNavigate={onNavigate}
           />
         </div>
@@ -237,7 +251,7 @@ export function AdminDashboardShell({
 
   return (
     <div
-      className="flex min-h-dvh md:flex-row"
+      className="flex min-h-dvh overflow-x-clip md:flex-row"
       style={{
         background:
           "linear-gradient(160deg, #fff9f5 0%, #fdf4ed 48%, #f8ebe0 100%)",
@@ -254,7 +268,7 @@ export function AdminDashboardShell({
 
       <aside
         className={cn(
-          "flex w-64 max-w-[85vw] shrink-0 flex-col border-[#f0e6dc] bg-white/95 backdrop-blur-md",
+          "flex w-64 max-w-[85vw] shrink-0 flex-col border-[#eadfce]/80 bg-[#fff9f5]",
           "fixed inset-y-0 left-0 z-50 border-r shadow-lg transition-transform duration-200 md:static md:z-auto md:max-w-none md:shadow-none",
           menuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
         )}
@@ -267,7 +281,7 @@ export function AdminDashboardShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col md:ml-0">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#f0e6dc] bg-white/80 px-4 py-3 backdrop-blur-md md:px-6">
+        <header className="flex flex-wrap items-center justify-between gap-3 bg-[#fff9f5] px-4 py-3 md:px-6">
           <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"
@@ -277,7 +291,7 @@ export function AdminDashboardShell({
               Meni
             </button>
             <Link
-              href="/admin"
+              href={adminPath()}
               className="hidden font-semibold text-[#2a2118] md:inline"
             >
               Kontrolna tabla

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { deleteSitePageAction } from "@/app/admin/(authed)/pages/actions";
 import { SitePageFormClient } from "@/components/admin/site-page-form";
+import { adminPath } from "@/lib/admin-base-path";
 import { listMediaOptions } from "@/lib/queries/media-admin";
 import { getSitePageForAdmin } from "@/lib/queries/site-pages-admin";
 
@@ -28,7 +29,7 @@ export default async function EditSitePageAdmin({ params, searchParams }: Props)
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link
-            href="/admin/pages"
+            href={adminPath("pages")}
             className="text-sm text-neutral-600 hover:text-neutral-900"
           >
             ← Lista stranica

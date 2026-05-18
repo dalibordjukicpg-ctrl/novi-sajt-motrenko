@@ -45,7 +45,10 @@ export default async function LocaleHomePage({ params }: Props) {
     }
   }
 
-  const navResolved = resolveHeaderNav(nav.length > 0 ? nav : FALLBACK_HEADER_NAV);
+  const navResolved = await resolveHeaderNav(
+    nav.length > 0 ? nav : FALLBACK_HEADER_NAV,
+    raw,
+  );
 
   return (
     <main className="flex flex-col">

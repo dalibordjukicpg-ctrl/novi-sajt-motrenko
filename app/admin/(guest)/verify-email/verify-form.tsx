@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useActionState, useEffect } from "react";
 
+import { adminPath } from "@/lib/admin-base-path";
+
 import { verifyEmailConfirmAction } from "./actions";
 
 export function VerifyEmailForm({ token }: { token: string }) {
@@ -13,7 +15,7 @@ export function VerifyEmailForm({ token }: { token: string }) {
 
   useEffect(() => {
     if (state.ok) {
-      window.location.assign("/admin/login");
+      window.location.assign(adminPath("login"));
     }
   }, [state.ok]);
 
@@ -42,7 +44,7 @@ export function VerifyEmailForm({ token }: { token: string }) {
       </button>
       <p className="text-center">
         <Link
-          href="/admin/login"
+          href={adminPath("login")}
           className="text-sm text-neutral-600 underline-offset-2 hover:underline"
         >
           Prijava

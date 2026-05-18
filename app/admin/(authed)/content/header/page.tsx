@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { HeaderNavManager } from "@/components/admin/header-nav-manager";
 import { AdminPageHeader, AdminPanel } from "@/components/admin/admin-panel";
+import { adminPath } from "@/lib/admin-base-path";
 import { listSitePagesForAdmin } from "@/lib/queries/site-pages-admin";
 import { loadNavForAdmin } from "@/lib/queries/site";
 
@@ -41,7 +42,7 @@ export default async function HeaderNavAdminPage() {
         <p className="text-sm text-[#6b5f54]">
           Za tekst u headeru (podnaslov brenda) i kontakt idite na{" "}
           <Link
-            href="/admin/content/header-footer"
+            href={adminPath("content/header-footer")}
             className="font-medium text-[#c55a15] underline"
           >
             Footer i kontakt

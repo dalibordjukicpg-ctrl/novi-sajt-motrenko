@@ -1,4 +1,5 @@
 import { saveSiteGlobalsFormAction } from "@/app/admin/(authed)/content/site-content-actions";
+import { SettingsLogoBrandingFields } from "@/components/admin/settings-logo-branding";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { listMediaOptions } from "@/lib/queries/media-admin";
 import { getSiteGlobalsRow } from "@/lib/queries/site-globals";
@@ -51,6 +52,12 @@ export default async function AdminSettingsPage() {
 
       <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
         <form action={saveSiteGlobalsFormAction} className="space-y-8">
+          <SettingsLogoBrandingFields
+            media={media}
+            initialLogoMediaId={globals?.logoMediaId ?? null}
+            initialFaviconMediaId={globals?.faviconMediaId ?? null}
+          />
+
           <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-5">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-900">
               Režim održavanja (javni sajt)
@@ -144,42 +151,6 @@ export default async function AdminSettingsPage() {
                 </p>
               </div>
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-neutral-800">
-              Logo (medij)
-            </label>
-            <select
-              name="logoMediaId"
-              defaultValue={globals?.logoMediaId ?? ""}
-              className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2"
-            >
-              <option value="">— bez logotipa —</option>
-              {media.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-neutral-800">
-              Favicon (medij)
-            </label>
-            <select
-              name="faviconMediaId"
-              defaultValue={globals?.faviconMediaId ?? ""}
-              className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2"
-            >
-              <option value="">— podrazumijevani favicon —</option>
-              {media.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div>

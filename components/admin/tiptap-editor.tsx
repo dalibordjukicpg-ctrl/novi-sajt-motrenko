@@ -5,7 +5,13 @@ import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useCallback, useEffect, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 
 import {
   AdminMediaPicker,
@@ -25,13 +31,21 @@ type Props = {
   mediaOptions?: MediaOption[];
 };
 
-export function TiptapEditor({
-  initialHtml,
-  onHtmlChange,
-  placeholder = "Sadržaj stranice…",
-  className,
-  mediaOptions = [],
-}: Props) {
+export type TiptapEditorHandle = {
+  getHtml: () => string;
+};
+
+export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
+  function TiptapEditor(
+    {
+      initialHtml,
+      onHtmlChange,
+      placeholder = "Sadržaj stranice…",
+      className,
+      mediaOptions = [],
+    },
+    ref,
+  ) {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -67,6 +81,14 @@ export function TiptapEditor({
       editor.commands.setContent(next, false);
     }
   }, [initialHtml, editor]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getHtml: () => editor?.getHTML() ?? initialHtml ?? "",
+    }),
+    [editor, initialHtml],
+  );
 
   const insertImageUrl = useCallback(
     (url: string) => {
@@ -182,7 +204,8 @@ export function TiptapEditor({
       />
     </>
   );
-}
+  },
+);
 
 function ToolbarBtn({
   active,

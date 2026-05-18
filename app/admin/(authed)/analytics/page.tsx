@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import {
   getAnalyticsSummary,
@@ -108,7 +109,7 @@ function isMissingAnalyticsTable(e: unknown): boolean {
 
 export default async function AdminAnalyticsPage({ searchParams }: Props) {
   const session = await getSession();
-  if (!session) redirect("/admin/login");
+  if (!session) redirect(adminPath("login"));
   if (!hasPermission(session.role, PERMISSIONS.ANALYTICS_VIEW)) {
     unauthorized();
   }
@@ -206,7 +207,7 @@ export default async function AdminAnalyticsPage({ searchParams }: Props) {
       if (v === undefined) q.delete(k);
       else q.set(k, v);
     }
-    return `/admin/analytics?${q.toString()}`;
+    return `${adminPath("analytics")}?${q.toString()}`;
   }
 
   return (

@@ -3,7 +3,15 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sitePageTranslations, sitePages } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
+import { defaultLocale } from "@/lib/i18n";
 import { preparePublicHtml } from "@/lib/public-cms-html";
+import {
+  isMachineTranslateTarget,
+  isRuntimeTranslateEnabled,
+  needsRuntimeTranslation,
+  translateHtmlForLocale,
+  translatePlainForLocale,
+} from "@/lib/runtime-translate";
 
 export type PublicSitePage = {
   slug: string;
@@ -11,10 +19,10 @@ export type PublicSitePage = {
   body: string | null;
 };
 
-export async function getPublishedSitePage(
+async function fetchSitePageRow(
   locale: Locale,
   slug: string,
-): Promise<PublicSitePage | null> {
+): Promise<{ slug: string; title: string; body: string | null } | null> {
   const rows = await db
     .select({
       slug: sitePages.slug,
@@ -40,6 +48,42 @@ export async function getPublishedSitePage(
   return {
     slug: row.slug,
     title: row.title,
-    body: row.body ? preparePublicHtml(row.body, locale) : null,
+    body: row.body,
+  };
+}
+
+export async function getPublishedSitePage(
+  locale: Locale,
+  slug: string,
+): Promise<PublicSitePage | null> {
+  const meRow = await fetchSitePageRow(defaultLocale, slug);
+  if (!meRow) return null;
+
+  if (locale === defaultLocale) {
+    return {
+      slug: meRow.slug,
+      title: meRow.title,
+      body: meRow.body ? preparePublicHtml(meRow.body, locale) : null,
+    };
+  }
+
+  const locRow = await fetchSitePageRow(locale, slug);
+
+  let title = locRow?.title?.trim() ? locRow.title : meRow.title;
+  let bodyRaw = locRow?.body?.trim() ? locRow.body : meRow.body;
+
+  if (isRuntimeTranslateEnabled() && isMachineTranslateTarget(locale)) {
+    if (needsRuntimeTranslation(title, meRow.title)) {
+      title = await translatePlainForLocale(meRow.title, locale);
+    }
+    if (bodyRaw && needsRuntimeTranslation(bodyRaw, meRow.body)) {
+      bodyRaw = await translateHtmlForLocale(meRow.body ?? "", locale);
+    }
+  }
+
+  return {
+    slug: meRow.slug,
+    title,
+    body: bodyRaw ? preparePublicHtml(bodyRaw, locale) : null,
   };
 }

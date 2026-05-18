@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { adminPath } from "@/lib/admin-base-path";
 import { listPostsForAdmin } from "@/lib/queries/posts";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ export default async function AdminPostsPage() {
             </p>
           </div>
           <Link
-            href="/admin/posts/new"
+            href={adminPath("posts/new")}
             className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
           >
             Novi članak
@@ -56,7 +57,7 @@ export default async function AdminPostsPage() {
                   </p>
                 </div>
                 <Link
-                  href={`/admin/posts/${r.id}/edit`}
+                  href={adminPath(`posts/${r.id}/edit`)}
                   className="shrink-0 rounded-md border border-neutral-200 px-3 py-1.5 text-sm text-neutral-800 hover:bg-neutral-50"
                 >
                   Uredi

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { AdminDashboardShell } from "@/components/admin/admin-dashboard-shell";
+import { adminPath } from "@/lib/admin-base-path";
 import {
   destroySession,
   getSession,
@@ -54,7 +55,7 @@ export default async function AdminAuthedLayout({
     if (store.get(SESSION_COOKIE_NAME)?.value) {
       await destroySession();
     }
-    redirect("/admin/login");
+    redirect(adminPath("login"));
   }
 
   const navFlags = {

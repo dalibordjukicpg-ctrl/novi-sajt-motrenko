@@ -10,6 +10,7 @@ import { locales } from "@/lib/i18n";
 import { revalidateArticlePaths } from "@/lib/revalidate-content";
 import {
   articleFormSchema,
+  shouldPersistArticleTranslation,
   type ArticleMutationResult,
 } from "@/lib/validations/article";
 
@@ -65,6 +66,7 @@ export async function createPostWithTranslations(
 
       for (const locale of locales) {
         const block = data[locale];
+        if (!shouldPersistArticleTranslation(locale, block)) continue;
         await tx.insert(postTranslations).values({
           id: randomUUID(),
           postId,

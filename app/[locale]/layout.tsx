@@ -8,7 +8,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { MaintenanceScreen } from "@/components/site/maintenance-screen";
 import { PublicAnalyticsCollector } from "@/components/site/public-analytics-collector";
 import { FALLBACK_HEADER_NAV, resolveHeaderNav } from "@/lib/fallback-header-nav";
-import { getSiteLayoutData, type PublicNavItem } from "@/lib/queries/site";
+import { getSiteLayoutData, mergeSiteStrings } from "@/lib/queries/site";
 import { getRequestClientIp } from "@/lib/request-client-ip";
 import {
   getMaintenancePublicStateForRequest,
@@ -17,34 +17,12 @@ import {
 import { isLocale } from "@/lib/i18n";
 import { SITE_STRING_DEFAULTS } from "@/lib/site-fields";
 
-/** Uključi kada CMS logo ponovo treba da zamijeni /logo-hrc-budva.png. */
-const USE_CMS_BRAND_LOGO = false;
-
 type Props = {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 };
 
 export const dynamic = "force-dynamic";
-
-/** Privremeni debug — obriši nakon dijagnostike. */
-function flattenNavFlatForDebug(
-  items: PublicNavItem[],
-  depth = 0,
-): { id: string; href: string; label: string; cc: number }[] {
-  if (depth > 4) return [];
-  const flat: ReturnType<typeof flattenNavFlatForDebug> = [];
-  for (const it of items) {
-    flat.push({
-      id: it.id,
-      href: it.href,
-      label: (it.label ?? "").slice(0, 50),
-      cc: it.children.length,
-    });
-    flat.push(...flattenNavFlatForDebug(it.children, depth + 1));
-  }
-  return flat;
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale: raw } = await params;
@@ -95,7 +73,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     );
   }
 
-  let s = SITE_STRING_DEFAULTS[raw];
+  let s = mergeSiteStrings(raw, {});
   let nav: Awaited<ReturnType<typeof getSiteLayoutData>>["nav"] = [];
   let footerContactHref: Awaited<
     ReturnType<typeof getSiteLayoutData>
@@ -106,31 +84,25 @@ export default async function LocaleLayout({ children, params }: Props) {
     s = data.s;
     nav = data.nav;
     footerContactHref = data.footerContactHref;
-    logoUrl = USE_CMS_BRAND_LOGO ? data.logoUrl : null;
+    logoUrl = data.logoUrl;
   } catch (e) {
-    console.error(e);
+    console.error("[LocaleLayout getSiteLayoutData]", e);
+    s = mergeSiteStrings(raw, SITE_STRING_DEFAULTS[raw]);
   }
 
-  const LOCALE_LAYOUT_DEBUG = "[LocaleLayout DEBUG]";
-  console.log(`${LOCALE_LAYOUT_DEBUG} params.locale=`, raw);
-  console.log(`${LOCALE_LAYOUT_DEBUG} getSiteLayoutData().nav.length(raw pre resolveHeaderNav)=`, nav.length);
-  console.log(
-    `${LOCALE_LAYOUT_DEBUG} getSiteLayoutData().nav sažetak (max 50 čvorova, depth≤4)=`,
-    JSON.stringify(flattenNavFlatForDebug(nav).slice(0, 50)),
-  );
-
-  const navResolved = resolveHeaderNav(nav.length > 0 ? nav : FALLBACK_HEADER_NAV);
-
-  console.log(
-    `${LOCALE_LAYOUT_DEBUG} navResolved.length(poslije resolveHeaderNav)=`,
-    navResolved.length,
+  const navResolved = await resolveHeaderNav(
+    nav.length > 0 ? nav : FALLBACK_HEADER_NAV,
+    raw,
   );
 
   return (
     <div className="relative z-[1] flex min-h-dvh flex-col bg-transparent text-site-ink">
       <SiteHeader locale={raw} s={s} nav={navResolved} logoUrl={logoUrl} />
-      {/* Fiksni header nije u toku layout-a; rezervišemo visinu kao na hero -mt. */}
-      <div className="h-16 shrink-0 md:h-[4.5rem]" aria-hidden={true} />
+      {/* Fiksni header + iOS notch — rezervišemo visinu kao na hero -mt. */}
+      <div
+        className="h-[calc(4.25rem+env(safe-area-inset-top))] shrink-0 md:h-[calc(4.75rem+env(safe-area-inset-top))]"
+        aria-hidden={true}
+      />
       <div className="relative z-0 flex min-h-0 flex-1 flex-col">{children}</div>
       <SiteFooter
         locale={raw}

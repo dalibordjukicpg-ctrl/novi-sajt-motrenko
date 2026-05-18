@@ -415,7 +415,7 @@ export function SiteFooter({
                     <img
                       src={resolvedLogo}
                       alt={s["org.brand"]}
-                      className="h-[3.75rem] w-auto max-w-[200px] object-contain object-right opacity-[0.98] sm:h-16 sm:max-w-[220px]"
+                      className="h-[4.65rem] w-auto max-w-[258px] object-contain object-right drop-shadow-[0_1px_10px_rgba(0,0,0,0.06)] sm:h-[5rem] sm:max-w-[276px]"
                     />
                   </div>
                   <p

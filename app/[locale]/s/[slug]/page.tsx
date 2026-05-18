@@ -12,7 +12,7 @@ import { FALLBACK_HEADER_NAV, resolveHeaderNav } from "@/lib/fallback-header-nav
 import { isLocale } from "@/lib/i18n";
 import { getPublishedSitePage } from "@/lib/queries/site-pages";
 import { listPublishedTeamSummaries } from "@/lib/queries/posts";
-import { getSiteLayoutData } from "@/lib/queries/site";
+import { getHomeBreadcrumbLabel, getSiteLayoutData } from "@/lib/queries/site";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
 import { stripTimPregledSection } from "@/lib/public-cms-html";
 import { getONamaInnerPageContext } from "@/lib/site-page-inner-layout";
@@ -78,12 +78,13 @@ export default async function SitePage({ params }: Props) {
     ? stripTimPregledSection(page.body)
     : page.body;
 
-  let navResolved = resolveHeaderNav(FALLBACK_HEADER_NAV);
+  let navResolved = await resolveHeaderNav(FALLBACK_HEADER_NAV, raw);
   let privacyHref = resolvePublicHref(raw, "/s/politika-privatnosti");
   try {
     const layout = await getSiteLayoutData(raw);
-    navResolved = resolveHeaderNav(
+    navResolved = await resolveHeaderNav(
       layout.nav.length > 0 ? layout.nav : FALLBACK_HEADER_NAV,
+      raw,
     );
     privacyHref = resolvePublicHref(
       raw,
@@ -94,8 +95,9 @@ export default async function SitePage({ params }: Props) {
   }
 
   const innerNav = getONamaInnerPageContext(raw, slug, navResolved);
+  const homeCrumb = await getHomeBreadcrumbLabel(raw);
   const breadcrumbs = [
-    { label: "Početna", href: `/${raw}` },
+    { label: homeCrumb, href: `/${raw}` },
     ...(innerNav
       ? [{ label: innerNav.sectionLabel.toUpperCase(), href: innerNav.sectionHref }]
       : []),

@@ -1,7 +1,7 @@
 import { locales, type Locale } from "@/lib/i18n";
 
-export function resolvePublicHref(locale: Locale, href: string): string {
-  const t = href.trim();
+export function resolvePublicHref(locale: Locale, href: string | null | undefined): string {
+  const t = (href ?? "").trim();
   if (t.startsWith("http://") || t.startsWith("https://")) return t;
   if (t === "/" || t === "") return `/${locale}`;
   if (t.startsWith("#")) return `/${locale}${t}`;

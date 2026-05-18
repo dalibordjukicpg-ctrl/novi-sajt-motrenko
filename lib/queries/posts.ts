@@ -6,7 +6,16 @@ import { defaultLocale, locales } from "@/lib/i18n";
 import { db } from "@/lib/db";
 import { media, postTranslations, posts } from "@/lib/db/schema";
 import { publicUrlFromMediaStorageKey } from "@/lib/media-public";
+import { resolvePublishedPostIdForSlug } from "@/lib/post-locale-resolve";
 import { preparePublicHtml, stripDuplicateTeamCoverFromBody } from "@/lib/public-cms-html";
+import {
+  isMachineTranslateTarget,
+  isRuntimeTranslateEnabled,
+  needsRuntimeTranslation,
+  translateHtmlForLocale,
+  translatePlainForLocale,
+  translateTextPairsForLocale,
+} from "@/lib/runtime-translate";
 
 export type AdminPostRow = {
   id: string;
@@ -58,6 +67,17 @@ function blockFromRow(row: {
   };
 }
 
+function emptyArticleBlock(): ArticleFormValues["me"] {
+  return {
+    slug: "",
+    title: "",
+    excerpt: "",
+    body: "",
+    metaTitle: "",
+    metaDescription: "",
+  };
+}
+
 export async function getPostForAdminEdit(
   postId: string,
 ): Promise<ArticleFormValues | null> {
@@ -81,16 +101,15 @@ export async function getPostForAdminEdit(
     translations.map((t) => [t.locale, t]),
   ) as Record<string, (typeof translations)[0] | undefined>;
 
-  for (const loc of locales) {
-    if (!byLocale[loc]) return null;
-  }
+  if (!byLocale[defaultLocale]) return null;
 
   const values: Record<string, unknown> = {
     published: row.published,
     coverMediaId: row.coverMediaId ?? "",
   };
   for (const loc of locales) {
-    values[loc] = blockFromRow(byLocale[loc]!);
+    const r = byLocale[loc];
+    values[loc] = r ? blockFromRow(r) : emptyArticleBlock();
   }
   return values as ArticleFormValues;
 }
@@ -102,7 +121,7 @@ export type PostSummary = {
   coverUrl: string | null;
 };
 
-/** Javna lista: objavljeni postovi; redosled po datumu izmjene; naslov/slug za traženi jezik, inače me. */
+/** Javna lista: objavljeni postovi; naslov/slug za traženi jezik, inače `defaultLocale`. */
 export async function listPublishedSummaries(
   locale: Locale,
 ): Promise<PostSummary[]> {
@@ -166,7 +185,9 @@ export async function listPublishedSummaries(
     ]),
   );
 
-  const out: PostSummary[] = [];
+  const draft: PostSummary[] = [];
+  const titlePairs: { localized: string; me: string }[] = [];
+
   for (const id of ids) {
     const m = byPost.get(id);
     if (!m) continue;
@@ -174,15 +195,29 @@ export async function listPublishedSummaries(
     const fallback = m.get(defaultLocale);
     const t = primary ?? fallback;
     if (!t) continue;
-    out.push({
+    const meTitle = (fallback?.title ?? t.title).trim();
+    const locTitle = (t.title ?? "").trim();
+    titlePairs.push({ localized: locTitle, me: meTitle });
+    draft.push({
       postId: id,
       slug: t.slug,
-      title: t.title,
+      title: locTitle,
       coverUrl: coverByPostId.get(id) ?? null,
     });
   }
 
-  return out;
+  if (
+    isMachineTranslateTarget(locale) &&
+    isRuntimeTranslateEnabled() &&
+    titlePairs.length > 0
+  ) {
+    const titles = await translateTextPairsForLocale(titlePairs, locale);
+    for (let i = 0; i < draft.length; i++) {
+      draft[i]!.title = titles[i] ?? draft[i]!.title;
+    }
+  }
+
+  return draft;
 }
 
 export type TeamMemberSummary = {
@@ -256,7 +291,10 @@ export async function listPublishedTeamSummaries(
     ]),
   );
 
-  const out: TeamMemberSummary[] = [];
+  const draft: TeamMemberSummary[] = [];
+  const titlePairs: { localized: string; me: string }[] = [];
+  const excerptPairs: { localized: string; me: string }[] = [];
+
   for (const id of ids) {
     const m = byPost.get(id);
     if (!m) continue;
@@ -264,15 +302,37 @@ export async function listPublishedTeamSummaries(
     const fallback = m.get(defaultLocale);
     const t = primary ?? fallback;
     if (!t) continue;
-    out.push({
+    const meTitle = (fallback?.title ?? t.title).trim();
+    const meExcerpt = (fallback?.excerpt ?? t.excerpt ?? "").trim();
+    const locTitle = (t.title ?? "").trim();
+    const locExcerpt = (t.excerpt ?? "").trim();
+    titlePairs.push({ localized: locTitle, me: meTitle });
+    excerptPairs.push({ localized: locExcerpt, me: meExcerpt });
+    draft.push({
       slug: t.slug,
-      title: t.title,
+      title: locTitle,
       excerpt: t.excerpt,
       coverUrl: coverByPostId.get(id) ?? null,
     });
   }
 
-  return out;
+  if (isMachineTranslateTarget(locale) && isRuntimeTranslateEnabled()) {
+    if (titlePairs.length > 0) {
+      const titles = await translateTextPairsForLocale(titlePairs, locale);
+      for (let i = 0; i < draft.length; i++) {
+        draft[i]!.title = titles[i] ?? draft[i]!.title;
+      }
+    }
+    if (excerptPairs.some((p) => needsRuntimeTranslation(p.localized, p.me))) {
+      const excerpts = await translateTextPairsForLocale(excerptPairs, locale);
+      for (let i = 0; i < draft.length; i++) {
+        const ex = excerpts[i]?.trim();
+        if (ex) draft[i]!.excerpt = ex;
+      }
+    }
+  }
+
+  return draft;
 }
 
 export type PublicPost = {
@@ -287,12 +347,28 @@ export type PublicPost = {
   coverUrl: string | null;
 };
 
-/** Jedan objavljen članak: tačno (locale + slug), inače 404. */
+type TransRow = {
+  postId: string;
+  contentRole: "blog" | "team";
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  coverKey: string | null;
+  locale: string;
+};
+
+/** Javni članak: prvo `locale`, inače `defaultLocale` za isti post (slug može biti iz bilo kojeg jezika u URL-u). */
 export async function getPublishedPostBySlug(
   locale: Locale,
   slug: string,
 ): Promise<PublicPost | null> {
-  const rows = await db
+  const postId = await resolvePublishedPostIdForSlug(slug, locale);
+  if (!postId) return null;
+
+  const rows: TransRow[] = await db
     .select({
       postId: posts.id,
       contentRole: posts.contentRole,
@@ -303,43 +379,80 @@ export async function getPublishedPostBySlug(
       metaTitle: postTranslations.metaTitle,
       metaDescription: postTranslations.metaDescription,
       coverKey: media.storageKey,
+      locale: postTranslations.locale,
     })
     .from(postTranslations)
     .innerJoin(posts, eq(postTranslations.postId, posts.id))
     .leftJoin(media, eq(posts.coverMediaId, media.id))
     .where(
       and(
-        eq(postTranslations.locale, locale),
-        eq(postTranslations.slug, slug),
+        eq(posts.id, postId),
         eq(posts.published, true),
+        inArray(postTranslations.locale, [locale, defaultLocale]),
       ),
-    )
-    .limit(1);
+    );
 
-  const [row] = rows;
+  if (rows.length === 0) return null;
+
+  const meRow = rows.find((r) => r.locale === defaultLocale);
+  const locRow = rows.find((r) => r.locale === locale);
+  const row = locRow ?? meRow;
   if (!row) return null;
+
+  let title = row.title;
+  let excerpt = row.excerpt;
+  let bodySource = row.body;
+  let metaTitle = row.metaTitle;
+  let metaDescription = row.metaDescription;
+
+  if (isRuntimeTranslateEnabled() && isMachineTranslateTarget(locale) && meRow) {
+    if (needsRuntimeTranslation(title, meRow.title)) {
+      title = await translatePlainForLocale(meRow.title, locale);
+    }
+    if (excerpt?.trim() && needsRuntimeTranslation(excerpt, meRow.excerpt)) {
+      excerpt = await translatePlainForLocale(meRow.excerpt ?? "", locale);
+    }
+    const meBody = meRow.body ?? "";
+    if (
+      bodySource?.trim() &&
+      needsRuntimeTranslation(bodySource, meBody)
+    ) {
+      bodySource = meBody.includes("<")
+        ? await translateHtmlForLocale(meBody, locale)
+        : await translatePlainForLocale(meBody, locale);
+    }
+    if (metaTitle?.trim() && needsRuntimeTranslation(metaTitle, meRow.metaTitle)) {
+      metaTitle = await translatePlainForLocale(meRow.metaTitle ?? "", locale);
+    }
+    if (
+      metaDescription?.trim() &&
+      needsRuntimeTranslation(metaDescription, meRow.metaDescription)
+    ) {
+      metaDescription = await translatePlainForLocale(
+        meRow.metaDescription ?? "",
+        locale,
+      );
+    }
+  }
 
   const coverUrl = row.coverKey
     ? publicUrlFromMediaStorageKey(row.coverKey)
     : null;
-  const bodyHtml = row.body ? preparePublicHtml(row.body, locale) : null;
+  const bodyHtml = bodySource ? preparePublicHtml(bodySource, locale) : null;
   const bodyProcessed =
     row.contentRole === "team" && bodyHtml
-      ? stripDuplicateTeamCoverFromBody(
-          bodyHtml,
-          coverUrl ?? undefined,
-        )
+      ? stripDuplicateTeamCoverFromBody(bodyHtml, coverUrl ?? undefined)
       : bodyHtml;
 
   return {
     postId: row.postId,
     contentRole: row.contentRole,
     slug: row.slug,
-    title: row.title,
-    excerpt: row.excerpt,
+    title,
+    excerpt,
     body: bodyProcessed,
-    metaTitle: row.metaTitle,
-    metaDescription: row.metaDescription,
+    metaTitle,
+    metaDescription,
     coverUrl,
   };
 }

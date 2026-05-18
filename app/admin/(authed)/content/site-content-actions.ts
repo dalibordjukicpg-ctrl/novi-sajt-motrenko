@@ -180,6 +180,11 @@ export async function saveSiteGlobalsAction(
     if (formData.has("teamM1MediaId")) {
       row.teamM1MediaId = uuidOrNull(String(formData.get("teamM1MediaId") ?? ""));
     }
+    if (formData.get("clearLegacyTeamSlots") === "1") {
+      row.teamM2MediaId = null;
+      row.teamM3MediaId = null;
+      row.teamM4MediaId = null;
+    }
     if (formData.has("teamM2MediaId")) {
       row.teamM2MediaId = uuidOrNull(String(formData.get("teamM2MediaId") ?? ""));
     }

@@ -1,3 +1,4 @@
+import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { listUsersForAdmin } from "@/lib/queries/admin-users";
 import { unauthorized, redirect } from "next/navigation";
@@ -12,7 +13,7 @@ type PageProps = {
 
 export default async function AdminUsersPage({ searchParams }: PageProps) {
   const session = await getSession();
-  if (!session) redirect("/admin/login");
+  if (!session) redirect(adminPath("login"));
   if (!hasPermission(session.role, PERMISSIONS.USERS_VIEW)) {
     unauthorized();
   }

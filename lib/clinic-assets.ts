@@ -1,9 +1,9 @@
 /** Lokalni pun markeng logo (PNG sa ikonom + tekstom); CMS `logoMediaId` ga nadjačava. */
 export const DEFAULT_HEADER_LOGO = "/logo-hrc-budva.png";
 
-/** Rezolucija `logo-hrc-budva.png` nakon exporta (za stabilan layout sa `next/image`). */
-export const HEADER_LOGO_PIXEL_WIDTH = 420;
-export const HEADER_LOGO_PIXEL_HEIGHT = 276;
+/** Rezolucija logotipa u headeru (za stabilan layout sa `next/image`). */
+export const HEADER_LOGO_PIXEL_WIDTH = 522;
+export const HEADER_LOGO_PIXEL_HEIGHT = 343;
 
 /** Pozadina hero bloka na unutrašnjim stranicama (panorama recepcije). */
 export const CLINIC_PAGE_HERO_BG = "/page-hero-panorama.png";
@@ -25,7 +25,7 @@ export const STORY_IMAGES = [
 export const DR_MOTRENKO_PORTRAIT =
   "/wp-media/63f6680aaa47_centar-za-humanu-reprodukciju-budva-1000-beba-dr-tatjana-motrenko-simic-humanreproduction.jpg";
 
-/** Blok „Upoznajte tim“: fallback kad CMS nema medija — prvi slot uvijek portret, ostalo manje bitno. */
+/** Blok „Upoznajte tim“: fallback kad CMS nema glavnog portreta (`team_m1_media_id`). */
 export const TEAM_HOME_PORTRAIT_FALLBACKS = [
   DR_MOTRENKO_PORTRAIT,
   DR_MOTRENKO_PORTRAIT,

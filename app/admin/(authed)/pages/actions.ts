@@ -5,12 +5,13 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { adminPath } from "@/lib/admin-base-path";
 import { assertContentMutationAllowed, canManageAllSiteContent } from "@/lib/auth/content-access";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { sitePageTranslations, sitePages } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
-import { locales } from "@/lib/i18n";
+import { defaultLocale, locales } from "@/lib/i18n";
 import { revalidatePublicSite } from "@/lib/revalidate-content";
 import { SITE_PAGE_HEADER_GROUP_OPTIONS } from "@/lib/site-page-header-nav";
 import { slugifyTitle } from "@/lib/slugify";
@@ -21,6 +22,20 @@ function parseHeaderNavGroup(formData: FormData): string | null {
     SITE_PAGE_HEADER_GROUP_OPTIONS.map((o) => o.value).filter(Boolean),
   );
   return raw && allowed.has(raw) ? raw : null;
+}
+
+function pageTitleFromForm(
+  formData: FormData,
+  loc: Locale,
+  titleMe: string,
+  slugFallback: string,
+): string {
+  const key = loc === "me" ? "title_me" : `title_${loc}`;
+  const fromForm = String(formData.get(key) ?? "").trim();
+  if (loc === defaultLocale) {
+    return (fromForm || titleMe || slugFallback).slice(0, 500);
+  }
+  return (fromForm || titleMe || slugFallback).slice(0, 500);
 }
 
 function revalidateSitePage(slug: string): void {
@@ -41,7 +56,7 @@ export async function createSitePageAction(formData: FormData): Promise<void> {
     "create",
   );
   if (!createGate.ok) {
-    redirect("/admin/pages/new?error=forbidden");
+    redirect(`${adminPath("pages/new")}?error=forbidden`);
   }
 
   let slug = String(formData.get("slug") ?? "").trim().toLowerCase();
@@ -55,7 +70,7 @@ export async function createSitePageAction(formData: FormData): Promise<void> {
     .where(eq(sitePages.slug, slug))
     .limit(1);
   if (dup.length > 0) {
-    redirect("/admin/pages/new?error=slug");
+    redirect(`${adminPath("pages/new")}?error=slug`);
   }
 
   const published = formData.get("published") === "on";
@@ -73,8 +88,7 @@ export async function createSitePageAction(formData: FormData): Promise<void> {
   });
 
   for (const loc of locales) {
-    const title =
-      String(formData.get(`title_${loc}`) ?? "").trim() || titleMe || slug;
+    const title = pageTitleFromForm(formData, loc, titleMe, slug);
     const body = String(formData.get(`body_${loc}`) ?? "");
     await db.insert(sitePageTranslations).values({
       id: randomUUID(),
@@ -87,7 +101,7 @@ export async function createSitePageAction(formData: FormData): Promise<void> {
 
   revalidateSitePage(slug);
   revalidatePath("/admin/pages");
-  redirect(`/admin/pages/${pageId}/edit`);
+  redirect(adminPath(`pages/${pageId}/edit`));
 }
 
 export async function updateSitePageAction(formData: FormData): Promise<void> {
@@ -104,7 +118,7 @@ export async function updateSitePageAction(formData: FormData): Promise<void> {
     "update",
   );
   if (!gate.ok) {
-    redirect(`/admin/pages/${pageId}/edit?error=forbidden`);
+    redirect(`${adminPath(`pages/${pageId}/edit`)}?error=forbidden`);
   }
 
   const [existing] = await db
@@ -124,7 +138,7 @@ export async function updateSitePageAction(formData: FormData): Promise<void> {
       .where(eq(sitePages.slug, newSlug))
       .limit(1);
     if (dup.length > 0) {
-      redirect(`/admin/pages/${pageId}/edit?error=slug`);
+      redirect(`${adminPath(`pages/${pageId}/edit`)}?error=slug`);
     }
   }
 
@@ -143,8 +157,7 @@ export async function updateSitePageAction(formData: FormData): Promise<void> {
     .where(eq(sitePages.id, pageId));
 
   for (const loc of locales) {
-    const title =
-      String(formData.get(`title_${loc}`) ?? "").trim() || titleMe || newSlug;
+    const title = pageTitleFromForm(formData, loc, titleMe, newSlug);
     const body = String(formData.get(`body_${loc}`) ?? "");
     const bodyVal = body.trim() === "" ? null : body;
     const [tr] = await db
@@ -191,7 +204,7 @@ export async function deleteSitePageAction(formData: FormData): Promise<void> {
   if (!pageId) return;
 
   if (!canManageAllSiteContent(session.role)) {
-    redirect("/admin/pages?error=forbidden");
+    redirect(`${adminPath("pages")}?error=forbidden`);
   }
 
   const [row] = await db
@@ -203,5 +216,5 @@ export async function deleteSitePageAction(formData: FormData): Promise<void> {
   await db.delete(sitePages).where(eq(sitePages.id, pageId));
   revalidateSitePage(row.slug);
   revalidatePath("/admin/pages");
-  redirect("/admin/pages");
+  redirect(adminPath("pages"));
 }

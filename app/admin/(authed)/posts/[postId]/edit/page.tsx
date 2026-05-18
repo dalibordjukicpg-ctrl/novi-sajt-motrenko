@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { EditArticleForm } from "@/components/forms/edit-article-form";
+import { adminPath } from "@/lib/admin-base-path";
 import { listMediaOptions } from "@/lib/queries/media-admin";
 import { getPostForAdminEdit } from "@/lib/queries/posts";
 
@@ -21,7 +22,7 @@ export default async function EditPostPage({ params }: Props) {
     <main className="min-h-dvh px-4 py-10">
       <div className="mx-auto max-w-3xl pb-6">
         <Link
-          href="/admin/posts"
+          href={adminPath("posts")}
           className="text-sm font-medium text-neutral-600 underline-offset-4 hover:text-neutral-900 hover:underline"
         >
           ← Članci

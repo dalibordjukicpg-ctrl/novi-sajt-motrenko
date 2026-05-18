@@ -1,3 +1,4 @@
+import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { listAppointmentRequestsForAdmin } from "@/lib/queries/booking-requests-admin";
 import { redirect, unauthorized } from "next/navigation";
@@ -24,7 +25,7 @@ function clip(s: string | null | undefined, n: number) {
 
 export default async function AdminBookingsPage() {
   const session = await getSession();
-  if (!session) redirect("/admin/login");
+  if (!session) redirect(adminPath("login"));
   if (!hasPermission(session.role, PERMISSIONS.BOOKING_REQUESTS_VIEW)) {
     unauthorized();
   }

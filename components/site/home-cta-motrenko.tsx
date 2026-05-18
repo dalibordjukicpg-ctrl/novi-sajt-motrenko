@@ -81,10 +81,12 @@ export function HomeCtaMotrenko({
 
             <div className="flex max-w-lg flex-wrap gap-x-8 gap-y-3 text-[11px] font-medium uppercase tracking-[0.18em] text-site-subtle">
               <span>
-                Pon – Pet {formatHoursDisplay(s["hours.mon_fri"])}
+                {s["home.hours_mon_fri_label"]}{" "}
+                {formatHoursDisplay(s["hours.mon_fri"])}
               </span>
               <span>
-                Sub – Ned {formatHoursDisplay(s["hours.sat"])} /{" "}
+                {s["home.hours_sat_sun_label"]}{" "}
+                {formatHoursDisplay(s["hours.sat"])} /{" "}
                 {formatHoursDisplay(s["hours.sun"])}
               </span>
               {href1 ? (
