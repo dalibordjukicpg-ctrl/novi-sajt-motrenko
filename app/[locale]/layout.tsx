@@ -17,6 +17,9 @@ import {
 import { isLocale } from "@/lib/i18n";
 import { SITE_STRING_DEFAULTS } from "@/lib/site-fields";
 
+/** Uključi kada CMS logo ponovo treba da zamijeni /logo-hrc-budva.png. */
+const USE_CMS_BRAND_LOGO = false;
+
 type Props = {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
@@ -84,7 +87,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     s = data.s;
     nav = data.nav;
     footerContactHref = data.footerContactHref;
-    logoUrl = data.logoUrl;
+    logoUrl = USE_CMS_BRAND_LOGO ? data.logoUrl : null;
   } catch (e) {
     console.error(e);
   }

@@ -1,6 +1,10 @@
 /** Lokalni pun markeng logo (PNG sa ikonom + tekstom); CMS `logoMediaId` ga nadjačava. */
 export const DEFAULT_HEADER_LOGO = "/logo-hrc-budva.png";
 
+/** Rezolucija `logo-hrc-budva.png` nakon exporta (za stabilan layout sa `next/image`). */
+export const HEADER_LOGO_PIXEL_WIDTH = 420;
+export const HEADER_LOGO_PIXEL_HEIGHT = 276;
+
 /** Pozadina hero bloka na unutrašnjim stranicama (panorama recepcije). */
 export const CLINIC_PAGE_HERO_BG = "/page-hero-panorama.png";
 

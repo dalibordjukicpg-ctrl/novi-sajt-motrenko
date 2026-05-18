@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronDown, Menu, Search, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import type { Locale } from "@/lib/i18n";
 import type { PublicNavItem } from "@/lib/queries/site";
-import { DEFAULT_HEADER_LOGO } from "@/lib/clinic-assets";
+import { DEFAULT_HEADER_LOGO, HEADER_LOGO_PIXEL_HEIGHT, HEADER_LOGO_PIXEL_WIDTH } from "@/lib/clinic-assets";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
 import type { SiteStringKey } from "@/lib/site-fields";
 import {
@@ -391,6 +392,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
   const navRef = useRef<HTMLElement>(null);
 
   const resolvedLogoSrc = logoUrl?.trim() || DEFAULT_HEADER_LOGO;
+  const logoIsRemote = /^https?:\/\//i.test(resolvedLogoSrc);
 
   const isHome =
     pathname === `/${locale}` ||
@@ -458,20 +460,30 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
     <header
       className={`fixed left-0 right-0 top-0 z-[200] w-full transition-colors duration-300 ${headerShell}`}
     >
-      {/* Gradijent ispod headera — klasa u globals (meki prelaz u baner). */}
-      {!lightHeader ? <div aria-hidden className="site-header-hero-scrim" /> : null}
-      <div className="relative z-[2] mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-6 md:px-10 md:py-3.5 lg:px-14">
+      <div className="relative z-[2] mx-auto grid max-w-7xl grid-cols-[auto_minmax(0,1fr)] items-center gap-3 px-4 py-3 md:grid-cols-[auto_1fr_auto] md:gap-6 md:px-10 md:py-3.5 lg:px-14">
         <Link
           href={`/${locale}`}
-          className="group relative z-20 flex min-w-0 max-w-[48vw] shrink-0 items-center justify-self-start sm:max-w-[min(100%,44vw)] md:max-w-[min(100%,420px)] lg:max-w-[min(100%,480px)]"
+          className="group relative z-20 flex max-w-[min(100%,72vw)] shrink-0 items-center justify-self-start md:max-w-[min(100%,460px)]"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={resolvedLogoSrc}
-            alt={s["org.brand"]}
-            decoding="async"
-            className="block h-10 w-auto max-w-full shrink-0 object-contain object-left sm:h-14 md:h-[5.25rem] lg:h-[5.75rem]"
-          />
+          {/* Na hero-u lagana podloga + isolate — izbjegava Chromium „dupli strip“ iznad videa */}
+          <span
+            className={
+              lightHeader
+                ? "relative isolate inline-flex max-w-full"
+                : "relative isolate inline-flex max-w-full rounded-lg bg-black/45 px-2 py-1 ring-1 ring-white/15 backdrop-blur-sm"
+            }
+          >
+            <Image
+              src={resolvedLogoSrc}
+              alt={s["org.brand"]}
+              width={HEADER_LOGO_PIXEL_WIDTH}
+              height={HEADER_LOGO_PIXEL_HEIGHT}
+              priority
+              unoptimized={logoIsRemote}
+              className="block h-8 w-auto max-h-[2.35rem] max-w-full object-contain object-left sm:h-10 sm:max-h-[2.85rem] md:h-[3.5rem] md:max-h-[3.65rem] lg:h-[3.85rem]"
+              sizes="(max-width: 768px) 72vw, 420px"
+            />
+          </span>
         </Link>
 
         <nav
