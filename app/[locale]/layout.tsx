@@ -8,7 +8,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { MaintenanceScreen } from "@/components/site/maintenance-screen";
 import { PublicAnalyticsCollector } from "@/components/site/public-analytics-collector";
 import { FALLBACK_HEADER_NAV, resolveHeaderNav } from "@/lib/fallback-header-nav";
-import { getSiteLayoutData } from "@/lib/queries/site";
+import { getSiteLayoutData, type PublicNavItem } from "@/lib/queries/site";
 import { getRequestClientIp } from "@/lib/request-client-ip";
 import {
   getMaintenancePublicStateForRequest,
@@ -26,6 +26,25 @@ type Props = {
 };
 
 export const dynamic = "force-dynamic";
+
+/** Privremeni debug — obriši nakon dijagnostike. */
+function flattenNavFlatForDebug(
+  items: PublicNavItem[],
+  depth = 0,
+): { id: string; href: string; label: string; cc: number }[] {
+  if (depth > 4) return [];
+  const flat: ReturnType<typeof flattenNavFlatForDebug> = [];
+  for (const it of items) {
+    flat.push({
+      id: it.id,
+      href: it.href,
+      label: (it.label ?? "").slice(0, 50),
+      cc: it.children.length,
+    });
+    flat.push(...flattenNavFlatForDebug(it.children, depth + 1));
+  }
+  return flat;
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale: raw } = await params;
@@ -92,7 +111,20 @@ export default async function LocaleLayout({ children, params }: Props) {
     console.error(e);
   }
 
+  const LOCALE_LAYOUT_DEBUG = "[LocaleLayout DEBUG]";
+  console.log(`${LOCALE_LAYOUT_DEBUG} params.locale=`, raw);
+  console.log(`${LOCALE_LAYOUT_DEBUG} getSiteLayoutData().nav.length(raw pre resolveHeaderNav)=`, nav.length);
+  console.log(
+    `${LOCALE_LAYOUT_DEBUG} getSiteLayoutData().nav sažetak (max 50 čvorova, depth≤4)=`,
+    JSON.stringify(flattenNavFlatForDebug(nav).slice(0, 50)),
+  );
+
   const navResolved = resolveHeaderNav(nav.length > 0 ? nav : FALLBACK_HEADER_NAV);
+
+  console.log(
+    `${LOCALE_LAYOUT_DEBUG} navResolved.length(poslije resolveHeaderNav)=`,
+    navResolved.length,
+  );
 
   return (
     <div className="relative z-[1] flex min-h-dvh flex-col bg-transparent text-site-ink">

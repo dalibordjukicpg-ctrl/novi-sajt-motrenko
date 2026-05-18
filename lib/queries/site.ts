@@ -379,9 +379,56 @@ async function navLinksWithTranslations(
   }));
 }
 
+function summarizeNavTreeForDebug(
+  nodes: PublicNavItem[],
+  depth = 0,
+  maxDepth = 4,
+): { id: string; href: string; labelPreview: string; childCount: number }[] {
+  if (depth > maxDepth) return [];
+  const out: ReturnType<typeof summarizeNavTreeForDebug> = [];
+  for (const n of nodes) {
+    out.push({
+      id: n.id,
+      href: n.href,
+      labelPreview: (n.label ?? "").slice(0, 60),
+      childCount: n.children.length,
+    });
+    out.push(...summarizeNavTreeForDebug(n.children, depth + 1, maxDepth));
+  }
+  return out;
+}
+
 /** Drvo za header: korijeni su samo placement=header; djeca mogu biti header ili footer (isti parentId u bazi). */
 export async function getNavTree(locale: Locale): Promise<PublicNavItem[]> {
+  /** Privremeni debug za Hostinger runtime — obriši nakon dijagnostike. */
+  const NAV_DEBUG_PREFIX = "[getNavTree DEBUG]";
+
   const rows = await navLinksWithTranslations(true, "all");
+
+  const distinctPlacements = [...new Set(rows.map(({ link: l }) => l.placement))];
+  let linksWithExactLocaleTranslation = 0;
+  let linksWithFallbackOnly = 0;
+  const distinctTranslationLocales = new Set<string>();
+  let totalTranslationRows = 0;
+  for (const { link: r, translations } of rows) {
+    totalTranslationRows += translations.length;
+    for (const t of translations) distinctTranslationLocales.add(t.locale);
+    const exact = translations.some((t) => t.locale === locale);
+    if (exact) linksWithExactLocaleTranslation++;
+    else if (translations.length > 0) linksWithFallbackOnly++;
+  }
+
+  console.log(`${NAV_DEBUG_PREFIX} locale=`, locale);
+  console.log(
+    `${NAV_DEBUG_PREFIX} SQL filter: visibleOnly=true, placement=all (bez placement u WHERE; zasebna JS pravila za header korijene)`,
+  );
+  console.log(
+    `${NAV_DEBUG_PREFIX} broj_nav_links_prije_filtra_korijena(rows.length)=`,
+    rows.length,
+    "| distinct placement u rezultatu:",
+    distinctPlacements,
+    "(nemamo enum 'primary' u šemi — samo header|footer)",
+  );
 
   const byId = new Map<string, PublicNavItem>();
   const sortOrderById = new Map<string, number>();
@@ -396,6 +443,12 @@ export async function getNavTree(locale: Locale): Promise<PublicNavItem[]> {
   }
 
   const roots: PublicNavItem[] = [];
+  const skippedNotHeaderPlacement: {
+    id: string;
+    placement: string;
+    parentId: string | null;
+  }[] = [];
+
   for (const { link: r } of rows) {
     const node = byId.get(r.id)!;
     if (r.parentId && byId.has(r.parentId)) {
@@ -405,7 +458,33 @@ export async function getNavTree(locale: Locale): Promise<PublicNavItem[]> {
       (!r.parentId || !byId.has(r.parentId))
     ) {
       roots.push(node);
+    } else if (r.placement !== "header") {
+      skippedNotHeaderPlacement.push({
+        id: r.id,
+        placement: r.placement,
+        parentId: r.parentId,
+      });
     }
+  }
+
+  console.log(
+    `${NAV_DEBUG_PREFIX} broj_korijena_poslije_header_js_filter(roots.length)=`,
+    roots.length,
+  );
+  console.log(
+    `${NAV_DEBUG_PREFIX} prevodi: ukupno_nav_link_translation_redova=` +
+      totalTranslationRows +
+      ", linkova_sa_tacnim_locale='" +
+      locale +
+      "'=" +
+      linksWithExactLocaleTranslation +
+      ", linkova_sa_samo_fallback_label=" +
+      linksWithFallbackOnly +
+      "| distinct_translation_locale_kolone=",
+    [...distinctTranslationLocales].sort().join(","),
+  );
+  if (skippedNotHeaderPlacement.length > 0 && skippedNotHeaderPlacement.length <= 15) {
+    console.log(`${NAV_DEBUG_PREFIX} uzorak NIJE-header (ne idu u korijene):`, skippedNotHeaderPlacement.slice(0, 8));
   }
 
   function normNavLabelForSort(label: string): string {
@@ -460,6 +539,11 @@ export async function getNavTree(locale: Locale): Promise<PublicNavItem[]> {
   } catch (e) {
     console.error("[getNavTree] CMS stranice za header", e);
   }
+
+  console.log(
+    `${NAV_DEBUG_PREFIX} finalni_nav_tree_korijeni=${navRoots.length} (summarize prvih slojeva)`,
+    JSON.stringify(summarizeNavTreeForDebug(navRoots).slice(0, 45)),
+  );
 
   return navRoots;
 }

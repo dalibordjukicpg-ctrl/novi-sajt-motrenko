@@ -387,6 +387,32 @@ function NavDropdown({
 
 export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    const flat = (
+      items: Props["nav"],
+      depth = 0,
+    ): { id: string; href: string; label: string; cc: number }[] => {
+      if (depth > 5) return [];
+      const acc: ReturnType<typeof flat> = [];
+      for (const it of items) {
+        acc.push({
+          id: it.id,
+          href: it.href,
+          label: (it.label ?? "").slice(0, 44),
+          cc: it.children.length,
+        });
+        acc.push(...flat(it.children, depth + 1));
+      }
+      return acc;
+    };
+    console.log(
+      `[SiteHeader DEBUG] locale=${locale} navRootCount=${nav.length} navFlatPreview=`,
+      JSON.stringify(flat(nav).slice(0, 40)),
+      "(Browser DevTools konsola — runtime log na Hostingera ne prima ovo.)",
+    );
+  }, [nav, locale]);
+
   const [scrolled, setScrolled] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
