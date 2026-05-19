@@ -261,10 +261,12 @@ async function openaiTranslateTexts(
     }
 
     const tr = parsed.translations;
-    if (!Array.isArray(tr) || tr.length !== chunk.length) {
-      throw new Error("OpenAI je vratio pogrešan broj prevoda.");
+    if (!Array.isArray(tr)) {
+      throw new Error("OpenAI je vratio neispravan format prevoda.");
     }
-    out.push(...tr.map((t) => String(t ?? "")));
+    // Pad if fewer returned (e.g. OpenAI merged/skipped a name), trim if more
+    const padded = chunk.map((orig, idx) => String(tr[idx] ?? orig ?? ""));
+    out.push(...padded);
   }
 
   return out;

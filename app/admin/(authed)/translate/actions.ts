@@ -449,7 +449,14 @@ export type TranslateInventory = {
   teamPosts: TranslateUnit[];
   navLinks: TranslateUnit[];
   /** Skup site stringova se prevodi u jednom potezu, ali znamo koliko ih je. */
-  siteStrings: { totalWithContent: number };
+  siteStrings: { totalWithContent: number; missingRu: boolean };
+  /** Podskupovi koji nemaju RU prevod — za "samo nedostajući" mod. */
+  missing: {
+    cmsPages: TranslateUnit[];
+    blogPosts: TranslateUnit[];
+    teamPosts: TranslateUnit[];
+    navLinks: TranslateUnit[];
+  };
 };
 
 /** Sve jedinice prevoda po kategorijama (za UI i progres). */
@@ -461,7 +468,8 @@ export async function getTranslateInventoryAction(): Promise<TranslateInventory>
       blogPosts: [],
       teamPosts: [],
       navLinks: [],
-      siteStrings: { totalWithContent: 0 },
+      siteStrings: { totalWithContent: 0, missingRu: false },
+      missing: { cmsPages: [], blogPosts: [], teamPosts: [], navLinks: [] },
     };
   }
 
@@ -511,6 +519,35 @@ export async function getTranslateInventoryAction(): Promise<TranslateInventory>
       ),
     );
 
+  // ── Dohvati ID-ove koji VEĆ imaju RU prevod ──────────────────────────────
+  const ruPageIds = new Set(
+    (
+      await db
+        .select({ pageId: sitePageTranslations.pageId })
+        .from(sitePageTranslations)
+        .where(eq(sitePageTranslations.locale, "ru"))
+    ).map((r) => r.pageId),
+  );
+
+  const ruPostIds = new Set(
+    (
+      await db
+        .select({ postId: postTranslations.postId })
+        .from(postTranslations)
+        .where(eq(postTranslations.locale, "ru"))
+    ).map((r) => r.postId),
+  );
+
+  const ruNavIds = new Set(
+    (
+      await db
+        .select({ navLinkId: navLinkTranslations.navLinkId })
+        .from(navLinkTranslations)
+        .where(eq(navLinkTranslations.locale, "ru"))
+    ).map((r) => r.navLinkId),
+  );
+
+  // ── Site strings count ────────────────────────────────────────────────────
   const meDefaultsForCount = SITE_STRING_DEFAULTS[defaultLocale];
   const meStringValues = new Map<SiteStringKey, string>();
   for (const key of SITE_STRING_KEYS) {
@@ -540,28 +577,38 @@ export async function getTranslateInventoryAction(): Promise<TranslateInventory>
     meStringsCount += 1;
   }
 
+  // Provjeri da li site strings imaju RU u bazi
+  const ruSiteStringsCount = await db
+    .select({ id: siteLocaleStrings.id })
+    .from(siteLocaleStrings)
+    .where(eq(siteLocaleStrings.locale, "ru"))
+    .then((r) => r.length);
+
+  // ── Build lists ───────────────────────────────────────────────────────────
+  const allCmsPages = pages.map((p) => ({ id: p.id, label: p.title ?? "(bez naslova)" }));
+  const allBlogPosts = allPosts
+    .filter((p) => p.contentRole === "blog")
+    .map((p) => ({ id: p.id, label: p.title ?? "(bez naslova)" }));
+  const allTeamPosts = allPosts
+    .filter((p) => p.contentRole === "team")
+    .map((p) => ({ id: p.id, label: p.title ?? "(bez naslova)" }));
+  const allNavLinks = navRows.map((n) => ({
+    id: n.id,
+    label: (n.label && n.label.trim()) || n.href || "(bez naziva)",
+  }));
+
   return {
-    cmsPages: pages.map((p) => ({
-      id: p.id,
-      label: p.title ?? "(bez naslova)",
-    })),
-    blogPosts: allPosts
-      .filter((p) => p.contentRole === "blog")
-      .map((p) => ({
-        id: p.id,
-        label: p.title ?? "(bez naslova)",
-      })),
-    teamPosts: allPosts
-      .filter((p) => p.contentRole === "team")
-      .map((p) => ({
-        id: p.id,
-        label: p.title ?? "(bez naslova)",
-      })),
-    navLinks: navRows.map((n) => ({
-      id: n.id,
-      label: (n.label && n.label.trim()) || n.href || "(bez naziva)",
-    })),
-    siteStrings: { totalWithContent: meStringsCount },
+    cmsPages: allCmsPages,
+    blogPosts: allBlogPosts,
+    teamPosts: allTeamPosts,
+    navLinks: allNavLinks,
+    siteStrings: { totalWithContent: meStringsCount, missingRu: ruSiteStringsCount === 0 },
+    missing: {
+      cmsPages: allCmsPages.filter((p) => !ruPageIds.has(p.id)),
+      blogPosts: allBlogPosts.filter((p) => !ruPostIds.has(p.id)),
+      teamPosts: allTeamPosts.filter((p) => !ruPostIds.has(p.id)),
+      navLinks: allNavLinks.filter((n) => !ruNavIds.has(n.id)),
+    },
   };
 }
 

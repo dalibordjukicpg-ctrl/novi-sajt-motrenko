@@ -30,10 +30,7 @@ type Props = {
   inventory: TranslateInventory;
 };
 
-const CATEGORY_META: Record<
-  CategoryKey,
-  { title: string; description: string }
-> = {
+const CATEGORY_META: Record<CategoryKey, { title: string; description: string }> = {
   cmsPages: {
     title: "Stranice (CMS)",
     description: "Sve statičke stranice /s/slug.",
@@ -70,6 +67,7 @@ function newRun(total: number): RunState {
 
 export function TranslateBatchPanel({ inventory }: Props) {
   const router = useRouter();
+  const [missingOnly, setMissingOnly] = useState(false);
   const [selected, setSelected] = useState<Record<CategoryKey, boolean>>({
     cmsPages: true,
     blogPosts: true,
@@ -78,15 +76,33 @@ export function TranslateBatchPanel({ inventory }: Props) {
     siteStrings: true,
   });
 
+  // Active lists — full or missing-only
+  const activeInventory = useMemo(() => {
+    if (!missingOnly) return inventory;
+    return {
+      ...inventory,
+      cmsPages: inventory.missing.cmsPages,
+      blogPosts: inventory.missing.blogPosts,
+      teamPosts: inventory.missing.teamPosts,
+      navLinks: inventory.missing.navLinks,
+      siteStrings: {
+        ...inventory.siteStrings,
+        totalWithContent: inventory.siteStrings.missingRu
+          ? inventory.siteStrings.totalWithContent
+          : 0,
+      },
+    };
+  }, [missingOnly, inventory]);
+
   const totals = useMemo<Record<CategoryKey, number>>(
     () => ({
-      cmsPages: inventory.cmsPages.length,
-      blogPosts: inventory.blogPosts.length,
-      teamPosts: inventory.teamPosts.length,
-      navLinks: inventory.navLinks.length,
-      siteStrings: inventory.siteStrings.totalWithContent > 0 ? 1 : 0,
+      cmsPages: activeInventory.cmsPages.length,
+      blogPosts: activeInventory.blogPosts.length,
+      teamPosts: activeInventory.teamPosts.length,
+      navLinks: activeInventory.navLinks.length,
+      siteStrings: activeInventory.siteStrings.totalWithContent > 0 ? 1 : 0,
     }),
-    [inventory],
+    [activeInventory],
   );
 
   const [runs, setRuns] = useState<Record<CategoryKey, RunState>>(() => ({
@@ -133,7 +149,7 @@ export function TranslateBatchPanel({ inventory }: Props) {
   }
 
   async function runCmsPages(): Promise<void> {
-    const items = inventory.cmsPages;
+    const items = activeInventory.cmsPages;
     patchRun("cmsPages", {
       inProgress: true,
       status: "running",
@@ -167,7 +183,7 @@ export function TranslateBatchPanel({ inventory }: Props) {
   }
 
   async function runPosts(key: "blogPosts" | "teamPosts"): Promise<void> {
-    const items = inventory[key];
+    const items = activeInventory[key];
     patchRun(key, {
       inProgress: true,
       status: "running",
@@ -201,7 +217,7 @@ export function TranslateBatchPanel({ inventory }: Props) {
   }
 
   async function runNavLinks(): Promise<void> {
-    const items = inventory.navLinks;
+    const items = activeInventory.navLinks;
     patchRun("navLinks", {
       inProgress: true,
       status: "running",
@@ -339,6 +355,29 @@ export function TranslateBatchPanel({ inventory }: Props) {
                 {setupHint}
               </p>
             )}
+            {/* Missing-only toggle */}
+            <label className="mt-3 inline-flex cursor-pointer items-center gap-2 select-none">
+              <span
+                role="switch"
+                aria-checked={missingOnly}
+                onClick={() => !bulkRunning && setMissingOnly((v) => !v)}
+                className={[
+                  "relative inline-block h-5 w-9 rounded-full transition-colors",
+                  missingOnly ? "bg-[#f37021]" : "bg-zinc-300",
+                  bulkRunning ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+                ].join(" ")}
+              >
+                <span
+                  className={[
+                    "absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform",
+                    missingOnly ? "translate-x-4" : "translate-x-0.5",
+                  ].join(" ")}
+                />
+              </span>
+              <span className="text-sm text-[#5c4f44]">
+                Samo nedostajući prevodi
+              </span>
+            </label>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -382,10 +421,16 @@ export function TranslateBatchPanel({ inventory }: Props) {
               ? 0
               : Math.min(100, Math.round((run.current / run.total) * 100));
 
+          const fullTotal =
+            key === "siteStrings"
+              ? (inventory.siteStrings.totalWithContent > 0 ? 1 : 0)
+              : inventory[key].length;
           const detailCount =
             key === "siteStrings"
-              ? `${inventory.siteStrings.totalWithContent} ključeva`
-              : `${total} ${total === 1 ? "stavka" : "stavki"}`;
+              ? `${inventory.siteStrings.totalWithContent} ključeva${missingOnly && !inventory.siteStrings.missingRu ? " · RU već postoji" : ""}`
+              : missingOnly
+                ? `${total} nedostaje / ${fullTotal} ukupno`
+                : `${total} ${total === 1 ? "stavka" : "stavki"}`;
 
           return (
             <div
