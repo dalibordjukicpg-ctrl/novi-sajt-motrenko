@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { FadeIn } from "@/components/site/fade-in";
+import { SiteCoverImage } from "@/components/site/site-cover-image";
 import type { PostSummary } from "@/lib/queries/posts";
 import type { Locale } from "@/lib/i18n";
 
@@ -87,8 +88,7 @@ export function HomeNewsMotrenko({
                 >
                   <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-[1.25rem] bg-site-surface-a">
                     {post.coverUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <SiteCoverImage
                         src={post.coverUrl}
                         alt=""
                         className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
