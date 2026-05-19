@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    /** Bez ovoga Next 15 ponekad baca `frame.join is not a function` pri quality={88}. */
+    qualities: [75, 88, 90],
+  },
   /**
    * Dev server: dozvoli assete/HMR kroz tunel (npm run share:dev).
    */
