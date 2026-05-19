@@ -6,8 +6,12 @@ import { FALLBACK_HEADER_NAV, resolveHeaderNav } from "@/lib/fallback-header-nav
 import { isLocale } from "@/lib/i18n";
 import { listPublishedSummaries } from "@/lib/queries/posts";
 import { getSiteLayoutData } from "@/lib/queries/site";
+import { listVisibleHomeServiceCards } from "@/lib/queries/home-service-cards";
+import { listVisibleHomeTeamHighlights } from "@/lib/queries/home-team-highlights";
 import { resolveHeroBackgroundUrl } from "@/lib/fallback-hero-video";
 import { SITE_STRING_DEFAULTS } from "@/lib/site-fields";
+import type { HomeServiceCard } from "@/lib/queries/home-service-cards";
+import type { HomeTeamHighlight } from "@/lib/queries/home-team-highlights";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +49,20 @@ export default async function LocaleHomePage({ params }: Props) {
     }
   }
 
+  let serviceCards: HomeServiceCard[] = [];
+  try {
+    serviceCards = await listVisibleHomeServiceCards(raw);
+  } catch (e) {
+    console.error("[LocaleHomePage listVisibleHomeServiceCards]", e);
+  }
+
+  let teamHighlights: HomeTeamHighlight[] = [];
+  try {
+    teamHighlights = await listVisibleHomeTeamHighlights(raw);
+  } catch (e) {
+    console.error("[LocaleHomePage listVisibleHomeTeamHighlights]", e);
+  }
+
   const navResolved = await resolveHeaderNav(
     nav.length > 0 ? nav : FALLBACK_HEADER_NAV,
     raw,
@@ -60,6 +78,8 @@ export default async function LocaleHomePage({ params }: Props) {
         dbError={dbError}
         heroBgUrl={heroBgUrl}
         teamHomePortraitUrls={teamHomePortraitUrls}
+        serviceCards={serviceCards}
+        teamHighlights={teamHighlights}
       />
     </main>
   );

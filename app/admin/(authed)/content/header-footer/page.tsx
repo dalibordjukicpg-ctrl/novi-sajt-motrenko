@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createNavLinkAction } from "@/app/admin/(authed)/site/actions";
 import { AdminPageHeader, AdminPanel } from "@/components/admin/admin-panel";
 import { NavLinkRowForm } from "@/components/admin/nav-link-row-form";
+import { SocialLinksEditor } from "@/components/admin/social-links-editor";
 import { TabbedSiteStringsForm } from "@/components/admin/tabbed-site-strings-form";
 import { adminPath } from "@/lib/admin-base-path";
 import { buildSiteStringMatrix } from "@/lib/admin/build-site-matrix";
@@ -38,6 +39,13 @@ export default async function HeaderFooterContentPage() {
           Header navigacija
         </Link>
       </AdminPageHeader>
+
+      <AdminPanel
+        title="Društvene mreže (footer)"
+        description="Facebook, Instagram, LinkedIn. Prazno polje = link se ne prikazuje na sajtu."
+      >
+        <SocialLinksEditor matrix={matrix} />
+      </AdminPanel>
 
       <AdminPanel title="Tekstovi i kontakt">
         <TabbedSiteStringsForm group="headerFooter" matrix={matrix} />

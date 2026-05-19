@@ -52,6 +52,7 @@ const config: Config = {
           "brand-hover": "var(--site-brand-hover)",
           "brand-muted": "var(--site-brand-muted)",
           "header-nav-light": "var(--site-header-nav-on-light)",
+          "header-nav-hover": "var(--site-header-nav-hover)",
           "header-hero": "rgb(var(--site-header-link-on-hero-rgb) / <alpha-value>)",
           "header-caret": "var(--site-header-link-caret)",
         },

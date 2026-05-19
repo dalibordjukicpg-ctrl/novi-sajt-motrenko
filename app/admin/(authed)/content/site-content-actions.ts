@@ -122,6 +122,75 @@ export async function saveSiteStringGroupAction(
   }
 }
 
+const SOCIAL_LINK_KEYS = [
+  "social.facebook",
+  "social.instagram",
+  "social.linkedin",
+] as const satisfies readonly SiteStringKey[];
+
+export async function saveSocialLinksAction(
+  formData: FormData,
+): Promise<{ ok?: boolean; error?: string }> {
+  const session = await getSession();
+  if (!session) return { error: "Niste prijavljeni." };
+  if (!hasPermission(session.role, PERMISSIONS.SITE_CONTENT_MANAGE)) {
+    return { error: "Nemate dozvolu za izmjenu sadržaja." };
+  }
+
+  const values: Record<string, string> = {};
+  for (const key of SOCIAL_LINK_KEYS) {
+    const raw = formData.get(key);
+    const str = typeof raw === "string" ? raw.trim() : "";
+    const ok =
+      str.length === 0 || /^https?:\/\//i.test(str);
+    if (!ok) {
+      return { error: "URL mora biti prazan ili počinjati sa http:// ili https://." };
+    }
+    values[key] = str;
+  }
+
+  try {
+    const now = new Date();
+    for (const key of SOCIAL_LINK_KEYS) {
+      const value = values[key];
+      for (const loc of locales) {
+        const [existing] = await db
+          .select({ id: siteLocaleStrings.id })
+          .from(siteLocaleStrings)
+          .where(
+            and(
+              eq(siteLocaleStrings.fieldKey, key),
+              eq(siteLocaleStrings.locale, loc),
+            ),
+          )
+          .limit(1);
+
+        if (existing) {
+          await db
+            .update(siteLocaleStrings)
+            .set({ value, updatedAt: now })
+            .where(eq(siteLocaleStrings.id, existing.id));
+        } else {
+          await db.insert(siteLocaleStrings).values({
+            id: randomUUID(),
+            fieldKey: key,
+            locale: loc,
+            value,
+            updatedAt: now,
+          });
+        }
+      }
+    }
+
+    revalidatePublicSite();
+    revalidateAdminContent();
+    return { ok: true };
+  } catch (e) {
+    console.error(e);
+    return { error: "Čuvanje nije uspjelo." };
+  }
+}
+
 export async function saveSiteGlobalsAction(
   formData: FormData,
 ): Promise<{ ok?: boolean; error?: string }> {

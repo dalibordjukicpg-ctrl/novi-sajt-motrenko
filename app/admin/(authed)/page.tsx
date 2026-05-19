@@ -50,6 +50,12 @@ const ALL_CARDS: {
     anyPermission: [PERMISSIONS.SITE_CONTENT_MANAGE],
   },
   {
+    title: "Blok „Upoznajte tim“ — tekstovi",
+    description: "Tim na početnoj: tekstovi, kartice desno i fotografija.",
+    href: adminPath("content/team"),
+    anyPermission: [PERMISSIONS.SITE_CONTENT_MANAGE],
+  },
+  {
     title: "Blog",
     description: "Lista i uređivanje članaka.",
     href: adminPath("posts"),

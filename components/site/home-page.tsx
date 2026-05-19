@@ -6,13 +6,15 @@ import type { HomeStatItem } from "@/components/site/home-stats-motrenko";
 import { HomeStatsMotrenko } from "@/components/site/home-stats-motrenko";
 import {
   HomeTeamTeaser,
+  type HomeTeamHighlightCard,
   type HomeTeamMember,
 } from "@/components/site/home-team-teaser";
+import type { HomeTeamHighlight } from "@/lib/queries/home-team-highlights";
 import type { PostSummary } from "@/lib/queries/posts";
 import type { Locale } from "@/lib/i18n";
 import type { PublicNavItem } from "@/lib/queries/site";
 import { resolvePublicHref } from "@/lib/queries/site";
-import { looksLikeUslugeParent } from "@/lib/site-page-header-nav";
+import type { HomeServiceCard } from "@/lib/queries/home-service-cards";
 import { STAT_BG_IMAGES, TEAM_HOME_PORTRAIT_FALLBACKS } from "@/lib/clinic-assets";
 import type { SiteStringKey } from "@/lib/site-fields";
 
@@ -24,13 +26,21 @@ type Props = {
   dbError: string | null;
   heroBgUrl?: string | null;
   teamHomePortraitUrls?: string[];
+  serviceCards: HomeServiceCard[];
+  teamHighlights: HomeTeamHighlight[];
 };
 
-export function HomePageView({ locale, s, nav, posts, dbError, heroBgUrl, teamHomePortraitUrls }: Props) {
-  const servicesParent = nav.find(
-    (n) => looksLikeUslugeParent(n) && n.children.length > 0,
-  );
-  const servicePillars = servicesParent?.children ?? [];
+export function HomePageView({
+  locale,
+  s,
+  nav,
+  posts,
+  dbError,
+  heroBgUrl,
+  teamHomePortraitUrls,
+  serviceCards,
+  teamHighlights,
+}: Props) {
 
   const stats: HomeStatItem[] = [
     {
@@ -123,6 +133,19 @@ export function HomePageView({ locale, s, nav, posts, dbError, heroBgUrl, teamHo
     role: s[`team.m${n}.role` as SiteStringKey],
   }));
 
+  const highlightCards: HomeTeamHighlightCard[] =
+    teamHighlights.length > 0
+      ? teamHighlights.map((h) => ({
+          title: h.title,
+          body: h.teaser ?? "",
+          href: h.href,
+        }))
+      : [
+          { title: s["team.hl1.title"], body: s["team.hl1.body"] },
+          { title: s["team.hl2.title"], body: s["team.hl2.body"] },
+          { title: s["team.hl3.title"], body: s["team.hl3.body"] },
+        ];
+
   return (
     <>
       <HomeHeroMotrenko
@@ -147,7 +170,7 @@ export function HomePageView({ locale, s, nav, posts, dbError, heroBgUrl, teamHo
         heading={s["section.services_title"]}
         lead={s["section.services_subtitle"]}
         moreLabel="Više"
-        categories={servicePillars}
+        cards={serviceCards}
       />
 
       <HomeTeamTeaser
@@ -159,11 +182,7 @@ export function HomePageView({ locale, s, nav, posts, dbError, heroBgUrl, teamHo
         aboutHref={teamHref}
         ctaLabel={s["team.cta"]}
         members={teamMembers.slice(0, 1)}
-        highlights={[
-          { title: s["team.hl1.title"], body: s["team.hl1.body"] },
-          { title: s["team.hl2.title"], body: s["team.hl2.body"] },
-          { title: s["team.hl3.title"], body: s["team.hl3.body"] },
-        ]}
+        highlights={highlightCards}
       />
 
       <HomeNewsMotrenko

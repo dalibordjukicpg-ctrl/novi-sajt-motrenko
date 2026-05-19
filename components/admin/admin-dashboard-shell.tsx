@@ -16,6 +16,11 @@ const SITE_CONTENT = [
   { href: adminPath("pages"), label: "Stranice (CMS)" },
   { href: adminPath("content/hero"), label: "Hero baner" },
   { href: adminPath("content/sections"), label: "Početna — sekcije" },
+  {
+    href: adminPath("content/team"),
+    label: "Blok „Upoznajte tim“ — tekstovi",
+  },
+  { href: adminPath("content/home-cards"), label: "Kartice usluga" },
 ] as const;
 
 export type AdminShellNavFlags = {
@@ -46,7 +51,7 @@ function NavItem({
       href={href}
       onClick={onNavigate}
       className={cn(
-        "block rounded-lg px-3 py-2 text-sm transition",
+        "block rounded-lg px-3 py-2 text-sm leading-snug transition",
         active
           ? "bg-[#f37021] font-medium text-white shadow-sm"
           : "text-[#4a3f36] hover:bg-[#fff0e6]",

@@ -107,6 +107,37 @@ export default async function SitePage({ params }: Props) {
     ? "wp-content wp-content--article wp-content--inner-panel site-card-elevated-lg max-w-none px-6 py-8 backdrop-blur-sm sm:px-10 sm:py-10"
     : "wp-content wp-content--article max-w-3xl";
 
+  if (slug === "kontakt") {
+    return (
+      <main className="min-h-screen w-full min-w-0 overflow-x-hidden bg-transparent">
+        <PageHero
+          backgroundImage={CLINIC_PAGE_HERO_BG}
+          breadcrumbs={[{ label: homeCrumb, href: `/${raw}` }]}
+        >
+          <h1
+            style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+            className="max-w-[95vw] text-[clamp(1.85rem,6.5vw,3.5rem)] font-light leading-[1.08] tracking-tight text-zinc-900 [text-shadow:0_1px_24px_rgba(255,255,255,0.9),0_0_1px_rgba(255,255,255,0.95)] sm:max-w-none sm:leading-[1.05]"
+          >
+            {page.title}
+          </h1>
+          <div className="mt-5 h-0.5 w-14 bg-site-brand sm:mt-6 sm:w-16" />
+        </PageHero>
+
+        <div className="mx-auto w-full max-w-xl px-6 py-10 sm:py-12 lg:px-12">
+          <ContactForm locale={raw} privacyHref={privacyHref} />
+          <div className="mt-12">
+            <Link
+              href={`/${raw}`}
+              className="text-[11px] font-medium uppercase tracking-[0.25em] text-zinc-400 transition-colors hover:text-zinc-950"
+            >
+              ← Početna
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen w-full min-w-0 overflow-x-hidden bg-transparent">
       <PageHero backgroundImage={CLINIC_PAGE_HERO_BG} breadcrumbs={breadcrumbs}>
@@ -169,17 +200,6 @@ export default async function SitePage({ params }: Props) {
             ) : null}
           </div>
         )}
-        {slug === "kontakt" ? (
-          <section
-            className="mt-14 max-w-xl scroll-mt-24"
-            aria-labelledby="kontakt-form-naslov"
-          >
-            <h2 id="kontakt-form-naslov" className="sr-only">
-              Kontakt forma
-            </h2>
-            <ContactForm locale={raw} privacyHref={privacyHref} />
-          </section>
-        ) : null}
         <div className="mt-16 pt-8">
           <Link
             href={`/${raw}`}

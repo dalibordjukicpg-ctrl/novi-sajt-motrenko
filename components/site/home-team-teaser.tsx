@@ -6,7 +6,11 @@ import Link from "next/link";
 import type { Locale } from "@/lib/i18n";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
 
-type Highlight = { title: string; body: string };
+export type HomeTeamHighlightCard = {
+  title: string;
+  body: string;
+  href?: string;
+};
 
 export type HomeTeamMember = {
   imageSrc: string;
@@ -24,7 +28,7 @@ type Props = {
   members: HomeTeamMember[];
   /** Kratki tekst ispod fotografije istaknutog člana (npr. dr Motrenko). */
   featuredBio: string;
-  highlights: Highlight[];
+  highlights: HomeTeamHighlightCard[];
 };
 
 function isLocalSrc(src: string) {
@@ -107,17 +111,50 @@ export function HomeTeamTeaser({
               {lead}
             </p>
             <div className="mt-6 space-y-3">
-              {highlights.map((h) => (
-                <div
-                  key={h.title}
-                  className="site-card-glass px-4 py-3.5 sm:px-4 sm:py-4"
-                >
-                  <p className="text-sm font-semibold text-site-ink">{h.title}</p>
-                  <p className="mt-0.5 text-sm leading-relaxed text-site-muted">
-                    {h.body}
-                  </p>
-                </div>
-              ))}
+              {highlights.map((h) => {
+                const cardClass =
+                  "site-card-glass block px-4 py-3.5 transition sm:px-4 sm:py-4 " +
+                  (h.href
+                    ? "cursor-pointer hover:border-site-brand/20 hover:shadow-site-card-lg group"
+                    : "");
+
+                const inner = (
+                  <>
+                    <p className="text-sm font-semibold text-site-ink group-hover:text-site-brand">
+                      {h.title}
+                    </p>
+                    <p className="mt-0.5 text-sm leading-relaxed text-site-muted">
+                      {h.body}
+                    </p>
+                    {h.href ? (
+                      <span
+                        className="mt-2 inline-block text-[10px] font-semibold uppercase tracking-[0.18em] text-site-brand opacity-80 group-hover:opacity-100"
+                        aria-hidden
+                      >
+                        Pročitajte više →
+                      </span>
+                    ) : null}
+                  </>
+                );
+
+                const key = `${h.title}-${h.href ?? "static"}`;
+                if (h.href && h.href !== "#") {
+                  return (
+                    <Link
+                      key={key}
+                      href={resolvePublicHref(locale, h.href)}
+                      className={cardClass}
+                    >
+                      {inner}
+                    </Link>
+                  );
+                }
+                return (
+                  <div key={key} className={cardClass}>
+                    {inner}
+                  </div>
+                );
+              })}
             </div>
             <Link
               href={resolvePublicHref(locale, aboutHref)}

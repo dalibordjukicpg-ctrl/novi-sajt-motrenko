@@ -19,27 +19,43 @@ function normMatch(s: string): string {
     .replace(/[^a-z0-9]+/g, "");
 }
 
+/**
+ * Pronađi CMS stranicu za footer/header link.
+ * Rangiranje umjesto prvog „substring“ pogotka — npr. „stimulacija“ ne smije završiti na slug `tim`
+ * jer `"stimulacijaovulacije".includes("tim")`.
+ */
 function findPageForHints(
   pages: FooterPageRow[],
   hints: string[],
 ): FooterPageRow | null {
+  let best: { page: FooterPageRow; score: number } | null = null;
+
   for (const raw of hints) {
     const c = normMatch(raw);
     if (!c) continue;
+
     for (const p of pages) {
       const ns = normMatch(p.slug);
-      if (ns === c || ns.includes(c) || c.includes(ns)) return p;
-    }
-  }
-  for (const raw of hints) {
-    const c = normMatch(raw);
-    if (c.length < 4) continue;
-    for (const p of pages) {
       const nt = normMatch(p.title);
-      if (nt.includes(c)) return p;
+
+      let score = 0;
+      if (ns === c) {
+        score = 100;
+      } else if (c.length >= 4 && ns.includes(c)) {
+        score = 80;
+      } else if (ns.length >= 4 && c.includes(ns)) {
+        score = 60;
+      } else if (c.length >= 4 && nt.includes(c)) {
+        score = 40;
+      }
+
+      if (score > (best?.score ?? 0)) {
+        best = { page: p, score };
+      }
     }
   }
-  return null;
+
+  return best?.page ?? null;
 }
 
 function resolveLabels(

@@ -352,6 +352,22 @@ main {
       0 4px 12px -2px rgb(var(--site-brand-rgb) / 0.24);
     transform: translateY(-1px);
   }
+
+  /* Header CTA — kompaktnije od ostalih site-btn-primary */
+  .site-header-cta.site-btn-primary {
+    letter-spacing: 0.12em;
+    border-radius: 0.35rem;
+    box-shadow:
+      0 4px 16px -6px rgb(var(--site-brand-rgb) / 0.32),
+      0 2px 6px -2px rgb(var(--site-brand-rgb) / 0.14);
+  }
+
+  .site-header-cta.site-btn-primary:hover {
+    box-shadow:
+      0 6px 22px -6px rgb(var(--site-brand-rgb) / 0.38),
+      0 3px 10px -3px rgb(var(--site-brand-rgb) / 0.18);
+  }
+
 }
 
 /* Fiksna medicinska pozadina — čisti CSS (uvijek vidljivo i animirano, bez Framer-a). */

@@ -581,3 +581,88 @@ export const mediaAltTranslationsRelations = relations(
 export const mediaRelations = relations(media, ({ many }) => ({
   altTranslations: many(mediaAltTranslations),
 }));
+
+/** Kartice usluga na početnoj stranici (zamjenjuju nav-derived prikaz). */
+export const homeServiceCards = mysqlTable("home_service_cards", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  sortOrder: int("sort_order").notNull().default(0),
+  iconName: varchar("icon_name", { length: 64 }).notNull().default("heart"),
+  href: varchar("href", { length: 512 }).notNull().default("#"),
+  visible: boolean("visible").notNull().default(true),
+  updatedAt: datetime("updated_at", { mode: "date", fsp: 3 })
+    .notNull()
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date()),
+});
+
+export const homeServiceCardTranslations = mysqlTable(
+  "home_service_card_translations",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    cardId: varchar("card_id", { length: 36 })
+      .notNull()
+      .references(() => homeServiceCards.id, { onDelete: "cascade" }),
+    locale: localeEnum.notNull(),
+    title: varchar("title", { length: 500 }).notNull().default(""),
+    description: text("description"),
+  },
+  (table) => [
+    uniqueIndex("home_card_trans_card_locale").on(table.cardId, table.locale),
+  ],
+);
+
+export const homeServiceCardsRelations = relations(homeServiceCards, ({ many }) => ({
+  translations: many(homeServiceCardTranslations),
+}));
+
+export const homeServiceCardTranslationsRelations = relations(
+  homeServiceCardTranslations,
+  ({ one }) => ({
+    card: one(homeServiceCards, {
+      fields: [homeServiceCardTranslations.cardId],
+      references: [homeServiceCards.id],
+    }),
+  }),
+);
+
+/** Kartice desno u bloku „Upoznajte tim“ na početnoj (link na CMS stranice). */
+export const homeTeamHighlights = mysqlTable("home_team_highlights", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  sortOrder: int("sort_order").notNull().default(0),
+  href: varchar("href", { length: 512 }).notNull().default("#"),
+  visible: boolean("visible").notNull().default(true),
+  updatedAt: datetime("updated_at", { mode: "date", fsp: 3 })
+    .notNull()
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date()),
+});
+
+export const homeTeamHighlightTranslations = mysqlTable(
+  "home_team_highlight_translations",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    highlightId: varchar("highlight_id", { length: 36 })
+      .notNull()
+      .references(() => homeTeamHighlights.id, { onDelete: "cascade" }),
+    locale: localeEnum.notNull(),
+    title: varchar("title", { length: 500 }).notNull().default(""),
+    teaser: text("teaser"),
+  },
+  (table) => [
+    uniqueIndex("home_team_hl_trans_hl_locale").on(table.highlightId, table.locale),
+  ],
+);
+
+export const homeTeamHighlightsRelations = relations(homeTeamHighlights, ({ many }) => ({
+  translations: many(homeTeamHighlightTranslations),
+}));
+
+export const homeTeamHighlightTranslationsRelations = relations(
+  homeTeamHighlightTranslations,
+  ({ one }) => ({
+    highlight: one(homeTeamHighlights, {
+      fields: [homeTeamHighlightTranslations.highlightId],
+      references: [homeTeamHighlights.id],
+    }),
+  }),
+);

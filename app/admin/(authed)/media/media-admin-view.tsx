@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { saveMediaAltTranslationsAction } from "@/app/admin/(authed)/content/site-content-actions";
+import { deleteMediaAction } from "@/app/admin/(authed)/media/actions";
 import type { MediaAdminRow } from "@/lib/queries/media-admin";
 import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
@@ -22,6 +23,34 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
   );
   const [pendingUp, startUpload] = useTransition();
   const [pendingSave, startSave] = useTransition();
+  const [pendingDelete, startDelete] = useTransition();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteMsg, setDeleteMsg] = useState<string | null>(null);
+
+  function handleDelete(item: MediaAdminRow) {
+    const warn =
+      "Obrisati ovaj fajl iz biblioteke medija? Ako se koristi na sajtu (logo, hero, članak), veza će se ukloniti.";
+    if (!confirm(warn)) return;
+
+    setDeletingId(item.id);
+    setDeleteMsg(null);
+    const fd = new FormData();
+    fd.set("mediaId", item.id);
+    startDelete(async () => {
+      const res = await deleteMediaAction(fd);
+      setDeletingId(null);
+      if (res.error) {
+        setDeleteMsg(res.error);
+        return;
+      }
+      const extra =
+        res.cleared && res.cleared.length > 0
+          ? ` Uklonjeno iz: ${res.cleared.join(", ")}.`
+          : "";
+      setDeleteMsg(`Obrisano: ${item.filename}.${extra}`);
+      router.refresh();
+    });
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -70,6 +99,12 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
           )}
         </div>
       </div>
+
+      {deleteMsg && (
+        <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm text-neutral-800">
+          {deleteMsg}
+        </p>
+      )}
 
       {items.length === 0 ? (
         <p className="rounded-xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-600">
@@ -144,6 +179,14 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
                       />
                     </label>
                   ))}
+                  <button
+                    type="button"
+                    disabled={pendingDelete && deletingId === item.id}
+                    onClick={() => handleDelete(item)}
+                    className="mt-2 w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-800 hover:bg-red-100 disabled:opacity-50"
+                  >
+                    {pendingDelete && deletingId === item.id ? "Brišem…" : "Obriši"}
+                  </button>
                 </div>
               </div>
             ))}

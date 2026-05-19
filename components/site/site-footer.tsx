@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ExternalLink, Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 
 import { FadeIn } from "@/components/site/fade-in";
 import { DEFAULT_HEADER_LOGO } from "@/lib/clinic-assets";
@@ -11,12 +11,19 @@ import { resolvePublicHref } from "@/lib/resolve-public-href";
 import { formatHoursDisplay } from "@/lib/format-hours-display";
 import type { SiteStringKey } from "@/lib/site-fields";
 
+const CRAFTED_BY_HREF = "https://www.computer-doctor.me";
+
 type Props = {
   locale: Locale;
   s: Record<SiteStringKey, string>;
-  footerContactHref: string | null;
+  footerContactHref?: string | null;
   logoUrl?: string | null;
 };
+
+function telHref(raw: string): string {
+  const digits = raw.replace(/[^\d+]/g, "");
+  return digits.startsWith("+") ? `tel:${digits}` : `tel:${digits}`;
+}
 
 const COL_TITLE =
   "mb-7 min-h-[1.25rem] text-[11px] font-semibold uppercase leading-none tracking-[0.3em] text-site-brand";
@@ -31,12 +38,6 @@ const FOOTER_DAY_LABELS = [
   "Nedjelja",
 ] as const;
 
-function telHref(raw: string): string {
-  const digits = raw.replace(/[^\d+]/g, "");
-  return digits.startsWith("+") ? `tel:${digits}` : `tel:${digits}`;
-}
-
-/** Jednake „premium“ pločice za ikone kroz cijeli footer. */
 function IconTile({ children }: { children: ReactNode }) {
   return (
     <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-site-border bg-site-card text-site-brand shadow-site-card">
@@ -109,20 +110,6 @@ export function SiteFooter({
     s["hours.sun"],
   ];
 
-  const mapsHref = (s["contact.maps_href"] ?? "").trim();
-  const mapsIsUrl =
-    mapsHref.startsWith("http://") || mapsHref.startsWith("https://");
-
-  const siteHref = (s["footer.site_domain_href"] ?? "").trim();
-  const siteLabel = (s["footer.site_domain_label"] ?? "").trim();
-  const siteIsExternal =
-    siteHref.startsWith("http://") || siteHref.startsWith("https://");
-
-  const primaryPhone = (s["contact.phone1"] ?? "").trim();
-  const secondaryPhone = (s["contact.phone2"] ?? "").trim();
-  const email = (s["contact.email"] ?? "").trim();
-  const address = (s["contact.address"] ?? "").trim();
-
   const socialItems = (
     [
       { label: "Facebook" as const, href: (s["social.facebook"] ?? "").trim() },
@@ -135,15 +122,25 @@ export function SiteFooter({
   ).filter((x) => x.href.startsWith("http://") || x.href.startsWith("https://"));
 
   const closedLabel = s["footer.closed"];
+
+  const mapsHref = (s["contact.maps_href"] ?? "").trim();
+  const mapsIsUrl =
+    mapsHref.startsWith("http://") || mapsHref.startsWith("https://");
+
+  const primaryPhone = (s["contact.phone1"] ?? "").trim();
+  const secondaryPhone = (s["contact.phone2"] ?? "").trim();
+  const email = (s["contact.email"] ?? "").trim();
+  const address = (s["contact.address"] ?? "").trim();
+  const tagline = (s["footer.tagline"] ?? "").trim();
   const kontaktHref =
     footerContactHref ?? resolvePublicHref(locale, "/s/kontakt");
+  const bookHref = resolvePublicHref(locale, s["header.cta_book_href"] || "#kontakt");
 
   return (
     <footer
       id="contact"
       className="site-footer-motrenko relative z-30 shrink-0 overflow-hidden bg-[rgb(240_234_226/0.92)] text-zinc-800 backdrop-blur-sm selection:bg-site-brand selection:text-white"
     >
-      {/* Mekani prelaz iz sadržaja u footer — bez oštrog ruba */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-transparent to-transparent" />
 
       <div className="mx-auto max-w-7xl px-6 lg:px-14">
@@ -250,7 +247,7 @@ export function SiteFooter({
                   </div>
                 ) : (
                   <p className="text-[14px] leading-relaxed text-zinc-700">
-                    Unesite URL društvenih mreža u admin panelu (Header i footer).
+                    Unesite URL u adminu: Footer i kontakt → Društvene mreže.
                   </p>
                 )}
               </FooterAccordionSection>
@@ -260,6 +257,10 @@ export function SiteFooter({
                 className="md:min-w-0 lg:border-r lg:border-site-line lg:px-8 xl:px-10"
               >
                 <div className="space-y-5">
+                  {tagline ? (
+                    <p className="text-[14px] leading-[1.7] text-zinc-800">{tagline}</p>
+                  ) : null}
+
                   {primaryPhone ? (
                     <a
                       href={telHref(primaryPhone)}
@@ -272,7 +273,7 @@ export function SiteFooter({
                         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
                           Telefon
                         </span>
-                        <span className="text-zinc-900 font-medium transition group-hover:text-site-brand">
+                        <span className="font-medium text-zinc-900 transition group-hover:text-site-brand">
                           {primaryPhone}
                         </span>
                       </span>
@@ -291,7 +292,7 @@ export function SiteFooter({
                         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
                           Telefon 2
                         </span>
-                        <span className="text-zinc-900 font-medium transition group-hover:text-site-brand">
+                        <span className="font-medium text-zinc-900 transition group-hover:text-site-brand">
                           {secondaryPhone}
                         </span>
                       </span>
@@ -310,19 +311,12 @@ export function SiteFooter({
                         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
                           Email
                         </span>
-                        <span className="text-zinc-900 font-medium transition group-hover:text-site-brand">
+                        <span className="font-medium text-zinc-900 transition group-hover:text-site-brand">
                           {email}
                         </span>
                       </span>
                     </a>
-                  ) : (
-                    <p className="text-[14px] text-zinc-700">
-                      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
-                        Email
-                      </span>
-                      <span className="italic">Unijeti u admin (Header i footer).</span>
-                    </p>
-                  )}
+                  ) : null}
 
                   {address ? (
                     mapsIsUrl ? (
@@ -339,10 +333,10 @@ export function SiteFooter({
                           <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
                             Adresa
                           </span>
-                          <span className="text-zinc-900 font-medium transition group-hover:text-site-brand">
+                          <span className="font-medium text-zinc-900 transition group-hover:text-site-brand">
                             {address}
                           </span>
-                          <span className="mt-1.5 inline-block text-[11px] font-medium uppercase tracking-[0.18em] text-site-brand transition group-hover:text-site-brand-muted">
+                          <span className="mt-1.5 inline-block text-[11px] font-medium uppercase tracking-[0.18em] text-site-brand">
                             Google Maps →
                           </span>
                         </span>
@@ -360,45 +354,20 @@ export function SiteFooter({
                         </span>
                       </div>
                     )
-                  ) : (
-                    <p className="text-[14px] text-zinc-700">
-                      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
-                        Adresa
-                      </span>
-                      <span className="italic">Unijeti u admin panelu.</span>
-                    </p>
-                  )}
-
-                  {siteLabel && siteIsExternal ? (
-                    <a
-                      href={siteHref}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group flex items-start gap-3.5 text-[14px] transition-colors hover:text-site-brand"
-                    >
-                      <IconTile>
-                        <ExternalLink size={15} strokeWidth={1.5} aria-hidden />
-                      </IconTile>
-                      <span className="min-w-0">
-                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
-                          Web
-                        </span>
-                        <span className="text-zinc-900 font-medium transition group-hover:text-site-brand">
-                          {siteLabel}
-                        </span>
-                      </span>
-                    </a>
                   ) : null}
 
-                  <div className="pt-1">
+                  <div className="flex flex-col gap-2.5 pt-1">
+                    <Link
+                      href={bookHref}
+                      className="site-btn-primary inline-flex h-11 items-center justify-center px-6 text-[10px] tracking-[0.22em]"
+                    >
+                      {s["header.cta_book"]}
+                    </Link>
                     <Link
                       href={kontaktHref}
-                      className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-site-brand transition hover:text-site-brand-muted"
+                      className="inline-flex h-10 items-center justify-center rounded-md border border-site-border bg-site-card px-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-site-brand shadow-site-card transition hover:border-site-brand/30 hover:text-site-brand-muted"
                     >
-                      Kontakt stranica
-                      <span aria-hidden className="text-[12px] font-light">
-                        →
-                      </span>
+                      Kontakt forma
                     </Link>
                   </div>
                 </div>
@@ -439,7 +408,14 @@ export function SiteFooter({
           </p>
           <p className="text-center sm:text-left">
             {s["footer.crafted"]}{" "}
-            <span className="font-medium text-site-brand">{s["footer.crafted_by"]}</span>
+            <a
+              href={CRAFTED_BY_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-site-brand underline-offset-4 transition-colors hover:text-site-brand-muted hover:underline"
+            >
+              {s["footer.crafted_by"]}
+            </a>
           </p>
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 sm:justify-end">
             <Link

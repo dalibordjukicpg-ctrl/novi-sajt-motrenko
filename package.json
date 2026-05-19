@@ -29,6 +29,7 @@
     "wp:list-header": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/list-wp-header-nav.ts",
     "sync:wp-pages-media": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/sync-wp-pages-media.ts",
     "seed:site": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-site.ts",
+    "seed:team-highlights": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-team-highlights.ts",
     "nav:collapse-usluge": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/collapse-header-usluge.ts",
     "nav:link-header-pages": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/link-header-nav-to-pages-by-title.ts",
     "nav:fix-labels": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/fix-nav-link-labels.ts",

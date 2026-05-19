@@ -51,6 +51,22 @@ export type SitePageAdminDetail = {
   >;
 };
 
+export async function getSitePageBySlugForAdmin(
+  slug: string,
+): Promise<SitePageAdminDetail | null> {
+  const normalized = slug.trim().toLowerCase();
+  if (!normalized) return null;
+
+  const [page] = await db
+    .select()
+    .from(sitePages)
+    .where(eq(sitePages.slug, normalized))
+    .limit(1);
+  if (!page) return null;
+
+  return getSitePageForAdmin(page.id);
+}
+
 export async function getSitePageForAdmin(
   pageId: string,
 ): Promise<SitePageAdminDetail | null> {

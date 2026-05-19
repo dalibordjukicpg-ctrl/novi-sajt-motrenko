@@ -248,7 +248,11 @@ function NavDropdown({
 
   const flyoutPosition = sectioned
     ? isUslugeMega
-      ? "absolute left-1/2 top-full z-[210] -mt-3 w-[min(96vw,920px)] -translate-x-1/2 pt-6"
+      ? [
+          /* Mobil: ispod stavke; desktop: centar ekrana (ne samo iznad „Usluge”) */
+          "absolute left-1/2 top-full z-[210] -mt-3 w-[min(96vw,920px)] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 pt-6",
+          "md:fixed md:left-1/2 md:right-auto md:top-[calc(env(safe-area-inset-top)+6.5rem)] md:mt-0 md:w-[min(96vw,920px)] md:max-w-[920px] md:-translate-x-1/2",
+        ].join(" ")
       : "absolute left-1/2 top-full z-[210] -mt-3 w-[min(94vw,520px)] -translate-x-1/2 pt-6"
     : "absolute left-0 top-full z-[210] -mt-3 min-w-[280px] pt-6";
 
@@ -524,9 +528,12 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
       ? "border-0 bg-site-canvas shadow-[0_12px_32px_-16px_rgb(0_0_0/0.08)]"
       : "border-0 bg-transparent shadow-none";
 
+  const ctaCompact =
+    "inline-flex items-center justify-center whitespace-nowrap px-3.5 py-1.5 font-serif text-[11px] font-medium uppercase tracking-[0.12em] md:px-4 md:py-1.5 md:text-[12px] md:tracking-[0.13em]";
+
   const ctaPrimary = lightHeader
-    ? "site-btn-primary inline-flex items-center justify-center whitespace-nowrap px-5 py-2 font-serif text-[13px] font-medium tracking-[0.12em] md:px-6 md:py-2.5 md:text-[14px] md:tracking-[0.12em]"
-    : "inline-flex items-center justify-center whitespace-nowrap rounded-[3px] border border-white/75 bg-white/10 px-5 py-2 font-serif text-[13px] font-medium uppercase tracking-[0.11em] text-white transition hover:border-site-brand hover:bg-site-brand/20 hover:text-white md:px-6 md:py-2.5 md:text-[14px] md:tracking-[0.11em]";
+    ? `site-btn-primary site-header-cta ${ctaCompact}`
+    : `${ctaCompact} rounded-[3px] border border-white/75 bg-white/10 text-white transition hover:border-site-brand hover:bg-site-brand/20 hover:text-white`;
 
   const phoneRaw = (s["contact.phone1"] ?? "").trim();
   const phoneLabel = phoneRaw;
@@ -541,7 +548,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
         {/* Logo */}
         <Link
           href={`/${locale}`}
-          className="site-header-logo-link relative z-20 flex min-w-0 max-w-[min(100%,68vw)] items-center justify-self-start sm:max-w-[min(100%,72vw)] md:max-w-[min(100%,500px)]"
+          className="site-header-logo-link relative z-20 flex min-w-0 max-w-[min(100%,76vw)] items-center justify-self-start sm:max-w-[min(100%,80vw)] md:max-w-[min(100%,580px)]"
         >
           <Image
             src={resolvedLogoSrc}
@@ -552,8 +559,8 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
             unoptimized={logoIsRemote}
             draggable={false}
             tabIndex={-1}
-            className="pointer-events-none block h-12 w-auto max-h-12 max-w-full select-none object-contain object-left sm:h-[3.35rem] sm:max-h-[3.35rem] md:h-[4.35rem] md:max-h-[4.55rem] lg:h-[4.75rem]"
-            sizes="(max-width: 768px) 72vw, 540px"
+            className="pointer-events-none block h-[3.35rem] w-auto max-h-[3.35rem] max-w-full select-none object-contain object-left sm:h-[3.75rem] sm:max-h-[3.75rem] md:h-[5.15rem] md:max-h-[5.15rem] lg:h-[5.5rem] lg:max-h-[5.5rem]"
+            sizes="(max-width: 768px) 80vw, 580px"
           />
         </Link>
 

@@ -64,20 +64,12 @@ function StatCardBg({ src, position }: { src: string; position?: string }) {
     <img
       src={effective}
       alt=""
-      className="absolute inset-0 h-full w-full object-cover"
+      className="absolute inset-0 h-full w-full object-cover saturate-[1.08] contrast-[1.04]"
       style={{ objectPosition: pos }}
       onError={() => setUseFallback(true)}
     />
   );
 }
-
-/*
- * KONTROLA IZGLEDA STAT KARTICA:
- *   • Vidljivost foto  → ivory-wash gradient opacity vrijednosti ispod
- *   • Blur kartice     → backdropFilter: "blur(Xpx)"
- *   • Hover podizanje  → translateY u onMouseEnter
- *   • Ikone            → STAT_ICONS niz na vrhu fajla
- */
 
 function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -91,7 +83,12 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } },
+      ([e]) => {
+        if (e.isIntersecting) {
+          setVis(true);
+          obs.disconnect();
+        }
+      },
       { threshold: 0.25 },
     );
     obs.observe(el);
@@ -100,90 +97,76 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
 
   const count = useCountUp(target, 1800, vis && displayStatic === null);
 
-  const shadowBase =
-    "0 2px 0 rgba(255,255,255,0.95) inset, 0 20px 60px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04), 0 0 0 1px rgba(180,160,140,0.14)";
-  const shadowHover =
-    "0 2px 0 rgba(255,255,255,0.95) inset, 0 28px 70px rgba(0,0,0,0.09), 0 8px 24px rgba(0,0,0,0.06), 0 0 0 1px rgba(232,104,42,0.20)";
-
   return (
     <div ref={ref} className="h-full">
-      <div
-        className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/70 px-5 pb-6 pt-5 sm:rounded-3xl sm:px-6 sm:pb-7 sm:pt-6"
-        style={{
-          opacity: vis ? 1 : 0,
-          transitionDelay: `${delay}ms`,
-          background: "rgba(255,255,255,0.88)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          boxShadow: shadowBase,
-          transition: "all 0.35s ease",
-        }}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget as HTMLDivElement;
-          el.style.transform = "translateY(-4px)";
-          el.style.boxShadow = shadowHover;
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget as HTMLDivElement;
-          el.style.transform = "translateY(0)";
-          el.style.boxShadow = shadowBase;
-        }}
+      <article
+        className={[
+          "group relative flex h-full min-h-[11.5rem] flex-col overflow-hidden rounded-2xl sm:min-h-[12.5rem] sm:rounded-[1.35rem]",
+          "bg-[#1a1410] ring-1 ring-black/[0.06] transition-all duration-500 ease-out",
+          "shadow-[0_20px_50px_-18px_rgba(28,18,10,0.35)]",
+          "hover:-translate-y-1 hover:shadow-[0_28px_60px_-16px_rgba(28,18,10,0.42)] hover:ring-site-brand/25",
+          vis ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
+        ].join(" ")}
+        style={{ transitionDelay: `${delay}ms`, containerType: "inline-size" }}
       >
-        {/* Foto pozadina + warm ivory wash — smanjite opacity za jasniju sliku */}
         <div
-          className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl sm:rounded-3xl"
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl sm:rounded-[1.35rem]"
           aria-hidden
         >
-          <StatCardBg src={stat.bgImage} position={stat.bgPosition} />
-          {/*
-           * Horizontalni fade — lijeva strana bijela (tekst čitljiv),
-           * desna strana otkriva fotografiju.
-           * KONTROLA: mijenjaj % granice ili alpha vrijednosti:
-           *   • 0%→50%: bijela zona (gdje je tekst)
-           *   • 50%→100%: prelaz u prozirno (foto se pojavljuje)
-           */}
+          <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.06]">
+            <StatCardBg src={stat.bgImage} position={stat.bgPosition} />
+          </div>
+          <div className="absolute inset-0 bg-[#1a1410]/15 mix-blend-multiply" />
           <div
             className="absolute inset-0"
             style={{
-              background:
-                "linear-gradient(to right, rgba(255,253,250,1.00) 0%, rgba(255,252,248,1.00) 30%, rgba(255,251,246,0.92) 48%, rgba(253,249,243,0.45) 66%, rgba(250,246,240,0.06) 100%)",
+              background: [
+                "linear-gradient(to top, rgba(22,14,10,0.88) 0%, rgba(22,14,10,0.52) 38%, rgba(22,14,10,0.12) 62%, transparent 100%)",
+                "linear-gradient(135deg, rgba(232,104,42,0.14) 0%, transparent 42%)",
+              ].join(", "),
             }}
           />
         </div>
 
-        {/* Gornji bijeli highlight — uklonjen da ne stvara liniju */}
-
-        {/* Sadržaj */}
-        <div className="relative z-10 flex h-full flex-col">
-          {/* Ikona — gornji lijevi ugao */}
-          <div className="mb-auto flex size-9 items-center justify-center rounded-xl bg-white/75 text-site-brand shadow-[0_1px_6px_rgba(0,0,0,0.07)] ring-1 ring-white/60 sm:size-10">
+        <div className="relative z-10 flex min-h-[11.5rem] w-full min-w-0 flex-col px-5 pb-6 pt-5 sm:min-h-[12.5rem] sm:px-6 sm:pb-7 sm:pt-6">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-[var(--site-peach)] shadow-[0_4px_20px_rgba(0,0,0,0.2)] backdrop-blur-md sm:size-10">
             {STAT_ICONS[index % STAT_ICONS.length]}
           </div>
 
-          {/* Broj + suffix */}
-          <p
-            className="mt-4 text-[clamp(1.9rem,3.4vw,3rem)] font-semibold leading-none tracking-tight text-site-brand transition-transform duration-300 group-hover:scale-[1.03]"
-            style={{
-              fontFamily: "var(--font-playfair), Georgia, serif",
-              textShadow: "0 1px 8px rgba(255,255,255,0.7)",
-            }}
-          >
-            {displayStatic !== null ? (
-              displayStatic
-            ) : (
-              <>
-                {count.toLocaleString("sr-Latn-ME")}
-                <span>{suffix}</span>
-              </>
-            )}
-          </p>
+          <div className="min-h-2 flex-1" aria-hidden />
 
-          {/* Label */}
-          <p className="mt-2.5 text-[9.5px] font-bold uppercase leading-snug tracking-[0.22em] text-site-ink/70 sm:text-[10.5px]">
-            {stat.label}
-          </p>
+          <div className="mt-auto w-full min-w-0">
+            <p
+              className="min-h-[2.5rem] w-full min-w-0 text-[clamp(1.35rem,16cqw,2.65rem)] font-semibold leading-none tracking-tight text-white tabular-nums sm:min-h-[2.65rem]"
+              style={{
+                fontFamily: "var(--font-playfair), Georgia, serif",
+                textShadow: "0 2px 24px rgba(0,0,0,0.35)",
+              }}
+            >
+              <span className="inline-flex max-w-full items-baseline whitespace-nowrap leading-none">
+                {displayStatic !== null ? (
+                  <span>{displayStatic}</span>
+                ) : (
+                  <>
+                    <span>{count.toLocaleString("sr-Latn-ME")}</span>
+                    {suffix ? (
+                      <span className="ml-px shrink-0 text-[0.62em] font-semibold leading-none text-[var(--site-peach)]">
+                        {suffix}
+                      </span>
+                    ) : null}
+                  </>
+                )}
+              </span>
+            </p>
+
+            <div className="mt-3 min-h-[2.65em] w-full border-t border-white/15 pt-3 sm:min-h-[2.75em]">
+              <p className="text-[9px] font-semibold uppercase leading-snug tracking-[0.24em] text-white/75 sm:text-[10px] sm:tracking-[0.26em]">
+                {stat.label}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      </article>
     </div>
   );
 }
@@ -194,7 +177,7 @@ export function HomeStatsMotrenko({ items }: Props) {
   return (
     <section className="site-section site-section-scrim relative z-[1] overflow-x-hidden py-section-y">
       <div className="relative mx-auto max-w-7xl px-6 lg:px-16">
-        <div className="grid grid-cols-2 gap-4 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+        <div className="grid grid-cols-2 items-stretch gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
           {items.map((stat, i) => (
             <StatItem key={`stat-${i}`} stat={stat} delay={i * 100} index={i} />
           ))}

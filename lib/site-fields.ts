@@ -206,9 +206,9 @@ export const SITE_STRING_LABELS: Record<SiteStringKey, string> = {
   "contact.address": "Adresa (jedan red)",
   "contact.maps_href": "Google Maps URL za adresu (https://…)",
 
-  "social.facebook": "Facebook URL",
-  "social.instagram": "Instagram URL",
-  "social.linkedin": "LinkedIn URL",
+  "social.facebook": "Facebook — link (footer)",
+  "social.instagram": "Instagram — link (footer)",
+  "social.linkedin": "LinkedIn — link (footer)",
 
   "hours.mon_fri": "Radno vrijeme Ponedjeljak–Petak",
   "hours.tuesday": "Utorak (ako različito)",
@@ -322,7 +322,7 @@ const ME_SITE_STRING_DEFAULTS = {
 
     "social.facebook": "https://facebook.com",
     "social.instagram": "https://instagram.com",
-    "social.linkedin": "https://linkedin.com",
+    "social.linkedin": "",
 
     "hours.mon_fri": "08:00 – 20:00",
     "hours.tuesday": "08:00 – 20:00",
@@ -383,9 +383,6 @@ export const SITE_STRING_GROUPS = {
     "contact.email",
     "contact.address",
     "contact.maps_href",
-    "social.facebook",
-    "social.instagram",
-    "social.linkedin",
     "hours.mon_fri",
     "hours.tuesday",
     "hours.sat",
@@ -443,12 +440,13 @@ export const SITE_STRING_GROUPS = {
     "team.m3.role",
     "team.m4.name",
     "team.m4.role",
-    "team.hl1.title",
-    "team.hl1.body",
-    "team.hl2.title",
-    "team.hl2.body",
-    "team.hl3.title",
-    "team.hl3.body",
+  ] as const satisfies readonly SiteStringKey[],
+
+  /** Footer — društvene mreže (prazan URL = link se ne prikazuje). */
+  social: [
+    "social.facebook",
+    "social.instagram",
+    "social.linkedin",
   ] as const satisfies readonly SiteStringKey[],
 } as const;
 
