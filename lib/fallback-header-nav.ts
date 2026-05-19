@@ -160,14 +160,21 @@ export async function resolveHeaderNav(
   nav: PublicNavItem[],
   locale: Locale = defaultLocale,
 ): Promise<PublicNavItem[]> {
-  let out = consolidateServiceRootsUnderUsluge(mergeNavWithFallbackSubmenus(nav));
-  out = applyPublicHeaderNavPolicy(out);
-  out = mergeNavWithFallbackSubmenus(out);
-  out = ensureFallbackONama(out);
-  out = ensureFallbackBlog(out);
-  sortPublicHeaderRoots(out);
-  await localizeFallbackLabelsInPlace(out, locale);
-  return out;
+  try {
+    let out = consolidateServiceRootsUnderUsluge(mergeNavWithFallbackSubmenus(nav));
+    out = applyPublicHeaderNavPolicy(out);
+    out = mergeNavWithFallbackSubmenus(out);
+    out = ensureFallbackONama(out);
+    out = ensureFallbackBlog(out);
+    sortPublicHeaderRoots(out);
+    await localizeFallbackLabelsInPlace(out, locale);
+    return out;
+  } catch (e) {
+    console.error("[resolveHeaderNav]", e);
+    const out = mergeNavWithFallbackSubmenus(nav);
+    sortPublicHeaderRoots(out);
+    return out;
+  }
 }
 
 /**

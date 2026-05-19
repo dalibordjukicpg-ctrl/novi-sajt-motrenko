@@ -7,7 +7,11 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { MaintenanceScreen } from "@/components/site/maintenance-screen";
 import { PublicAnalyticsCollector } from "@/components/site/public-analytics-collector";
-import { FALLBACK_HEADER_NAV, resolveHeaderNav } from "@/lib/fallback-header-nav";
+import {
+  FALLBACK_HEADER_NAV,
+  mergeNavWithFallbackSubmenus,
+  resolveHeaderNav,
+} from "@/lib/fallback-header-nav";
 import { getSiteLayoutData, mergeSiteStrings } from "@/lib/queries/site";
 import { getRequestClientIp } from "@/lib/request-client-ip";
 import {
@@ -90,10 +94,17 @@ export default async function LocaleLayout({ children, params }: Props) {
     s = mergeSiteStrings(raw, SITE_STRING_DEFAULTS[raw]);
   }
 
-  const navResolved = await resolveHeaderNav(
+  let navResolved = mergeNavWithFallbackSubmenus(
     nav.length > 0 ? nav : FALLBACK_HEADER_NAV,
-    raw,
   );
+  try {
+    navResolved = await resolveHeaderNav(
+      nav.length > 0 ? nav : FALLBACK_HEADER_NAV,
+      raw,
+    );
+  } catch (e) {
+    console.error("[LocaleLayout resolveHeaderNav]", e);
+  }
 
   return (
     <div className="relative z-[1] flex min-h-dvh flex-col bg-transparent text-site-ink">

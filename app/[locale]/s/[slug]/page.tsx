@@ -78,7 +78,7 @@ export default async function SitePage({ params }: Props) {
     ? stripTimPregledSection(page.body)
     : page.body;
 
-  let navResolved = await resolveHeaderNav(FALLBACK_HEADER_NAV, raw);
+  let navResolved = FALLBACK_HEADER_NAV;
   let privacyHref = resolvePublicHref(raw, "/s/politika-privatnosti");
   try {
     const layout = await getSiteLayoutData(raw);
@@ -91,11 +91,21 @@ export default async function SitePage({ params }: Props) {
       layout.s["footer.privacy_href"] || "/s/politika-privatnosti",
     );
   } catch (e) {
-    console.error(e);
+    console.error("[SitePage layout/nav]", e);
+    try {
+      navResolved = await resolveHeaderNav(FALLBACK_HEADER_NAV, raw);
+    } catch (navErr) {
+      console.error("[SitePage resolveHeaderNav fallback]", navErr);
+    }
   }
 
   const innerNav = getONamaInnerPageContext(raw, slug, navResolved);
-  const homeCrumb = await getHomeBreadcrumbLabel(raw);
+  let homeCrumb = "Početna";
+  try {
+    homeCrumb = await getHomeBreadcrumbLabel(raw);
+  } catch (e) {
+    console.error("[SitePage getHomeBreadcrumbLabel]", e);
+  }
   const breadcrumbs = [
     { label: homeCrumb, href: `/${raw}` },
     ...(innerNav

@@ -58,7 +58,12 @@ export async function getHomeBreadcrumbLabel(locale: Locale): Promise<string> {
   if (!isMachineTranslateTarget(locale) || !isNavRuntimeTranslateEnabled()) {
     return HOME_BREADCRUMB_LABEL_ME;
   }
-  return translateNavPlainForLocale(HOME_BREADCRUMB_LABEL_ME, locale);
+  try {
+    return await translateNavPlainForLocale(HOME_BREADCRUMB_LABEL_ME, locale);
+  } catch (e) {
+    console.error("[getHomeBreadcrumbLabel]", e);
+    return HOME_BREADCRUMB_LABEL_ME;
+  }
 }
 
 /** Ista normalizacija kao za sprečavanje duplikata — path bez lokala/hash, lower case. */
