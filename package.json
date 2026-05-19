@@ -12,7 +12,6 @@
     "share:dev:cf": "node scripts/share-dev-cloudflare.cjs",
     "vercel:checklist": "node scripts/print-vercel-deploy.mjs",
     "build": "next build",
-    "build:with-db-setup": "node scripts/setup-home-content.mjs && next build",
     "db:setup-home": "node --env-file=.env scripts/setup-home-content.mjs",
     "start": "next start",
     "lint": "next lint",

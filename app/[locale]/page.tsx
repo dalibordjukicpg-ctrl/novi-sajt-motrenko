@@ -63,15 +63,10 @@ export default async function LocaleHomePage({ params }: Props) {
     console.error("[LocaleHomePage listVisibleHomeTeamHighlights]", e);
   }
 
-  let navResolved = FALLBACK_HEADER_NAV;
-  try {
-    navResolved = await resolveHeaderNav(
-      nav.length > 0 ? nav : FALLBACK_HEADER_NAV,
-      raw,
-    );
-  } catch (e) {
-    console.error("[LocaleHomePage resolveHeaderNav]", e);
-  }
+  const navResolved = await resolveHeaderNav(
+    nav.length > 0 ? nav : FALLBACK_HEADER_NAV,
+    raw,
+  );
 
   return (
     <main className="flex flex-col">

@@ -176,9 +176,6 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error(
-    "[setup-home-content] Greška — build nastavlja (sajt može raditi bez seed-a):",
-    e?.message ?? e,
-  );
-  process.exit(0);
+  console.error("[setup-home-content]", e);
+  process.exit(1);
 });
