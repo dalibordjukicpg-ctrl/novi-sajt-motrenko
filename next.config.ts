@@ -2,7 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    /** Bez ovoga Next 15 ponekad baca `frame.join is not a function` pri quality={88}. */
+    /**
+     * Hostinger Node: sharp/optimizer često ruši proces (500/503).
+     * Slike su već u public/ — serviraju se direktno bez server-side obrade.
+     */
+    unoptimized: true,
     qualities: [75, 88, 90],
   },
   /**

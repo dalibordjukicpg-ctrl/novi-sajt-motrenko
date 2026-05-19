@@ -13,7 +13,7 @@
     "vercel:checklist": "node scripts/print-vercel-deploy.mjs",
     "build": "next build",
     "db:setup-home": "node --env-file=.env scripts/setup-home-content.mjs",
-    "start": "next start",
+    "start": "next start -H 0.0.0.0",
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
