@@ -79,18 +79,27 @@ export async function translatePlainForLocale(
   if (isNonTranslatableStringValue(source)) return text;
 
   const key = digest(source);
-  return unstable_cache(
-    async () => {
-      try {
-        return await machineTranslatePlain(source, locale);
-      } catch (e) {
-        console.error("[runtime-translate plain]", locale, e);
-        return source;
-      }
-    },
-    cacheTags("plain", locale, key),
-    { revalidate: 60 * 60 * 24 * 14 },
-  )();
+  try {
+    return await unstable_cache(
+      async () => {
+        try {
+          return await machineTranslatePlain(source, locale);
+        } catch (e) {
+          console.error("[runtime-translate plain]", locale, e);
+          return source;
+        }
+      },
+      cacheTags("plain", locale, key),
+      { revalidate: 60 * 60 * 24 * 14 },
+    )();
+  } catch (e) {
+    console.error("[runtime-translate plain cache]", locale, e);
+    try {
+      return await machineTranslatePlain(source, locale);
+    } catch {
+      return source;
+    }
+  }
 }
 
 /**
@@ -106,18 +115,27 @@ export async function translateNavPlainForLocale(
   if (isNonTranslatableStringValue(source)) return text;
 
   const key = digest(source);
-  return unstable_cache(
-    async () => {
-      try {
-        return await machineTranslatePlain(source, locale);
-      } catch (e) {
-        console.error("[runtime-translate nav]", locale, e);
-        return source;
-      }
-    },
-    cacheTags("nav", locale, key),
-    { revalidate: 60 * 60 * 24 * 14 },
-  )();
+  try {
+    return await unstable_cache(
+      async () => {
+        try {
+          return await machineTranslatePlain(source, locale);
+        } catch (e) {
+          console.error("[runtime-translate nav]", locale, e);
+          return source;
+        }
+      },
+      cacheTags("nav", locale, key),
+      { revalidate: 60 * 60 * 24 * 14 },
+    )();
+  } catch (e) {
+    console.error("[runtime-translate nav cache]", locale, e);
+    try {
+      return await machineTranslatePlain(source, locale);
+    } catch {
+      return source;
+    }
+  }
 }
 
 /** Batch prevod više nav labela; rezultat istog redoslijeda. */
@@ -139,18 +157,27 @@ export async function translateHtmlForLocale(
   if (!source || !isRuntimeTranslateEnabled()) return html;
 
   const key = digest(source);
-  return unstable_cache(
-    async () => {
-      try {
-        return await machineTranslateHtml(source, locale);
-      } catch (e) {
-        console.error("[runtime-translate html]", locale, e);
-        return source;
-      }
-    },
-    cacheTags("html", locale, key),
-    { revalidate: 60 * 60 * 24 * 14 },
-  )();
+  try {
+    return await unstable_cache(
+      async () => {
+        try {
+          return await machineTranslateHtml(source, locale);
+        } catch (e) {
+          console.error("[runtime-translate html]", locale, e);
+          return source;
+        }
+      },
+      cacheTags("html", locale, key),
+      { revalidate: 60 * 60 * 24 * 14 },
+    )();
+  } catch (e) {
+    console.error("[runtime-translate html cache]", locale, e);
+    try {
+      return await machineTranslateHtml(source, locale);
+    } catch {
+      return source;
+    }
+  }
 }
 
 const HREF_LIKE_SUFFIXES = ["_href", ".href"] as const;
@@ -183,18 +210,28 @@ export async function translateTextPairsForLocale(
   if (texts.length === 0) return out;
 
   const cacheKey = digest(texts.join("\x1e"));
-  const translated = await unstable_cache(
-    async () => {
-      try {
-        return await machineTranslateTexts(texts, locale);
-      } catch (e) {
-        console.error("[runtime-translate batch]", locale, e);
-        return texts;
-      }
-    },
-    cacheTags("batch", locale, cacheKey),
-    { revalidate: 60 * 60 * 24 * 14 },
-  )();
+  let translated: string[];
+  try {
+    translated = await unstable_cache(
+      async () => {
+        try {
+          return await machineTranslateTexts(texts, locale);
+        } catch (e) {
+          console.error("[runtime-translate batch]", locale, e);
+          return texts;
+        }
+      },
+      cacheTags("batch", locale, cacheKey),
+      { revalidate: 60 * 60 * 24 * 14 },
+    )();
+  } catch (e) {
+    console.error("[runtime-translate batch cache]", locale, e);
+    try {
+      translated = await machineTranslateTexts(texts, locale);
+    } catch {
+      translated = texts;
+    }
+  }
 
   for (let j = 0; j < indices.length; j++) {
     out[indices[j]!] = translated[j] ?? out[indices[j]!] ?? "";
