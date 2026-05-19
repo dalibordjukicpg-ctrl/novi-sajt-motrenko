@@ -577,10 +577,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
 
         {/* Right actions */}
         <div className="relative z-20 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 md:justify-self-end">
-          {/* Na mobilnom je switcher unutar menija (linija ~651) — ovdje samo desktop */}
-          <span className="hidden md:contents">
-            <SiteLanguageSwitcher locale={locale} onLight={lightHeader} />
-          </span>
+          <SiteLanguageSwitcher locale={locale} onLight={lightHeader} compact />
           {/* CTA u headeru samo na tablet/desktop — na telefonu je u mobilnom meniju (veći, touch-friendly) */}
           <Link
             href={resolvePublicHref(locale, s["header.cta_book_href"] ?? "")}
@@ -646,12 +643,11 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
             "border-0 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.22)]",
           ].join(" ")}
         >
-          {/* ── Panel header: language + tagline ── */}
-          <div className="flex shrink-0 items-center justify-between border-0 px-5 py-3">
+          {/* ── Panel header: brand tagline ── */}
+          <div className="flex shrink-0 items-center border-0 px-5 py-3">
             <span className="font-header-nav text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
               {s["org.brand"] || ""}
             </span>
-            <SiteLanguageSwitcher locale={locale} onLight />
           </div>
 
           {/* ── Nav items (scrollable) ── */}
