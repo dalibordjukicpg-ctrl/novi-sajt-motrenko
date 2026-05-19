@@ -13,14 +13,15 @@ import {
   moveCardAction,
   saveCardAction,
 } from "@/app/admin/(authed)/content/home-cards/actions";
+import type { Locale } from "@/lib/i18n";
+import { locales } from "@/lib/i18n";
 import type { HomeServiceCardAdmin } from "@/lib/queries/home-service-cards";
 
-const LOCALES = [
-  { key: "me", label: "ME" },
-  { key: "en", label: "EN" },
-  { key: "ru", label: "RU" },
-  { key: "tr", label: "TR" },
-] as const;
+const LOCALE_TABS = [
+  { key: "me" as const, label: "ME" },
+  { key: "en" as const, label: "EN" },
+  { key: "ru" as const, label: "RU" },
+];
 
 const ICON_OPTIONS = [
   { name: "heart", Icon: Heart, label: "Srce" },
@@ -49,8 +50,6 @@ function IconPreview({ name, size = 18 }: { name: string; size?: number }) {
   const { Icon } = found;
   return <Icon size={size} strokeWidth={1.6} />;
 }
-
-type Locale = "me" | "en" | "ru" | "tr";
 
 function CardRow({
   card,
@@ -86,7 +85,7 @@ function CardRow({
     fd.set("href", localCard.href);
     fd.set("iconName", localCard.iconName);
     fd.set("visible", localCard.visible ? "1" : "0");
-    for (const loc of (["me", "en", "ru", "tr"] as Locale[])) {
+    for (const loc of locales) {
       fd.set(`title_${loc}`, localCard.translations[loc]?.title ?? "");
       fd.set(`description_${loc}`, localCard.translations[loc]?.description ?? "");
     }
@@ -215,7 +214,7 @@ function CardRow({
           {/* Language tabs */}
           <div>
             <div className="flex gap-1 mb-3">
-              {LOCALES.map((l) => (
+              {LOCALE_TABS.map((l) => (
                 <button
                   key={l.key}
                   type="button"
