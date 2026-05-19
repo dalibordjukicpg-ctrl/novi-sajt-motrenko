@@ -11,7 +11,7 @@ CREATE TABLE `home_service_cards` (
 CREATE TABLE `home_service_card_translations` (
   `id` varchar(36) NOT NULL,
   `card_id` varchar(36) NOT NULL,
-  `locale` enum('me','en','ru','tr') NOT NULL,
+  `locale` enum('me','en','ru') NOT NULL,
   `title` varchar(500) NOT NULL DEFAULT '',
   `description` text,
   PRIMARY KEY (`id`),

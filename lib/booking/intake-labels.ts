@@ -1,4 +1,4 @@
-import type { BookingFormLocale } from "@/lib/validations/booking-request";
+import type { Locale } from "@/lib/i18n";
 
 export type BookingIntakeLabels = {
   formEyebrow: string;
@@ -182,60 +182,12 @@ const RU: BookingIntakeLabels = {
   partnerNameRequired: "Введите имя партнёра.",
 };
 
-const TR: BookingIntakeLabels = {
-  formEyebrow: "Muayene başvuru formu",
-  formTitle: "Konsültasyon talep edin",
-  formLead:
-    "Kısa yanıtlar ekibimizin doktorla ilk görüşmenize hazırlanmasına yardımcı olur.",
-  sectionBasic: "Temel bilgiler",
-  sectionReasonVisit: "Başvuru nedeni",
-  fullName: "Ad soyad",
-  email: "E-posta",
-  phone: "Telefon",
-  whoAttends: "Muayeneye kim geliyor?",
-  selectPlaceholder: "— seçin —",
-  whoAttendsOptions: {
-    patient_only: "Sadece ben (hasta)",
-    couple_both: "Çift (ikisi de)",
-    with_partner: "Eşimle birlikte",
-  },
-  partnerName: "Eşin adı (gelecekse)",
-  partnerPhone: "Eşin telefonu",
-  whatBroughtYou: "Sizi konsültasyona ne getirdi?",
-  whatBroughtYouPh:
-    "Örn.: uzun süredir gebelik denemesi, IVF yönlendirmesi, gebelik kaybı sonrası kontrol, diğer…",
-  tryingConceive: "Ne kadar süredir aktif olarak gebelik planlıyorsunuz?",
-  ttcUnset: "— seçin —",
-  ttcOptions: {
-    lt_6m: "6 aydan az",
-    "6_12m": "6–12 ay",
-    "12_24m": "1–2 yıl",
-    gt_24m: "2 yıldan fazla",
-    prefer_not: "Yanıtlamak istemiyorum",
-    na: "Uygulanamaz / emin değilim",
-  },
-  consent:
-    "Kliniğin randevuyu planlamak ve ziyareti hazırlamak için bu verileri gizlilik politikasına uygun işlemesine izin veriyorum.",
-  consentPrivacyPrefix: "Okuyun:",
-  consentPrivacyLink: "gizlilik politikası",
-  callOr: "Ya da arayın:",
-  submit: "Başvuruyu gönder",
-  submitting: "Gönderiliyor…",
-  success:
-    "Teşekkürler. Başvurunuzu aldık; onay için kısa sürede döneceğiz.",
-  errorGeneric: "Gönderilemedi. Tekrar deneyin veya bizi arayın.",
-  errorValidation: "İşaretli alanları kontrol edin.",
-  consentRequired: "Gizlilik politikasını kabul etmeniz gerekiyor.",
-  partnerNameRequired: "Lütfen eşinizin adını girin.",
-};
-
-const MAP: Record<BookingFormLocale, BookingIntakeLabels> = {
+const MAP: Record<Locale, BookingIntakeLabels> = {
   me: ME,
   en: EN,
   ru: RU,
-  tr: TR,
 };
 
-export function getBookingIntakeLabels(locale: BookingFormLocale): BookingIntakeLabels {
+export function getBookingIntakeLabels(locale: Locale): BookingIntakeLabels {
   return MAP[locale] ?? ME;
 }

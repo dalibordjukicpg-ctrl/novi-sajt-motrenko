@@ -1,21 +1,19 @@
 import { z } from "zod";
 
-/** Jezici prihvaćeni u javnoj formi za termin (usklađeno sa `locale` u bazi). */
-export const BOOKING_FORM_LOCALES = ["me", "en", "ru", "tr"] as const;
+import { isLocale, locales, type Locale } from "@/lib/i18n";
 
-export type BookingFormLocale = (typeof BOOKING_FORM_LOCALES)[number];
+/** Jezici u javnoj formi za termin — isto kao javni sajt (me, en, ru). */
+export type BookingFormLocale = Locale;
 
 export function parseBookingLocale(raw: string): BookingFormLocale | null {
-  return BOOKING_FORM_LOCALES.includes(raw as BookingFormLocale)
-    ? (raw as BookingFormLocale)
-    : null;
+  return isLocale(raw) ? raw : null;
 }
 
 const whoAttends = z.enum(["patient_only", "couple_both", "with_partner"]);
 
 export const bookingRequestFormSchema = z
   .object({
-    locale: z.enum(BOOKING_FORM_LOCALES),
+    locale: z.enum(locales),
     honeypot: z.string().max(200).optional(),
     fullName: z.string().trim().min(2).max(200),
     email: z.string().trim().email().max(255),

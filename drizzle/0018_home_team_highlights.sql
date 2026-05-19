@@ -10,7 +10,7 @@ CREATE TABLE `home_team_highlights` (
 CREATE TABLE `home_team_highlight_translations` (
   `id` varchar(36) NOT NULL,
   `highlight_id` varchar(36) NOT NULL,
-  `locale` enum('me','en','ru','tr') NOT NULL,
+  `locale` enum('me','en','ru') NOT NULL,
   `title` varchar(500) NOT NULL DEFAULT '',
   `teaser` text,
   PRIMARY KEY (`id`),

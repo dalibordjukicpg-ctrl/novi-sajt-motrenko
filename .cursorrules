@@ -9,7 +9,7 @@
 
 ## 2. Database & Internationalization (i18n)
 - **Strategy:** "Translation Table" pattern. Base tables hold metadata; `_translations` tables hold localized content.
-- **Supported Languages:** me (Montenegrin), en (English), ru (Russian), tr (Turkish).
+- **Supported Languages:** me (Montenegrin), en (English), ru (Russian).
 - **Fallback:** Default to 'me' if a translation is missing.
 - **Routing:** Use prefix-based routing (e.g., /en/services, /ru/kontakt).
 

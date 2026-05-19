@@ -13,7 +13,7 @@ import {
 import { relations } from "drizzle-orm";
 
 /** Route / content languages from project rules */
-export const localeEnum = mysqlEnum("locale", ["me", "en", "ru", "tr"]);
+export const localeEnum = mysqlEnum("locale", ["me", "en", "ru"]);
 
 /** RBAC roles (MySQL column `role`). */
 export const userRoleEnum = mysqlEnum("role", [
