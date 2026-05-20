@@ -1,9 +1,14 @@
 /**
- * Hostinger Node: proces MORA slušati na portu koji Hostinger dodijeli.
- * Panel obično koristi: npm run start -- -p $PORT
- * (PORT ide kao CLI argument, ne uvijek kao env varijabla.)
+ * Hostinger Node production start.
+ *
+ * Hostinger tokom builda drži STARI proces (sajt radi).
+ * Kad deploy završi, ubije stari i pokrene novi — ako port/cwd nije OK → 503.
+ *
+ * Panel Start command: npm run start
+ * (Hostinger dodaje -p $PORT kao argument ili PORT env.)
  */
 const { spawn } = require("child_process");
+const fs = require("fs");
 const path = require("path");
 
 function resolvePort() {
@@ -15,16 +20,54 @@ function resolvePort() {
   return "3000";
 }
 
+const cwd = process.cwd();
 const host = process.env.HOST?.trim() || "0.0.0.0";
 const port = resolvePort();
-const nextBin = path.join(process.cwd(), "node_modules", "next", "dist", "bin", "next");
+const buildIdPath = path.join(cwd, ".next", "BUILD_ID");
 
-console.log(`[start-prod] PORT=${port} HOST=${host}`);
-console.log(`[start-prod] ${nextBin} start -H ${host} -p ${port}`);
+process.env.NODE_ENV = "production";
+process.env.PORT = port;
+process.env.HOST = host;
+
+console.log("[start-prod] cwd:", cwd);
+console.log("[start-prod] PORT:", port, "HOST:", host);
+
+if (!fs.existsSync(buildIdPath)) {
+  console.error(
+    "[start-prod] FATAL: nema .next/BUILD_ID — build nije završio ili start ide iz pogrešnog foldera.",
+  );
+  console.error("[start-prod] Pokreni: npm run build");
+  process.exit(1);
+}
+
+let nextBin;
+try {
+  nextBin = require.resolve("next/dist/bin/next");
+} catch {
+  console.error("[start-prod] FATAL: next paket nije instaliran (npm ci).");
+  process.exit(1);
+}
+
+console.log("[start-prod] BUILD_ID ok, pokrećem:", nextBin);
 
 const child = spawn(process.execPath, [nextBin, "start", "-H", host, "-p", port], {
   stdio: "inherit",
-  cwd: process.cwd(),
+  cwd,
+  env: process.env,
 });
 
-child.on("exit", (code) => process.exit(code ?? 0));
+child.on("error", (err) => {
+  console.error("[start-prod] spawn error:", err);
+  process.exit(1);
+});
+
+child.on("exit", (code, signal) => {
+  if (signal) {
+    console.error("[start-prod] killed by signal:", signal);
+    process.exit(1);
+  }
+  if (code && code !== 0) {
+    console.error("[start-prod] next start exited with code:", code);
+  }
+  process.exit(code ?? 0);
+});
