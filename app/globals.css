@@ -620,23 +620,25 @@ main {
 }
 
 /*
- * Tim + naslovna fotografija: portret je lijevo — u tijelu sakrij ubačene slike (duplikati,
- * lazy URL, WP blokovi) jer se i dalje renderuju iz HTML-a.
+ * Tim + naslovna fotografija: portret je lijevo na desktopu — u tijelu sakrij duplikate
+ * samo kad je split layout (lg+). Na mobilnom portret je iznad teksta i mora ostati vidljiv.
  */
-.wp-content.wp-content--team-profile--has-cover img,
-.wp-content.wp-content--team-profile--has-cover picture {
-  display: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-  visibility: hidden !important;
-}
+@media (min-width: 1024px) {
+  .wp-content.wp-content--team-profile--has-cover img,
+  .wp-content.wp-content--team-profile--has-cover picture {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    visibility: hidden !important;
+  }
 
-.wp-content.wp-content--team-profile--has-cover figure,
-.wp-content.wp-content--team-profile--has-cover .wp-block-image,
-.wp-content.wp-content--team-profile--has-cover .wp-caption {
-  display: none !important;
+  .wp-content.wp-content--team-profile--has-cover figure,
+  .wp-content.wp-content--team-profile--has-cover .wp-block-image,
+  .wp-content.wp-content--team-profile--has-cover .wp-caption {
+    display: none !important;
+  }
 }
 
 /* Bočni „O nama“ panel — liste (npr. tim) kao na referentnom layoutu */

@@ -88,14 +88,16 @@ export default async function PublicPostPage({ params }: Props) {
 
       <div className="mx-auto w-full max-w-7xl px-6 py-12 sm:py-16 lg:px-16">
         {isTeam ? (
-          <div className="flex flex-col items-stretch gap-10 lg:flex-row lg:items-start lg:gap-12 xl:gap-14">
-            <div className="mx-auto w-full max-w-[17.5rem] shrink-0 self-start sm:max-w-[19rem] lg:mx-0 lg:w-[min(100%,20rem)] lg:max-w-[36%]">
+          <div className="flex flex-col items-stretch gap-8 max-md:gap-6 lg:flex-row lg:items-start lg:gap-12 xl:gap-14">
+            <div className="mx-auto w-full max-w-[min(100%,22rem)] shrink-0 self-start sm:max-w-[20rem] lg:mx-0 lg:w-[min(100%,20rem)] lg:max-w-[36%]">
               {post.coverUrl ? (
                 <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-site-border bg-site-surface-a shadow-site-lift">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={post.coverUrl}
-                    alt=""
+                    alt={post.title}
+                    loading="eager"
+                    decoding="async"
                     className="h-full w-full object-cover object-[center_12%]"
                   />
                 </div>

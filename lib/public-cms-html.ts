@@ -86,13 +86,24 @@ function normalizePublicSrc(raw: string): string {
   }
 }
 
+/** WP uvoz: `027e0c6e78ad_DUS_4844c.jpg` i `dffda2ece5d1_DUS_4844c.jpg` = ista fotografija. */
+function filenameStemForCompare(path: string): string {
+  const file = (path.split("/").filter(Boolean).pop() ?? path).toLowerCase();
+  const wpHash = file.match(/^[a-f0-9]{8,12}_(.+)$/i);
+  if (wpHash?.[1]) return wpHash[1];
+  return file;
+}
+
 function imagePathsComparable(a: string, b: string): boolean {
   const na = normalizePublicSrc(a);
   const nb = normalizePublicSrc(b);
   if (na === nb) return true;
   const fa = na.split("/").filter(Boolean).pop() ?? na;
   const fb = nb.split("/").filter(Boolean).pop() ?? nb;
-  return fa === fb && fa.length > 3;
+  if (fa === fb && fa.length > 3) return true;
+  const sa = filenameStemForCompare(fa);
+  const sb = filenameStemForCompare(fb);
+  return sa === sb && sa.length > 3;
 }
 
 /** Ostatak teksta u bloku nakon uklanjanja slika. */
