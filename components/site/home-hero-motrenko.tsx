@@ -232,18 +232,18 @@ export function HomeHeroMotrenko({
         aria-hidden
         className="absolute inset-0 hidden md:block bg-gradient-to-r from-black/55 via-black/25 to-transparent"
       />
-      {/* Mobile: lagani header-zona overlay + jaki gradient na dnu za tekst */}
+      {/* Mobile: lagani header-zona overlay + blaži gradient na dnu za tekst */}
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/30 to-transparent md:hidden"
+        className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/20 to-transparent md:hidden"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[52%] bg-gradient-to-t from-black/80 via-black/45 to-transparent md:hidden"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-black/68 via-black/38 to-transparent md:hidden"
       />
 
       {/* Tekst i CTA */}
-      <div className="relative z-10 flex h-full flex-col px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] max-md:justify-end max-md:pb-8 sm:px-14 md:justify-center md:px-24 md:pb-0 md:pt-[calc(4.5rem+env(safe-area-inset-top))]">
+      <div className="relative z-10 flex h-full flex-col px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] max-md:justify-end max-md:pb-16 sm:px-14 md:justify-center md:px-24 md:pb-0 md:pt-[calc(4.5rem+env(safe-area-inset-top))]">
         <div className="max-w-2xl">
           <p
             style={{

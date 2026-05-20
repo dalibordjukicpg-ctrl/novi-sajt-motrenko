@@ -61,7 +61,7 @@ export function SiteLanguageSwitcher({ locale, onLight, compact = false }: Props
   };
 
   const btnSize = compact
-    ? "min-h-8 min-w-[2.35rem] rounded-md px-1.5 py-0.5 text-[9px] tracking-[0.08em] md:min-h-9 md:min-w-0 md:rounded md:px-2.5 md:py-1 md:text-[11px] md:tracking-[0.12em]"
+    ? "min-h-[1.5rem] min-w-[1.7rem] rounded px-1 py-0.5 text-[8px] tracking-[0.06em] md:min-h-9 md:min-w-0 md:rounded md:px-2.5 md:py-1 md:text-[11px] md:tracking-[0.12em]"
     : "min-h-9 min-w-[2.75rem] rounded px-2 py-1 text-[10px] tracking-[0.12em] md:min-w-0 md:px-2.5 md:text-[11px]";
 
   return (

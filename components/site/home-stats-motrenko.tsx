@@ -102,9 +102,9 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
       <article
         className={[
           "group relative flex h-full min-h-[11.5rem] flex-col overflow-hidden rounded-2xl sm:min-h-[12.5rem] sm:rounded-[1.35rem]",
-          "bg-[#1a1410] ring-1 ring-black/[0.06] transition-all duration-500 ease-out",
-          "shadow-[0_20px_50px_-18px_rgba(28,18,10,0.35)]",
-          "hover:-translate-y-1 hover:shadow-[0_28px_60px_-16px_rgba(28,18,10,0.42)] hover:ring-site-brand/25",
+          "bg-[#241a12] ring-1 ring-white/[0.06] transition-all duration-500 ease-out",
+          "shadow-[0_16px_40px_-14px_rgba(28,18,10,0.28)]",
+          "hover:-translate-y-1 hover:shadow-[0_24px_52px_-14px_rgba(28,18,10,0.36)] hover:ring-site-brand/30",
           vis ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
         ].join(" ")}
         style={{ transitionDelay: `${delay}ms`, containerType: "inline-size" }}
@@ -116,20 +116,20 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
           <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.06]">
             <StatCardBg src={stat.bgImage} position={stat.bgPosition} />
           </div>
-          <div className="absolute inset-0 bg-[#1a1410]/15 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-[#1a1208]/[0.08] mix-blend-multiply" />
           <div
             className="absolute inset-0"
             style={{
               background: [
-                "linear-gradient(to top, rgba(22,14,10,0.88) 0%, rgba(22,14,10,0.52) 38%, rgba(22,14,10,0.12) 62%, transparent 100%)",
-                "linear-gradient(135deg, rgba(232,104,42,0.14) 0%, transparent 42%)",
+                "linear-gradient(to top, rgba(22,14,8,0.72) 0%, rgba(22,14,8,0.36) 40%, rgba(22,14,8,0.08) 65%, transparent 100%)",
+                "linear-gradient(135deg, rgba(232,104,42,0.18) 0%, transparent 45%)",
               ].join(", "),
             }}
           />
         </div>
 
         <div className="relative z-10 flex min-h-[11.5rem] w-full min-w-0 flex-col px-5 pb-6 pt-5 sm:min-h-[12.5rem] sm:px-6 sm:pb-7 sm:pt-6">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-[var(--site-peach)] shadow-[0_4px_20px_rgba(0,0,0,0.2)] backdrop-blur-md sm:size-10">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-site-brand/35 bg-site-brand/[0.15] text-[var(--site-peach)] shadow-[0_4px_16px_rgba(0,0,0,0.15)] backdrop-blur-md sm:size-10">
             {STAT_ICONS[index % STAT_ICONS.length]}
           </div>
 
@@ -159,8 +159,8 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
               </span>
             </p>
 
-            <div className="mt-3 min-h-[2.65em] w-full border-t border-white/15 pt-3 sm:min-h-[2.75em]">
-              <p className="text-[9px] font-semibold uppercase leading-snug tracking-[0.24em] text-white/75 sm:text-[10px] sm:tracking-[0.26em]">
+            <div className="mt-3 min-h-[2.65em] w-full border-t border-white/20 pt-3 sm:min-h-[2.75em]">
+              <p className="text-[9px] font-semibold uppercase leading-snug tracking-[0.22em] text-white/90 sm:text-[10px] sm:tracking-[0.24em]">
                 {stat.label}
               </p>
             </div>

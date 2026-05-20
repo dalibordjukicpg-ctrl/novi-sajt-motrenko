@@ -526,7 +526,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
     ? "border-0 bg-[#faf8f6] shadow-none"
     : lightHeader
       ? "border-0 bg-site-canvas shadow-[0_12px_32px_-16px_rgb(0_0_0/0.08)]"
-      : "border-0 bg-transparent shadow-none";
+      : "border-0 bg-transparent shadow-none max-md:bg-white/[0.05] max-md:backdrop-blur-md";
 
   const ctaCompact =
     "inline-flex items-center justify-center whitespace-nowrap px-3.5 py-1.5 font-serif text-[11px] font-medium uppercase tracking-[0.12em] md:px-4 md:py-1.5 md:text-[12px] md:tracking-[0.13em]";
@@ -559,7 +559,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
             unoptimized={logoIsRemote}
             draggable={false}
             tabIndex={-1}
-            className="pointer-events-none block h-[3.35rem] w-auto max-h-[3.35rem] max-w-full select-none object-contain object-left sm:h-[3.75rem] sm:max-h-[3.75rem] md:h-[5.15rem] md:max-h-[5.15rem] lg:h-[5.5rem] lg:max-h-[5.5rem]"
+            className="pointer-events-none block h-[4.1rem] w-auto max-h-[4.1rem] max-w-full select-none object-contain object-left sm:h-[4.35rem] sm:max-h-[4.35rem] md:h-[5.15rem] md:max-h-[5.15rem] lg:h-[5.5rem] lg:max-h-[5.5rem]"
             sizes="(max-width: 768px) 80vw, 580px"
           />
         </Link>
@@ -597,12 +597,12 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
           <button
             type="button"
             className={[
-              "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all duration-200 sm:h-10 sm:w-10 sm:rounded-xl md:hidden",
+              "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200 md:hidden",
               mobileNavOpen
-                ? "bg-site-brand text-white shadow-[0_4px_14px_rgb(232_104_42/0.4)]"
+                ? "bg-site-brand text-white shadow-[0_4px_20px_rgb(232_104_42/0.5)] ring-1 ring-site-brand/40"
                 : lightHeader
-                  ? "border border-zinc-200/80 bg-white/60 text-zinc-700 shadow-sm hover:border-site-brand/30 hover:bg-site-brand/[0.06] hover:text-site-brand"
-                  : "border-0 bg-white/12 text-white backdrop-blur-sm hover:bg-white/20",
+                  ? "border border-zinc-200 bg-white text-zinc-700 shadow-[0_2px_8px_rgba(0,0,0,0.07)] hover:border-site-brand/40 hover:bg-site-brand/[0.06] hover:text-site-brand active:scale-95"
+                  : "border border-white/30 bg-white/[0.14] text-white backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.18)] hover:border-white/50 hover:bg-white/[0.22] active:scale-95",
             ].join(" ")}
             aria-expanded={mobileNavOpen}
             aria-controls="site-mobile-nav"
