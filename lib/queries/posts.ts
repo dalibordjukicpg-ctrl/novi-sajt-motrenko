@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { media, postTranslations, posts } from "@/lib/db/schema";
 import { publicUrlFromMediaStorageKey } from "@/lib/media-public";
 import { resolvePublishedPostIdForSlug } from "@/lib/post-locale-resolve";
-import { preparePublicHtml, stripDuplicateTeamCoverFromBody, extractFirstImageSrcFromHtml } from "@/lib/public-cms-html";
+import { preparePublicHtml, preparePublicPlainText, stripDuplicateTeamCoverFromBody, extractFirstImageSrcFromHtml } from "@/lib/public-cms-html";
 import { sortTeamMembersForDisplay } from "@/lib/team-roster-order";
 import {
   isMachineTranslateTarget,
@@ -312,7 +312,7 @@ export async function listPublishedTeamSummaries(
     draft.push({
       slug: t.slug,
       title: locTitle,
-      excerpt: t.excerpt,
+      excerpt: t.excerpt ? preparePublicPlainText(t.excerpt) || null : null,
       coverUrl: coverByPostId.get(id) ?? null,
     });
   }
@@ -447,12 +447,14 @@ export async function getPublishedPostBySlug(
       ? stripDuplicateTeamCoverFromBody(bodyHtml, coverUrl ?? undefined)
       : bodyHtml;
 
+  const excerptClean = excerpt ? preparePublicPlainText(excerpt) || null : null;
+
   return {
     postId: row.postId,
     contentRole: row.contentRole,
     slug: row.slug,
     title,
-    excerpt,
+    excerpt: excerptClean,
     body: bodyProcessed,
     metaTitle,
     metaDescription,

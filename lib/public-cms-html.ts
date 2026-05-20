@@ -247,6 +247,30 @@ function innerPlainOneLine(inner: string): string {
 }
 
 /**
+ * Uklanja WP uvoz artefakte iz običnog teksta: „n“, „nnn“, „n n nnn“ između rečenica.
+ * Ne dira „n“ unutar riječi (npr. „Medicinski“, „Univerzitet“).
+ */
+export function stripPlainTextNNoise(text: string | null | undefined): string {
+  if (text == null || text === "") return "";
+  let s = text
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&#(?:x6e|110);/gi, "n")
+    .replace(/\u00a0/g, " ");
+
+  let prev = "";
+  let guard = 0;
+  while (prev !== s && guard++ < 24) {
+    prev = s;
+    const tokens = s.split(/\s+/).filter(Boolean);
+    const kept = tokens.filter((tok) => !/^n+$/i.test(tok));
+    s = kept.join(" ");
+  }
+
+  return s.replace(/\s+/g, " ").trim();
+}
+
+/**
  * Tipičan WP/uvoz artefakt: odlomci koji su samo „n“, „nnnn“, „n n n“ itd.
  * Dozvoljava samo „n“ i razmake (uklj. više redova).
  */
@@ -275,6 +299,9 @@ export function stripNPlaceholderBlocks(html: string | null | undefined): string
     />(?:\s|&nbsp;)*(?:&#(?:x6e|110);(?:\s|&nbsp;)*)+(?=<)/gi,
     ">",
   );
+
+  /* Vodeće „n“ prije prvog HTML taga (npr. n<figure>…) */
+  out = out.replace(/^[\s\r\n]*(?:n[\s\r\n]*)+(?=<)/i, "");
 
   const stripLooseBetweenTags = (s: string): string =>
     s.replace(
@@ -402,4 +429,13 @@ export function preparePublicHtml(html: string | null | undefined, locale: Local
   if (html == null || html === "") return "";
   const linked = prefixRootRelativeAppLinks(sanitizePublicCmsHtml(html), locale);
   return stripNPlaceholderBlocks(linked);
+}
+
+/** Kratki plain/HTML tekst (excerpt, meta) — uklanja WP „n“ smeće. */
+export function preparePublicPlainText(text: string | null | undefined): string {
+  if (text == null || text === "") return "";
+  if (text.includes("<")) {
+    return stripPlainTextNNoise(stripNPlaceholderBlocks(sanitizePublicCmsHtml(text)));
+  }
+  return stripPlainTextNNoise(text);
 }

@@ -4,6 +4,7 @@ import { CLINIC_PAGE_HERO_BG } from "@/lib/clinic-assets";
 import type { Locale } from "@/lib/i18n";
 import type { TeamMemberSummary } from "@/lib/queries/posts";
 import { splitFeaturedTeamMember } from "@/lib/team-roster-order";
+import { preparePublicPlainText } from "@/lib/public-cms-html";
 
 /** Doktori: naslov počinje sa dr / doktor ili „mr sci dr …“ (kao u importu). */
 export function isDoctorTitle(title: string): boolean {
@@ -17,8 +18,8 @@ export function isDoctorTitle(title: string): boolean {
 }
 
 function plainExcerpt(htmlOrText: string | null, max = 180): string {
-  if (!htmlOrText) return "";
-  const t = htmlOrText.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  const t = preparePublicPlainText(htmlOrText);
+  if (!t) return "";
   return t.length > max ? `${t.slice(0, max - 1)}…` : t;
 }
 
