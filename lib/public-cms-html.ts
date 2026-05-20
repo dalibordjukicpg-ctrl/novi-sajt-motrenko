@@ -96,11 +96,13 @@ export function extractFirstImageSrcFromHtml(
   return src || null;
 }
 
-/** WP uvoz: `027e0c6e78ad_DUS_4844c.jpg` i `dffda2ece5d1_DUS_4844c.jpg` = ista fotografija. */
+/** WP uvoz: različit hash prefiks ili `-1024x768` varijanta = ista fotografija. */
 function filenameStemForCompare(path: string): string {
-  const file = (path.split("/").filter(Boolean).pop() ?? path).toLowerCase();
+  let file = (path.split("/").filter(Boolean).pop() ?? path).toLowerCase();
   const wpHash = file.match(/^[a-f0-9]{8,12}_(.+)$/i);
-  if (wpHash?.[1]) return wpHash[1];
+  if (wpHash?.[1]) file = wpHash[1];
+  file = file.replace(/-\d+x\d+(?=\.[a-z0-9]+$)/i, "");
+  file = file.replace(/-scaled(?=\.[a-z0-9]+$)/i, "");
   return file;
 }
 
@@ -164,7 +166,7 @@ function scrubEmptyWrappers(html: string): string {
 
 /**
  * Uklanja blokove sa istom slikom kao naslovnica (cijeli HTML, više prolaza).
- * Tim profil: jedan portret je lijevo iz meta; tijelo ne treba duplikat.
+ * Blog i tim: naslovnica je iznad/lijevo; tijelo ne treba duplikat.
  */
 export function stripDuplicateTeamCoverFromBody(
   html: string,

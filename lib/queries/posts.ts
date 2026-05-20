@@ -443,8 +443,8 @@ export async function getPublishedPostBySlug(
   const coverUrl =
     coverFromMedia ?? extractFirstImageSrcFromHtml(bodyHtml) ?? null;
   const bodyProcessed =
-    row.contentRole === "team" && bodyHtml
-      ? stripDuplicateTeamCoverFromBody(bodyHtml, coverUrl ?? undefined)
+    bodyHtml && coverUrl
+      ? stripDuplicateTeamCoverFromBody(bodyHtml, coverUrl)
       : bodyHtml;
 
   const excerptClean = excerpt ? preparePublicPlainText(excerpt) || null : null;
