@@ -2,6 +2,9 @@
   "name": "novi-sajt-dalibor",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "clean": "node scripts/clean-next.js",
     "dev": "node scripts/run-dev.cjs",
@@ -13,7 +16,7 @@
     "vercel:checklist": "node scripts/print-vercel-deploy.mjs",
     "build": "next build",
     "db:setup-home": "node --env-file=.env scripts/setup-home-content.mjs",
-    "start": "next start -H 0.0.0.0",
+    "start": "node scripts/start-prod.cjs",
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
