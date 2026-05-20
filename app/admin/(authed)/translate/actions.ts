@@ -1,12 +1,14 @@
 "use server";
 
 import { randomUUID } from "crypto";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { assertContentMutationAllowed, getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
+  homeTeamHighlightTranslations,
+  homeTeamHighlights,
   navLinkTranslations,
   navLinks,
   postTranslations,
@@ -17,8 +19,10 @@ import {
 } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
 import { defaultLocale, locales } from "@/lib/i18n";
-import { getSitePageForAdmin, listSitePagesForAdmin } from "@/lib/queries/site-pages-admin";
+import { upsertHighlightTranslation } from "@/lib/queries/home-team-highlights";
+import { getSitePageBySlugForAdmin, getSitePageForAdmin, listSitePagesForAdmin } from "@/lib/queries/site-pages-admin";
 import { revalidateArticlePaths, revalidatePublicSite } from "@/lib/revalidate-content";
+import { slugFromTeamHighlightHref } from "@/lib/team-highlight-href";
 import { slugifyTitle } from "@/lib/slugify";
 import {
   getTranslateConfigError,
@@ -997,6 +1001,150 @@ export async function translateAndSaveAllSiteStringsAction(): Promise<TranslateS
       error: e instanceof Error ? e.message : "Prevod site stringova nije uspio.",
     };
   }
+}
+
+/* ===== TEAM HIGHLIGHT CARDS (početna — kartice desno) ===== */
+
+export type TranslateSaveTeamHighlightResult =
+  | { ok: true; highlightId: string; linkedPageTranslated: boolean }
+  | { ok: false; error: string };
+
+function revalidateTeamHighlightAdmin(): void {
+  revalidatePublicSite();
+  revalidatePath("/admin/content/team");
+  revalidatePath("/admin/content/sections");
+}
+
+/** Jedna kartica tima: ME naslov + teaser → EN/RU; opciono i povezana CMS stranica. */
+export async function translateAndSaveTeamHighlightByIdAction(
+  highlightId: string,
+  options?: { includeLinkedPage?: boolean },
+): Promise<TranslateSaveTeamHighlightResult> {
+  const gate = await gateContentManage();
+  if (!gate.ok) return gate;
+
+  const [row] = await db
+    .select({
+      title: homeTeamHighlightTranslations.title,
+      teaser: homeTeamHighlightTranslations.teaser,
+      href: homeTeamHighlights.href,
+    })
+    .from(homeTeamHighlightTranslations)
+    .innerJoin(
+      homeTeamHighlights,
+      eq(homeTeamHighlightTranslations.highlightId, homeTeamHighlights.id),
+    )
+    .where(
+      and(
+        eq(homeTeamHighlightTranslations.highlightId, highlightId),
+        eq(homeTeamHighlightTranslations.locale, defaultLocale),
+      ),
+    )
+    .limit(1);
+
+  if (!row) return { ok: false, error: "Kartica nije pronađena." };
+
+  const title = (row.title ?? "").trim();
+  const teaser = (row.teaser ?? "").trim();
+  if (!title && !teaser) {
+    return {
+      ok: false,
+      error: "Unesite naslov ili kratki tekst na ME/SR prije prevoda.",
+    };
+  }
+
+  try {
+    const targets: MachineTranslateTarget[] = ["en", "ru"];
+    for (const target of targets) {
+      const [titleTr, teaserTr] = await machineTranslateTexts(
+        [title, teaser],
+        target,
+      );
+      await upsertHighlightTranslation(
+        highlightId,
+        target,
+        (titleTr ?? title).trim() || title,
+        (teaserTr ?? teaser).trim() || null,
+      );
+    }
+
+    revalidateTeamHighlightAdmin();
+
+    let linkedPageTranslated = false;
+    if (options?.includeLinkedPage !== false) {
+      const slug = slugFromTeamHighlightHref(row.href);
+      if (slug) {
+        const page = await getSitePageBySlugForAdmin(slug);
+        if (page) {
+          const pageRes = await translateAndSaveSitePageByIdAction(page.id);
+          linkedPageTranslated = pageRes.ok;
+        }
+      }
+    }
+
+    return { ok: true, highlightId, linkedPageTranslated };
+  } catch (e) {
+    console.error("[translateAndSaveTeamHighlightByIdAction]", e);
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Prevod kartice nije uspio.",
+    };
+  }
+}
+
+export type TranslateSaveAllTeamHighlightsResult = {
+  ok: boolean;
+  total: number;
+  succeeded: number;
+  failed: { highlightId: string; label: string; error: string }[];
+};
+
+/** Sve kartice desno u bloku tima: ME → EN/RU (+ povezane stranice). */
+export async function translateAndSaveAllTeamHighlightsAction(): Promise<TranslateSaveAllTeamHighlightsResult> {
+  const gate = await gateContentManage();
+  if (!gate.ok) {
+    return { ok: false, total: 0, succeeded: 0, failed: [] };
+  }
+
+  const rows = await db
+    .select({
+      id: homeTeamHighlights.id,
+      title: homeTeamHighlightTranslations.title,
+    })
+    .from(homeTeamHighlights)
+    .leftJoin(
+      homeTeamHighlightTranslations,
+      and(
+        eq(homeTeamHighlightTranslations.highlightId, homeTeamHighlights.id),
+        eq(homeTeamHighlightTranslations.locale, defaultLocale),
+      ),
+    )
+    .orderBy(asc(homeTeamHighlights.sortOrder));
+
+  const failed: TranslateSaveAllTeamHighlightsResult["failed"] = [];
+  let succeeded = 0;
+
+  for (const row of rows) {
+    const res = await translateAndSaveTeamHighlightByIdAction(row.id);
+    if (res.ok) {
+      succeeded += 1;
+    } else {
+      failed.push({
+        highlightId: row.id,
+        label: row.title?.trim() || "(bez naslova)",
+        error: res.error,
+      });
+    }
+  }
+
+  revalidateTeamHighlightAdmin();
+
+  return {
+    ok: failed.length === 0,
+    total: rows.length,
+    succeeded,
+    failed,
+  };
 }
 
 /** Prevodi kratku oznaku (nav link, alt tekst i sl.) ME → EN i RU. */

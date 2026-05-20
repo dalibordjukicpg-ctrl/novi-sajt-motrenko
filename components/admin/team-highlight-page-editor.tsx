@@ -6,8 +6,10 @@ import {
   createTeamHighlightLinkedPageAction,
   saveTeamHighlightLinkedPageAction,
 } from "@/app/admin/(authed)/content/team-highlights/actions";
+import { translateAndSaveSitePageByIdAction } from "@/app/admin/(authed)/translate/actions";
 import type { TiptapEditorHandle } from "@/components/admin/tiptap-editor";
 import { TiptapEditor } from "@/components/admin/tiptap-editor";
+import { TranslateFromMeButton } from "@/components/admin/translate-from-me-button";
 import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
 import type { MediaOption } from "@/lib/queries/media-admin";
@@ -224,6 +226,32 @@ export function TeamHighlightPageEditor({
         >
           {pending ? "Čuvanje…" : "Sačuvaj sadržaj stranice"}
         </button>
+        <TranslateFromMeButton
+          disabled={pending}
+          label="Prevedi stranicu EN/RU"
+          pendingLabel="Prevodim…"
+          className="[&_button]:border-[#c7d9f5] [&_button]:bg-[#eef4ff] [&_button]:text-[#1e3a6e] [&_button]:hover:bg-[#e3edff]"
+          onGenerate={async () => {
+            const fd = new FormData();
+            fd.set("pageId", page.id);
+            for (const loc of locales) {
+              fd.set(loc === "me" ? "title_me" : `title_${loc}`, titles[loc]);
+              const body =
+                loc === "me"
+                  ? (meEditorRef.current?.getHtml() ?? bodies[loc])
+                  : bodies[loc];
+              fd.set(`body_${loc}`, body);
+            }
+            const saveRes = await saveTeamHighlightLinkedPageAction(fd);
+            if (!saveRes.ok) {
+              return { error: saveRes.error ?? "Čuvanje prije prevoda nije uspjelo." };
+            }
+
+            const res = await translateAndSaveSitePageByIdAction(page.id);
+            if (!res.ok) return { error: res.error };
+            onRefresh();
+          }}
+        />
         {banner ? (
           <span className={`text-sm ${banner.ok ? "text-emerald-700" : "text-red-700"}`}>
             {banner.msg}

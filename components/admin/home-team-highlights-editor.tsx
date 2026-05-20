@@ -9,7 +9,12 @@ import {
   moveTeamHighlightAction,
   saveTeamHighlightAction,
 } from "@/app/admin/(authed)/content/team-highlights/actions";
+import {
+  translateAndSaveAllTeamHighlightsAction,
+  translateAndSaveTeamHighlightByIdAction,
+} from "@/app/admin/(authed)/translate/actions";
 import { TeamHighlightPageEditor } from "@/components/admin/team-highlight-page-editor";
+import { TranslateFromMeButton } from "@/components/admin/translate-from-me-button";
 import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
 import type { HomeTeamHighlightAdmin } from "@/lib/queries/home-team-highlights";
@@ -217,6 +222,30 @@ function HighlightRow({
             >
               {pending ? "Čuvanje…" : "Sačuvaj"}
             </button>
+            <TranslateFromMeButton
+              disabled={pending}
+              label="Prevedi EN/RU"
+              pendingLabel="Prevodim…"
+              className="[&_button]:border-[#c7d9f5] [&_button]:bg-[#eef4ff] [&_button]:text-[#1e3a6e] [&_button]:hover:bg-[#e3edff]"
+              onGenerate={async () => {
+                const fd = new FormData();
+                fd.set("highlightId", local.id);
+                fd.set("href", local.href);
+                fd.set("visible", local.visible ? "1" : "0");
+                for (const loc of locales) {
+                  fd.set(`title_${loc}`, local.translations[loc]?.title ?? "");
+                  fd.set(`teaser_${loc}`, local.translations[loc]?.teaser ?? "");
+                }
+                const saveRes = await saveTeamHighlightAction(fd);
+                if (!saveRes.ok) {
+                  return { error: saveRes.error ?? "Čuvanje prije prevoda nije uspjelo." };
+                }
+
+                const res = await translateAndSaveTeamHighlightByIdAction(local.id);
+                if (!res.ok) return { error: res.error };
+                onRefresh();
+              }}
+            />
             <button
               type="button"
               disabled={pending}
@@ -274,10 +303,31 @@ export function HomeTeamHighlightsEditor({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[#6b5f54]">
-        Kartice desno u bloku tima. Za svaku karticu: kratki tekst ovdje, a pun sadržaj sa
-        slikama u editoru ispod (Tiptap — isto kao Stranice CMS).
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <p className="text-sm text-[#6b5f54]">
+          Kartice desno u bloku tima. Za svaku karticu: kratki tekst ovdje, a pun sadržaj sa
+          slikama u editoru ispod (Tiptap — isto kao Stranice CMS).
+        </p>
+        <TranslateFromMeButton
+          disabled={pending || initialItems.length === 0}
+          label="Prevedi sve kartice EN/RU"
+          pendingLabel="Prevodim sve…"
+          className="shrink-0 [&_button]:border-[#c7d9f5] [&_button]:bg-[#eef4ff] [&_button]:text-[#1e3a6e] [&_button]:hover:bg-[#e3edff]"
+          onGenerate={async () => {
+            const res = await translateAndSaveAllTeamHighlightsAction();
+            if (!res.ok && res.succeeded === 0) {
+              const first = res.failed[0]?.error;
+              return { error: first ?? "Prevod kartica nije uspio." };
+            }
+            refresh();
+            if (res.failed.length > 0) {
+              return {
+                error: `Djelimično: ${res.succeeded}/${res.total}. Prva greška: ${res.failed[0]?.error ?? "?"}`,
+              };
+            }
+          }}
+        />
+      </div>
 
       {initialItems.length === 0 ? (
         <p className="rounded-lg border border-dashed border-[#eadfce] bg-[#fffbf7] px-4 py-3 text-sm text-[#6b5f54]">

@@ -620,26 +620,9 @@ main {
 }
 
 /*
- * Tim + naslovna fotografija: portret je lijevo na desktopu — u tijelu sakrij duplikate
- * samo kad je split layout (lg+). Na mobilnom portret je iznad teksta i mora ostati vidljiv.
+ * Duplikat portreta u tijelu tim profila uklanjamo server-side (stripDuplicateTeamCoverFromBody).
+ * CSS više ne sakriva slike — na mobilnom je to uzrokovalo „prazan“ profil.
  */
-@media (min-width: 1024px) {
-  .wp-content.wp-content--team-profile--has-cover img,
-  .wp-content.wp-content--team-profile--has-cover picture {
-    display: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-    visibility: hidden !important;
-  }
-
-  .wp-content.wp-content--team-profile--has-cover figure,
-  .wp-content.wp-content--team-profile--has-cover .wp-block-image,
-  .wp-content.wp-content--team-profile--has-cover .wp-caption {
-    display: none !important;
-  }
-}
 
 /* Bočni „O nama“ panel — liste (npr. tim) kao na referentnom layoutu */
 .wp-content.wp-content--inner-panel ul {

@@ -7,7 +7,8 @@ import { db } from "@/lib/db";
 import { media, postTranslations, posts } from "@/lib/db/schema";
 import { publicUrlFromMediaStorageKey } from "@/lib/media-public";
 import { resolvePublishedPostIdForSlug } from "@/lib/post-locale-resolve";
-import { preparePublicHtml, stripDuplicateTeamCoverFromBody } from "@/lib/public-cms-html";
+import { preparePublicHtml, stripDuplicateTeamCoverFromBody, extractFirstImageSrcFromHtml } from "@/lib/public-cms-html";
+import { sortTeamMembersForDisplay } from "@/lib/team-roster-order";
 import {
   isMachineTranslateTarget,
   isRuntimeTranslateEnabled,
@@ -332,7 +333,7 @@ export async function listPublishedTeamSummaries(
     }
   }
 
-  return draft;
+  return sortTeamMembersForDisplay(draft);
 }
 
 export type PublicPost = {
@@ -435,10 +436,12 @@ export async function getPublishedPostBySlug(
     }
   }
 
-  const coverUrl = row.coverKey
+  const coverFromMedia = row.coverKey
     ? publicUrlFromMediaStorageKey(row.coverKey)
     : null;
   const bodyHtml = bodySource ? preparePublicHtml(bodySource, locale) : null;
+  const coverUrl =
+    coverFromMedia ?? extractFirstImageSrcFromHtml(bodyHtml) ?? null;
   const bodyProcessed =
     row.contentRole === "team" && bodyHtml
       ? stripDuplicateTeamCoverFromBody(bodyHtml, coverUrl ?? undefined)

@@ -86,6 +86,16 @@ function normalizePublicSrc(raw: string): string {
   }
 }
 
+/** Prvi <img src> iz HTML-a (fallback portreta tima kad nema cover_media_id). */
+export function extractFirstImageSrcFromHtml(
+  html: string | null | undefined,
+): string | null {
+  if (!html) return null;
+  const m = html.match(/<img\b[^>]*\bsrc=(["'])([^"']+)\1/i);
+  const src = m?.[2]?.trim();
+  return src || null;
+}
+
 /** WP uvoz: `027e0c6e78ad_DUS_4844c.jpg` i `dffda2ece5d1_DUS_4844c.jpg` = ista fotografija. */
 function filenameStemForCompare(path: string): string {
   const file = (path.split("/").filter(Boolean).pop() ?? path).toLowerCase();

@@ -89,30 +89,24 @@ export default async function PublicPostPage({ params }: Props) {
       <div className="mx-auto w-full max-w-7xl px-6 py-12 sm:py-16 lg:px-16">
         {isTeam ? (
           <div className="flex flex-col items-stretch gap-8 max-md:gap-6 lg:flex-row lg:items-start lg:gap-12 xl:gap-14">
-            <div className="mx-auto w-full max-w-[min(100%,22rem)] shrink-0 self-start sm:max-w-[20rem] lg:mx-0 lg:w-[min(100%,20rem)] lg:max-w-[36%]">
+            <div className="order-1 mx-auto w-full max-w-[min(100%,22rem)] shrink-0 self-start sm:max-w-[20rem] lg:order-none lg:mx-0 lg:w-[min(100%,20rem)] lg:max-w-[36%]">
               {post.coverUrl ? (
-                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-site-border bg-site-surface-a shadow-site-lift">
+                <div className="relative aspect-[4/5] w-full min-h-[17.5rem] overflow-hidden rounded-2xl border border-site-border bg-site-surface-a shadow-site-lift sm:min-h-[19rem]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={post.coverUrl}
                     alt={post.title}
                     loading="eager"
                     decoding="async"
-                    className="h-full w-full object-cover object-[center_12%]"
+                    className="absolute inset-0 h-full w-full object-cover object-[center_12%]"
                   />
                 </div>
               ) : null}
             </div>
-            <div className="min-w-0 flex-1 lg:max-w-none">
+            <div className="order-2 min-w-0 flex-1 lg:order-none lg:max-w-none">
               {post.body?.trim() ? (
                 <article
-                  className={[
-                    "wp-content wp-content--article max-w-3xl text-zinc-800 lg:max-w-none",
-                    "wp-content--team-profile",
-                    post.coverUrl ? "wp-content--team-profile--has-cover" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
+                  className="wp-content wp-content--article max-w-3xl text-zinc-800 lg:max-w-none wp-content--team-profile"
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: post.body }}
                 />
