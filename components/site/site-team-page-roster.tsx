@@ -6,17 +6,6 @@ import type { TeamMemberSummary } from "@/lib/queries/posts";
 import { splitFeaturedTeamMember } from "@/lib/team-roster-order";
 import { preparePublicPlainText } from "@/lib/public-cms-html";
 
-/** Doktori: naslov počinje sa dr / doktor ili „mr sci dr …“ (kao u importu). */
-export function isDoctorTitle(title: string): boolean {
-  const t = title.trim().toLowerCase().replace(/\u00a0/g, " ");
-  if (/^mr\s+sci\s+dr\b/.test(t)) return true;
-  if (/^dr[\s.]/.test(t)) return true;
-  if (/^dokt(or|orka)\b/.test(t)) return true;
-  if (/^prim\.?\s+mr\.?\s+dr\b/.test(t)) return true;
-  if (/^mr\.?\s+dr\b/.test(t)) return true;
-  return false;
-}
-
 function plainExcerpt(htmlOrText: string | null, max = 180): string {
   const t = preparePublicPlainText(htmlOrText);
   if (!t) return "";

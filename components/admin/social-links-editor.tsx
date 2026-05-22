@@ -10,6 +10,7 @@ import { SITE_STRING_LABELS } from "@/lib/site-fields";
 const SOCIAL_KEYS = [
   "social.facebook",
   "social.instagram",
+  "social.youtube",
   "social.linkedin",
 ] as const;
 
@@ -62,7 +63,8 @@ export function SocialLinksEditor({ matrix }: { matrix: SiteStringMatrix }) {
         <strong className="font-medium text-[#3d342c]">
           Ostavite polje prazno
         </strong>{" "}
-        da sakrijete tu mrežu — npr. obrišite LinkedIn URL i sačuvajte.
+        da sakrijete tu mrežu — npr. obrišite LinkedIn URL i sačuvajte. Za YouTube
+        unesite link kanala (https://youtube.com/@… ili /channel/…).
       </p>
 
       {SOCIAL_KEYS.map((key) => (

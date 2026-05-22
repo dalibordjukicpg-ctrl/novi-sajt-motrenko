@@ -56,8 +56,14 @@ const ALL_CARDS: {
     anyPermission: [PERMISSIONS.SITE_CONTENT_MANAGE],
   },
   {
-    title: "Blog",
-    description: "Lista i uređivanje članaka.",
+    title: "Medicinski tim — profili",
+    description: "Biografije doktora, embriologa i sestara (/s/tim).",
+    href: adminPath("content/team/members"),
+    anyPermission: [PERMISSIONS.SITE_CONTENT_MANAGE],
+  },
+  {
+    title: "Blog — novosti",
+    description: "Novosti iz centra i nauke.",
     href: adminPath("posts"),
     anyPermission: [
       PERMISSIONS.SITE_CONTENT_MANAGE,

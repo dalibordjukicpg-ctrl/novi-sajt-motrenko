@@ -117,6 +117,7 @@ export function SiteFooter({
         label: "Instagram" as const,
         href: (s["social.instagram"] ?? "").trim(),
       },
+      { label: "YouTube" as const, href: (s["social.youtube"] ?? "").trim() },
       { label: "LinkedIn" as const, href: (s["social.linkedin"] ?? "").trim() },
     ] as const
   ).filter((x) => x.href.startsWith("http://") || x.href.startsWith("https://"));
@@ -232,6 +233,9 @@ export function SiteFooter({
                                   strokeWidth="2"
                                 />
                               </>
+                            )}
+                            {item.label === "YouTube" && (
+                              <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-2C18.88 4 12 4 12 4s-6.88 0-8.59.42a2.78 2.78 0 0 0-1.95 2C1 8.13 1 12 1 12s0 3.87.46 5.58a2.78 2.78 0 0 0 1.95 2C5.12 20 12 20 12 20s6.88 0 8.59-.42a2.78 2.78 0 0 0 1.95-2C23 15.87 23 12 23 12s0-3.87-.46-5.58zM9.75 15.02V8.98L15.5 12l-5.75 3.02z" />
                             )}
                             {item.label === "LinkedIn" && (
                               <>

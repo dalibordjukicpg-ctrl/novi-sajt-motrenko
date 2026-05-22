@@ -161,6 +161,7 @@ const HREF_LIKE_KEYS = new Set<SiteStringKey>([
   "hero.cta_secondary_href",
   "social.facebook",
   "social.instagram",
+  "social.youtube",
   "social.linkedin",
 ]);
 

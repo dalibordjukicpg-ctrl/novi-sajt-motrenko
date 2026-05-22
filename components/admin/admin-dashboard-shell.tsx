@@ -16,11 +16,18 @@ const SITE_CONTENT = [
   { href: adminPath("pages"), label: "Stranice (CMS)" },
   { href: adminPath("content/hero"), label: "Hero baner" },
   { href: adminPath("content/sections"), label: "Početna — sekcije" },
+  { href: adminPath("content/home-cards"), label: "Kartice usluga" },
+] as const;
+
+const TEAM_CONTENT = [
+  {
+    href: adminPath("content/team/members"),
+    label: "Profili članova",
+  },
   {
     href: adminPath("content/team"),
-    label: "Blok „Upoznajte tim“ — tekstovi",
+    label: "Blok na početnoj",
   },
-  { href: adminPath("content/home-cards"), label: "Kartice usluga" },
 ] as const;
 
 export type AdminShellNavFlags = {
@@ -170,16 +177,29 @@ function SidebarNav({
         )}
         <div>
           <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-[#c55a15]/80">
+            Medicinski tim
+          </p>
+          <div className="space-y-1">
+            {TEAM_CONTENT.map((l) => (
+              <NavItem
+                key={l.href}
+                href={l.href}
+                label={l.label}
+                active={isActive(pathname, l.href)}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-[#c55a15]/80">
             Blog
           </p>
           <div className="space-y-1">
             <NavItem
               href={adminPath("posts")}
-              label="Lista članaka"
-              active={
-                pathname.startsWith(adminPath("posts")) &&
-                !pathname.startsWith(adminPath("posts/new"))
-              }
+              label="Novosti — lista članaka"
+              active={pathname === adminPath("posts")}
               onNavigate={onNavigate}
             />
             {navFlags.allowCreatePost ? (

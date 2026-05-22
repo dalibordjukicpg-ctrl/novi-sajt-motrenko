@@ -27,7 +27,13 @@ export type AdminPostRow = {
   slugMe: string | null;
 };
 
-export async function listPostsForAdmin(): Promise<AdminPostRow[]> {
+export async function listPostsForAdmin(opts?: {
+  contentRole?: "blog" | "team";
+}): Promise<AdminPostRow[]> {
+  const whereClause = opts?.contentRole
+    ? eq(posts.contentRole, opts.contentRole)
+    : undefined;
+
   const rows = await db
     .select({
       id: posts.id,
@@ -45,9 +51,21 @@ export async function listPostsForAdmin(): Promise<AdminPostRow[]> {
         eq(postTranslations.locale, defaultLocale),
       ),
     )
+    .where(whereClause)
     .orderBy(desc(posts.updatedAt));
 
   return rows;
+}
+
+export async function getPostContentRoleForAdmin(
+  postId: string,
+): Promise<"blog" | "team" | null> {
+  const [row] = await db
+    .select({ contentRole: posts.contentRole })
+    .from(posts)
+    .where(eq(posts.id, postId))
+    .limit(1);
+  return row?.contentRole ?? null;
 }
 
 function blockFromRow(row: {

@@ -102,6 +102,7 @@ export const SITE_STRING_KEYS = [
 
   "social.facebook",
   "social.instagram",
+  "social.youtube",
   "social.linkedin",
 
   "hours.mon_fri",
@@ -208,6 +209,7 @@ export const SITE_STRING_LABELS: Record<SiteStringKey, string> = {
 
   "social.facebook": "Facebook — link (footer)",
   "social.instagram": "Instagram — link (footer)",
+  "social.youtube": "YouTube — link (footer, kanal ili video)",
   "social.linkedin": "LinkedIn — link (footer)",
 
   "hours.mon_fri": "Radno vrijeme Ponedjeljak–Petak",
@@ -322,6 +324,7 @@ const ME_SITE_STRING_DEFAULTS = {
 
     "social.facebook": "https://facebook.com",
     "social.instagram": "https://instagram.com",
+    "social.youtube": "",
     "social.linkedin": "",
 
     "hours.mon_fri": "08:00 – 20:00",
@@ -446,6 +449,7 @@ export const SITE_STRING_GROUPS = {
   social: [
     "social.facebook",
     "social.instagram",
+    "social.youtube",
     "social.linkedin",
   ] as const satisfies readonly SiteStringKey[],
 } as const;

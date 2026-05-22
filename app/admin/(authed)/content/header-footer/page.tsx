@@ -42,7 +42,7 @@ export default async function HeaderFooterContentPage() {
 
       <AdminPanel
         title="Društvene mreže (footer)"
-        description="Facebook, Instagram, LinkedIn. Prazno polje = link se ne prikazuje na sajtu."
+        description="Facebook, Instagram, YouTube, LinkedIn. Prazno polje = mreža se ne prikazuje (npr. uklonite LinkedIn brisanjem URL-a)."
       >
         <SocialLinksEditor matrix={matrix} />
       </AdminPanel>

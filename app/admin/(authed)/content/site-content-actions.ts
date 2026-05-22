@@ -125,6 +125,7 @@ export async function saveSiteStringGroupAction(
 const SOCIAL_LINK_KEYS = [
   "social.facebook",
   "social.instagram",
+  "social.youtube",
   "social.linkedin",
 ] as const satisfies readonly SiteStringKey[];
 
