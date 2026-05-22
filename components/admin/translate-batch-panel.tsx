@@ -126,7 +126,6 @@ export function TranslateBatchPanel({ inventory }: Props) {
   const [bulkRunning, setBulkRunning] = useState(false);
   const [bulkSummary, setBulkSummary] = useState<string | null>(null);
   const [setupHint, setSetupHint] = useState<string | null>(null);
-  const [providerLabel, setProviderLabel] = useState<string | null>(null);
   const [translateReady, setTranslateReady] = useState(false);
   const cancelRef = useRef(false);
 
@@ -134,13 +133,6 @@ export function TranslateBatchPanel({ inventory }: Props) {
     void getTranslateSetupStatusAction().then((s) => {
       setTranslateReady(s.ready);
       setSetupHint(s.ready ? null : s.hint);
-      if (s.ready && s.provider) {
-        setProviderLabel(
-          s.provider === "openai" ? "OpenAI" : s.provider.toUpperCase(),
-        );
-      } else {
-        setProviderLabel(null);
-      }
     });
   }, []);
 
@@ -345,11 +337,6 @@ export function TranslateBatchPanel({ inventory }: Props) {
               Označi kategorije i klikni „Prevedi sve označeno“. Prevod se
               snima direktno u bazu.
             </p>
-            {providerLabel && (
-              <p className="mt-2 text-xs text-[#8a7b6e]">
-                Aktivan provajder: <strong>{providerLabel}</strong>
-              </p>
-            )}
             {setupHint && (
               <p className="mt-2 max-w-xl text-sm text-amber-800">
                 {setupHint}

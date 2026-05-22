@@ -13,7 +13,7 @@ import {
 import type { Locale } from "@/lib/i18n";
 import { defaultLocale, locales } from "@/lib/i18n";
 import { getSiteBranding, getTeamHomePortraitUrls } from "@/lib/queries/site-globals";
-import { SITE_STRING_DEFAULTS, SITE_STRING_KEYS } from "@/lib/site-fields";
+import { SITE_STRING_DEFAULTS, SITE_STRING_KEYS, SOCIAL_URL_KEYS } from "@/lib/site-fields";
 import type { SiteStringKey } from "@/lib/site-fields";
 import {
   attachCmsPagesUnderUsluge,
@@ -895,9 +895,17 @@ export function mergeSiteStrings(
     string
   >;
   const defs = SITE_STRING_DEFAULTS[defaultLocale];
+  const socialUrlSet = new Set<string>(SOCIAL_URL_KEYS);
   for (const k of SITE_STRING_KEYS) {
     const v = fromDb[k];
-    if (v != null && v.trim().length > 0) base[k] = v.trim();
+    if (v == null) continue;
+    const trimmed = v.trim();
+    if (trimmed.length > 0) {
+      base[k] = trimmed;
+    } else if (socialUrlSet.has(k)) {
+      /** Admin je sačuvao prazno — ne vraćaj default (npr. facebook.com). */
+      base[k] = "";
+    }
   }
   for (const k of STAT_VALUE_KEYS) {
     if (isPlaceholderStatValue(base[k])) base[k] = defs[k];

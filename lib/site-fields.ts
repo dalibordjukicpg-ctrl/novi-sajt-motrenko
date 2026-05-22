@@ -454,4 +454,7 @@ export const SITE_STRING_GROUPS = {
   ] as const satisfies readonly SiteStringKey[],
 } as const;
 
+/** URL ključevi — prazan string u bazi znači „namjerno skriveno“, ne fallback na default. */
+export const SOCIAL_URL_KEYS = SITE_STRING_GROUPS.social;
+
 export type SiteStringGroupId = keyof typeof SITE_STRING_GROUPS;

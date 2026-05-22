@@ -24,22 +24,13 @@ export function TranslateFromMeButton({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [setupHint, setSetupHint] = useState<string | null>(null);
-  const [providerLabel, setProviderLabel] = useState<string | null>(null);
 
   useEffect(() => {
     void getTranslateSetupStatusAction().then((s) => {
       if (!s.ready) {
         setSetupHint(s.hint);
-        setProviderLabel(null);
       } else {
         setSetupHint(null);
-        setProviderLabel(
-          s.provider === "openai"
-            ? "OpenAI"
-            : s.provider
-              ? s.provider.toUpperCase()
-              : null,
-        );
       }
     });
   }, []);
@@ -66,11 +57,6 @@ export function TranslateFromMeButton({
         <Languages className="h-4 w-4 shrink-0" aria-hidden />
         {pending ? pendingLabel : label}
       </button>
-      {providerLabel && !error && !setupHint && (
-        <p className="mt-1 text-xs text-neutral-500">
-          Aktivan provajder: <strong>{providerLabel}</strong>
-        </p>
-      )}
       {setupHint && !error && (
         <p className="mt-2 text-sm text-amber-800">{setupHint}</p>
       )}
