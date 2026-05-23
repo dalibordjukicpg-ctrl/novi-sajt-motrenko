@@ -128,29 +128,29 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
           />
         </div>
 
-        <div className="relative z-10 flex min-h-[11.5rem] w-full min-w-0 flex-col px-5 pb-6 pt-5 sm:min-h-[12.5rem] sm:px-6 sm:pb-7 sm:pt-6">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-site-brand/35 bg-site-brand/[0.15] text-[var(--site-peach)] shadow-[0_4px_16px_rgba(0,0,0,0.15)] backdrop-blur-md sm:size-10">
+        <div className="relative z-10 flex min-h-[11rem] w-full min-w-0 flex-col px-4 pb-5 pt-4 sm:min-h-[12.5rem] sm:px-6 sm:pb-7 sm:pt-6">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-site-brand/35 bg-site-brand/[0.15] text-[var(--site-peach)] shadow-[0_4px_16px_rgba(0,0,0,0.15)] backdrop-blur-md sm:size-10">
             {STAT_ICONS[index % STAT_ICONS.length]}
           </div>
 
           <div className="min-h-2 flex-1" aria-hidden />
 
-          <div className="mt-auto w-full min-w-0">
+          <div className="mt-auto w-full min-w-0 text-left">
             <p
-              className="min-h-[2.5rem] w-full min-w-0 text-[clamp(1.35rem,16cqw,2.65rem)] font-semibold leading-none tracking-tight text-white tabular-nums sm:min-h-[2.65rem]"
+              className="min-h-[2rem] w-full min-w-0 text-[clamp(1.2rem,14cqw,2.65rem)] font-semibold leading-none tracking-tight text-white tabular-nums sm:min-h-[2.65rem]"
               style={{
                 fontFamily: "var(--font-playfair), Georgia, serif",
                 textShadow: "0 2px 24px rgba(0,0,0,0.35)",
               }}
             >
-              <span className="inline-flex max-w-full items-baseline whitespace-nowrap leading-none">
+              <span className="inline-block max-w-full leading-none">
                 {displayStatic !== null ? (
                   <span>{displayStatic}</span>
                 ) : (
                   <>
                     <span>{count.toLocaleString("sr-Latn-ME")}</span>
                     {suffix ? (
-                      <span className="ml-px shrink-0 text-[0.62em] font-semibold leading-none text-[var(--site-peach)]">
+                      <span className="ml-px text-[0.62em] font-semibold leading-none text-[var(--site-peach)]">
                         {suffix}
                       </span>
                     ) : null}
@@ -159,8 +159,8 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
               </span>
             </p>
 
-            <div className="mt-3 min-h-[2.65em] w-full border-t border-white/20 pt-3 sm:min-h-[2.75em]">
-              <p className="text-[9px] font-semibold uppercase leading-snug tracking-[0.22em] text-white/90 sm:text-[10px] sm:tracking-[0.24em]">
+            <div className="mt-2.5 w-full border-t border-white/20 pt-2.5 sm:mt-3 sm:pt-3">
+              <p className="text-balance text-[8px] font-semibold uppercase leading-[1.35] tracking-[0.16em] text-white/90 sm:text-[10px] sm:tracking-[0.22em]">
                 {stat.label}
               </p>
             </div>
@@ -176,8 +176,8 @@ type Props = { items: HomeStatItem[] };
 export function HomeStatsMotrenko({ items }: Props) {
   return (
     <section className="site-section site-section-scrim relative z-[1] overflow-x-hidden py-section-y">
-      <div className="relative mx-auto max-w-7xl px-6 lg:px-16">
-        <div className="grid grid-cols-2 items-stretch gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-16">
+        <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
           {items.map((stat, i) => (
             <StatItem key={`stat-${i}`} stat={stat} delay={i * 100} index={i} />
           ))}

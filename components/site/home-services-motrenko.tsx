@@ -66,23 +66,23 @@ export function HomeServicesMotrenko({
       id="usluge"
       className="site-section site-section-scrim relative z-[1] scroll-mt-24 overflow-x-hidden py-section-y"
     >
-      <div className="relative mx-auto max-w-7xl px-6 lg:px-16">
+      <div className="relative mx-auto max-w-7xl px-4 pb-2 sm:px-6 lg:px-16">
         <FadeIn className="mb-8 lg:mb-10">
-          <div className="flex max-w-3xl flex-col gap-3">
+          <div className="mx-auto flex max-w-3xl flex-col gap-3 text-left sm:mx-0">
             <div className="flex items-center gap-3">
               <span className="size-1.5 shrink-0 rounded-full bg-site-brand" aria-hidden />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-site-brand">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-site-brand sm:text-[11px] sm:tracking-[0.28em]">
                 {eyebrow}
               </p>
             </div>
             <h2
               style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
-              className="text-[clamp(1.8rem,3.2vw,2.6rem)] font-medium leading-[1.1] tracking-[-0.02em] text-site-ink"
+              className="text-balance text-[clamp(1.55rem,6.5vw,2.6rem)] font-medium leading-[1.12] tracking-[-0.02em] text-site-ink"
             >
               {heading}
             </h2>
             {lead ? (
-              <p className="max-w-2xl text-sm leading-relaxed text-site-muted sm:text-base">
+              <p className="max-w-2xl text-pretty text-sm leading-relaxed text-site-muted max-md:pr-14 sm:text-base">
                 {lead}
               </p>
             ) : null}

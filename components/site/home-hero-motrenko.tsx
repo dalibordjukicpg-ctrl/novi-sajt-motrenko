@@ -8,6 +8,7 @@ import {
   isHeroBackgroundVideoUrl,
   isHeroBackgroundYoutubeUrl,
 } from "@/lib/hero-background-media";
+import { HERO_VIDEO_POSTER } from "@/lib/clinic-assets";
 
 export type HomeHeroSlide = {
   eyebrow: string;
@@ -52,6 +53,7 @@ export function HomeHeroMotrenko({
 
   const [current, setCurrent] = useState(0);
   const [leaving, setLeaving] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const bgRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -90,17 +92,36 @@ export function HomeHeroMotrenko({
   const isYoutube = !isSplit && url ? isHeroBackgroundYoutubeUrl(url) : false;
   const isVideo =
     !isSplit && url ? !isYoutube && isHeroBackgroundVideoUrl(url) : false;
-  const customPoster = posterUrl?.trim() ?? "";
+  const customPoster = posterUrl?.trim() || HERO_VIDEO_POSTER;
   const isLocalImg = url.startsWith("/");
 
   useEffect(() => {
     if (!isVideo || !url) return;
     const el = videoRef.current;
-    if (!el) return;
-    el.load();
-    void el.play().catch(() => {
-      /* autoplay policy — video ostaje vidljiv, korisnik može scroll/tap */
-    });
+    const section = containerRef.current;
+    if (!el || !section) return;
+
+    const tryPlay = () => {
+      void el.play().then(() => setVideoPlaying(true)).catch(() => {
+        /* iOS low power / autoplay — poster ostaje vidljiv */
+      });
+    };
+
+    tryPlay();
+    el.addEventListener("loadeddata", tryPlay);
+
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) tryPlay();
+      },
+      { threshold: 0.12 },
+    );
+    obs.observe(section);
+
+    return () => {
+      el.removeEventListener("loadeddata", tryPlay);
+      obs.disconnect();
+    };
   }, [isVideo, url]);
 
   if (isSplit) {
@@ -184,7 +205,7 @@ export function HomeHeroMotrenko({
   return (
     <section
       ref={containerRef}
-      className="relative isolate -mt-[calc(4.25rem+env(safe-area-inset-top,0px))] overflow-hidden rounded-b-3xl bg-zinc-950 max-md:h-[min(90svh,680px)] max-md:min-h-[480px] md:-mt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
+      className="relative isolate -mt-[calc(4.25rem+env(safe-area-inset-top,0px))] overflow-hidden rounded-b-3xl bg-zinc-950 max-md:min-h-[min(78svh,580px)] max-md:h-[min(78svh,580px)] md:-mt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
     >
       {/* Slika/video — jedini sloj, bez duplikata */}
       <div
@@ -193,27 +214,47 @@ export function HomeHeroMotrenko({
         style={{ transform: "translateY(var(--py, 0%))" }}
         aria-hidden
       >
-        <div className="absolute inset-0 bg-zinc-950" aria-hidden />
+        <div className="absolute inset-0 z-0 bg-zinc-950" aria-hidden />
         {isYoutube && url ? (
           <iframe
             title=""
             src={`${url}?autoplay=1&mute=1&controls=0&loop=1&playlist=${url.split("/embed/")[1] ?? ""}&playsinline=1`}
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-[120%] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 scale-[1.35] object-cover"
+            className="pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[120%] w-[120%] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 scale-[1.35] object-cover"
             allow="autoplay; encrypted-media"
           />
         ) : isVideo && url ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            {...(customPoster ? { poster: customPoster } : {})}
-            className="h-full w-full object-cover max-md:object-[center_38%] md:object-[center_28%]"
-          >
-            <source src={url} type="video/mp4" />
-          </video>
+          <>
+            <Image
+              src={customPoster}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className={[
+                "absolute inset-0 z-[1] object-cover transition-opacity duration-700 max-md:object-[center_38%] md:object-[center_28%]",
+                videoPlaying ? "opacity-0" : "opacity-100",
+              ].join(" ")}
+            />
+            <video
+              key={url}
+              ref={videoRef}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              poster={customPoster}
+              src={url}
+              onPlaying={() => setVideoPlaying(true)}
+              onTimeUpdate={(e) => {
+                if (e.currentTarget.currentTime > 0.05) setVideoPlaying(true);
+              }}
+              className={[
+                "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover max-md:object-[center_38%] md:object-[center_28%]",
+                videoPlaying ? "opacity-100" : "opacity-0",
+              ].join(" ")}
+            />
+          </>
         ) : url && isLocalImg ? (
           <Image
             src={url}
@@ -245,12 +286,12 @@ export function HomeHeroMotrenko({
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-black/68 via-black/38 to-transparent md:hidden"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-black/72 via-black/28 to-transparent md:hidden"
       />
 
       {/* Tekst i CTA */}
-      <div className="relative z-10 flex h-full flex-col px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] max-md:justify-end max-md:pb-16 sm:px-14 md:justify-center md:px-24 md:pb-0 md:pt-[calc(4.5rem+env(safe-area-inset-top))]">
-        <div className="max-w-2xl">
+      <div className="relative z-10 flex h-full flex-col px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[calc(4.25rem+env(safe-area-inset-top))] max-md:justify-end max-md:pb-12 sm:px-8 md:justify-center md:px-24 md:pb-0 md:pt-[calc(4.5rem+env(safe-area-inset-top))]">
+        <div className="w-full max-w-2xl max-md:mx-auto max-md:text-center">
           <p
             style={{
               opacity: leaving ? 0 : 1,
@@ -269,7 +310,7 @@ export function HomeHeroMotrenko({
               transition: "opacity 0.6s ease 0.05s, transform 0.6s ease 0.05s",
               fontFamily: "var(--font-playfair), Georgia, serif",
             }}
-            className="text-[clamp(1.65rem,7.5vw,2.5rem)] font-light leading-[1.1] tracking-tight text-[#fff8f2] [text-shadow:0_2px_10px_rgba(0,0,0,0.7),0_4px_24px_rgba(0,0,0,0.45)] md:whitespace-pre-line md:text-[clamp(2.65rem,5.8vw,5.5rem)] md:leading-[1.04]"
+            className="text-balance text-[clamp(1.5rem,6.2vw,2.5rem)] font-light leading-[1.14] tracking-tight text-[#fff8f2] [text-shadow:0_2px_10px_rgba(0,0,0,0.7),0_4px_24px_rgba(0,0,0,0.45)] max-md:mx-auto max-md:max-w-[24ch] md:whitespace-pre-line md:text-[clamp(2.65rem,5.8vw,5.5rem)] md:leading-[1.04]"
           >
             <span className="md:hidden">{slide.heading.replace(/\n/g, " ")}</span>
             <span className="hidden md:inline whitespace-pre-line">{slide.heading}</span>
@@ -292,17 +333,17 @@ export function HomeHeroMotrenko({
               opacity: leaving ? 0 : 1,
               transition: "opacity 0.5s ease 0.15s",
             }}
-            className="mt-4 flex w-full flex-col gap-2.5 max-md:flex-row max-md:gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:gap-4"
+            className="mt-4 flex w-full flex-col gap-2.5 max-md:mx-auto max-md:max-w-[22rem] max-md:flex-row max-md:gap-2.5 sm:mt-8 sm:w-auto sm:flex-row sm:gap-4"
           >
             <Link
               href={primaryCta.href}
-              className="flex h-11 min-h-[44px] items-center justify-center rounded-md bg-site-brand px-5 text-center text-[10px] font-semibold uppercase leading-tight tracking-[0.16em] text-white shadow-[0_10px_28px_-8px_rgba(243,112,33,0.32)] transition-colors hover:bg-site-brand-hover max-md:flex-1 sm:h-11 sm:px-7 sm:text-[10px] sm:tracking-[0.22em]"
+              className="flex h-11 min-h-[44px] flex-1 items-center justify-center rounded-md bg-site-brand px-3 text-center text-[9px] font-semibold uppercase leading-tight tracking-[0.12em] text-white shadow-[0_10px_28px_-8px_rgba(243,112,33,0.32)] transition-colors hover:bg-site-brand-hover sm:h-11 sm:flex-none sm:px-7 sm:text-[10px] sm:tracking-[0.22em]"
             >
               {primaryCta.label}
             </Link>
             <Link
               href={secondaryCta.href}
-              className="flex h-11 min-h-[44px] items-center justify-center rounded-sm border border-[rgb(232_104_42/0.55)] bg-[rgb(232_104_42/0.10)] px-5 text-center text-[10px] font-semibold uppercase leading-tight tracking-[0.15em] text-[#fff4eb] transition-colors hover:border-[rgb(232_104_42/0.85)] hover:bg-[rgb(232_104_42/0.2)] max-md:flex-1 sm:h-11 sm:px-5 sm:tracking-[0.2em]"
+              className="flex h-11 min-h-[44px] flex-1 items-center justify-center rounded-sm border border-[rgb(232_104_42/0.55)] bg-[rgb(232_104_42/0.10)] px-3 text-center text-[9px] font-semibold uppercase leading-tight tracking-[0.1em] text-[#fff4eb] transition-colors hover:border-[rgb(232_104_42/0.85)] hover:bg-[rgb(232_104_42/0.2)] sm:h-11 sm:flex-none sm:px-5 sm:text-[10px] sm:tracking-[0.2em]"
             >
               {secondaryCta.label} <span className="ml-0.5">→</span>
             </Link>

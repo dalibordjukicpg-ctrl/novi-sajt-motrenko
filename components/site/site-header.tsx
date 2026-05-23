@@ -4,7 +4,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronDown, Menu, Phone, Search, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+} from "react";
+import { createPortal, flushSync } from "react-dom";
 
 import type { Locale } from "@/lib/i18n";
 import type { PublicNavItem } from "@/lib/queries/site";
@@ -24,6 +33,74 @@ type Props = {
   nav: PublicNavItem[];
   logoUrl?: string | null;
 };
+
+function isExternalHref(href: string): boolean {
+  return /^https?:\/\//i.test(href);
+}
+
+function navigateToHash(pathname: string, hash: string) {
+  let selector = hash;
+  let el = document.querySelector(selector);
+
+  if (!el && /^#usluge([_-]|$)/i.test(hash)) {
+    selector = "#usluge";
+    el = document.querySelector(selector);
+  }
+
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.history.pushState(null, "", `${pathname}${selector}`);
+    return;
+  }
+
+  window.location.assign(`${pathname}${hash}`);
+}
+
+function HeaderMenuLink({
+  href,
+  onClose,
+  className,
+  children,
+}: {
+  href: string;
+  onClose: () => void;
+  className?: string;
+  children: ReactNode;
+}) {
+  const closeNow = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+    flushSync(() => {
+      onClose();
+    });
+    document.body.style.overflow = "";
+
+    if (isExternalHref(href)) return;
+
+    try {
+      const target = new URL(href, window.location.origin);
+      const here = new URL(window.location.href);
+      if (target.pathname === here.pathname && target.hash) {
+        e.preventDefault();
+        navigateToHash(target.pathname, target.hash);
+      }
+    } catch {
+      /* Link/default browser navigation */
+    }
+  };
+
+  if (isExternalHref(href)) {
+    return (
+      <a href={href} className={className} onClick={closeNow}>
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className={className} scroll onClick={closeNow}>
+      {children}
+    </Link>
+  );
+}
 
 /** Outfit (header-nav): čitljiv caps na bijeloj traci; miran tracking. */
 const navLinkBase =
@@ -102,7 +179,6 @@ function MobileAccordionItem({
         <span className="font-header-nav text-[13px] font-semibold uppercase tracking-[0.13em] text-zinc-800">
           {item.label}
         </span>
-        {/* Animated chevron in brand pill */}
         <span
           className={[
             "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
@@ -124,10 +200,10 @@ function MobileAccordionItem({
         <div className="overflow-hidden">
           <div className="mx-5 mb-3 overflow-hidden rounded-xl border border-zinc-100 bg-[#faf8f6]">
             {item.children.map((sub, i) => (
-              <Link
+              <HeaderMenuLink
                 key={sub.id}
                 href={resolvePublicHref(locale, sub.href)}
-                onClick={onNavigate}
+                onClose={onNavigate}
                 className={[
                   "group flex items-center gap-3 px-4 py-3 transition-colors",
                   "hover:bg-white hover:text-site-brand active:bg-white/60",
@@ -140,7 +216,7 @@ function MobileAccordionItem({
                 <span className="font-sans text-[13.5px] font-normal leading-snug text-zinc-600 group-hover:text-site-brand">
                   {sub.label}
                 </span>
-              </Link>
+              </HeaderMenuLink>
             ))}
           </div>
         </div>
@@ -172,14 +248,14 @@ function MobileNavSections({
       <nav aria-label="Mobilna navigacija" className="flex flex-col">
         {rows.map((item) =>
           item.children.length === 0 ? (
-            <Link
+            <HeaderMenuLink
               key={item.id}
               href={resolvePublicHref(locale, item.href)}
-              onClick={onNavigate}
+              onClose={onNavigate}
               className="flex items-center border-b border-zinc-100/80 px-6 py-[1.05rem] font-header-nav text-[13px] font-semibold uppercase tracking-[0.13em] text-zinc-800 transition-colors hover:bg-zinc-50/60 hover:text-site-brand last:border-b-0 active:bg-zinc-50"
             >
               {item.label}
-            </Link>
+            </HeaderMenuLink>
           ) : (
             <MobileAccordionItem
               key={item.id}
@@ -192,9 +268,9 @@ function MobileNavSections({
       </nav>
 
       {/* Search row */}
-      <Link
+      <HeaderMenuLink
         href={resolvePublicHref(locale, searchHref)}
-        onClick={onNavigate}
+        onClose={onNavigate}
         className="group mx-5 mt-3 flex items-center gap-3 rounded-xl border border-zinc-200/70 bg-zinc-50/80 px-4 py-3 transition-colors hover:border-site-brand/30 hover:bg-white hover:text-site-brand"
       >
         <Search
@@ -205,7 +281,7 @@ function MobileNavSections({
         <span className="font-sans text-[13px] font-medium text-zinc-500 group-hover:text-site-brand">
           {searchLabel}
         </span>
-      </Link>
+      </HeaderMenuLink>
     </div>
   );
 }
@@ -218,32 +294,70 @@ function NavDropdown({
   onLight,
   isOpen,
   onOpenChange,
+  isHovered,
+  dismissedDropdownId,
+  onHover,
+  onLeave,
+  onDismiss,
+  onNavigate,
 }: {
   item: PublicNavItem;
   locale: Locale;
   onLight: boolean;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  isHovered: boolean;
+  dismissedDropdownId: string | null;
+  onHover: () => void;
+  onLeave: () => void;
+  onDismiss: () => void;
+  onNavigate: () => void;
 }) {
-  const toggleFlyoutOnTap = () => {
-    if (typeof window === "undefined") return;
-    const coarseOrNarrow =
-      window.matchMedia("(max-width: 767px)").matches ||
-      window.matchMedia("(pointer: coarse)").matches;
-    if (!coarseOrNarrow) return;
-    onOpenChange(!isOpen);
+  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isUslugeMega = looksLikeUslugeParent(item);
+
+  const handleEnter = () => {
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+    onHover();
   };
+
+  const handleLeave = () => {
+    if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+    const delay = isUslugeMega ? 350 : 150;
+    leaveTimerRef.current = setTimeout(() => {
+      leaveTimerRef.current = null;
+      onLeave();
+    }, delay);
+  };
+
+  useEffect(
+    () => () => {
+      if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+    },
+    [],
+  );
+
+  const closeFlyout = () => {
+    onDismiss();
+    onOpenChange(false);
+    onNavigate();
+  };
+
+  const isDismissed = dismissedDropdownId === item.id;
+  const flyoutOpen = !isDismissed && (isHovered || isOpen);
 
   const accentMobileOpen = isOpen ? " max-md:!text-site-brand-hover" : "";
 
   const linkTop = onLight
-    ? `${navLinkBase} text-site-header-nav-light hover:text-site-brand-hover md:transition-colors md:group-hover:!text-site-brand-hover${accentMobileOpen}`
-    : `${navLinkBase} text-site-header-hero md:group-hover:!text-site-brand${accentMobileOpen}`;
+    ? `${navLinkBase} text-site-header-nav-light hover:text-site-brand-hover md:transition-colors${flyoutOpen ? " !text-site-brand-hover" : ""}${accentMobileOpen}`
+    : `${navLinkBase} text-site-header-hero${flyoutOpen ? " !text-site-brand" : ""}${accentMobileOpen}`;
 
   const caretBase = onLight ? "text-site-brand-muted" : "text-white/80";
-  const caret = `${caretBase} md:group-hover:!text-site-brand-hover${accentMobileOpen}`;
+  const caret = `${caretBase}${flyoutOpen ? " !text-site-brand-hover" : ""}${accentMobileOpen}`;
 
-  const isUslugeMega = looksLikeUslugeParent(item);
   const sectioned = isUslugeMega || navItemHasNestedChildren(item);
 
   const flyoutPosition = sectioned
@@ -258,16 +372,11 @@ function NavDropdown({
 
   const flyoutVisibility = [
     flyoutPosition,
-    isOpen
-      ? "max-md:visible max-md:opacity-100 max-md:pointer-events-auto"
-      : "max-md:invisible max-md:opacity-0 max-md:pointer-events-none",
-    "md:invisible md:opacity-0 md:pointer-events-none md:transition-[opacity,visibility] md:duration-200 md:ease-out",
-    "md:group-hover:!visible md:group-hover:!opacity-100 md:group-hover:!pointer-events-auto",
-    "md:group-focus-within:!visible md:group-focus-within:!opacity-100 md:group-focus-within:!pointer-events-auto",
-    isOpen ? "md:!visible md:!opacity-100 md:!pointer-events-auto" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+    flyoutOpen
+      ? "visible opacity-100 pointer-events-auto"
+      : "invisible opacity-0 pointer-events-none",
+    "transition-[opacity,visibility] duration-200 ease-out",
+  ].join(" ");
 
   const dropdownShell = sectioned
     ? isUslugeMega
@@ -307,31 +416,36 @@ function NavDropdown({
 
   if (item.children.length === 0) {
     return (
-      <Link
+      <HeaderMenuLink
         href={resolvePublicHref(locale, item.href)}
+        onClose={onNavigate}
         className={`shrink-0 rounded-none px-2 py-2 md:px-2.5 md:py-2.5 ${linkTop}`}
       >
         {item.label}
-      </Link>
+      </HeaderMenuLink>
     );
   }
 
   return (
-    <div className="group relative z-[1] shrink-0 hover:z-[100] focus-within:z-[100]">
+    <div
+      className="relative z-[1] shrink-0"
+      style={{ zIndex: flyoutOpen ? 100 : 1 }}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
       <button
         type="button"
         className={`flex items-center gap-1 rounded-none px-2 py-2 md:gap-1.5 md:px-2.5 md:py-2.5 ${linkTop}`}
-        aria-expanded={isOpen}
+        aria-expanded={flyoutOpen}
         aria-haspopup="true"
-        onClick={toggleFlyoutOnTap}
+        onClick={() => onOpenChange(!isOpen)}
       >
         {item.label}
         <ChevronDown
           className={[
             "h-3 w-3 shrink-0 transition duration-200 md:h-3.5 md:w-3.5",
             caret,
-            isOpen ? "max-md:rotate-180" : "",
-            "md:group-hover:rotate-180",
+            flyoutOpen ? "rotate-180" : "",
           ].join(" ")}
           aria-hidden={true}
           strokeWidth={1.35}
@@ -341,7 +455,11 @@ function NavDropdown({
         aria-hidden
         className="pointer-events-auto absolute inset-x-0 top-full z-[205] hidden h-10 md:block"
       />
-      <div className={flyoutVisibility}>
+      <div
+        className={flyoutVisibility}
+        onMouseEnter={handleEnter}
+        onMouseLeave={handleLeave}
+      >
         <div className={[sectioned ? "py-0" : "py-1.5", dropdownShell].join(" ")}>
           {sectioned ? (
             isUslugeMega ? (
@@ -360,24 +478,24 @@ function NavDropdown({
                         key={col.id}
                         className="flex min-w-0 flex-none flex-col px-5 py-3 sm:px-6 sm:py-3.5"
                       >
-                        <Link
+                        <HeaderMenuLink
                           href={resolvePublicHref(locale, col.href)}
+                          onClose={closeFlyout}
                           className={megaCategoryHeading}
-                          onClick={() => onOpenChange(false)}
                         >
                           {col.label}
-                        </Link>
+                        </HeaderMenuLink>
                         {col.children.length > 0 ? (
                           <ul className="m-0 mt-1.5 list-none space-y-0 p-0">
                             {col.children.map((sub) => (
                               <li key={sub.id} className="m-0 p-0">
-                                <Link
+                                <HeaderMenuLink
                                   href={resolvePublicHref(locale, sub.href)}
+                                  onClose={closeFlyout}
                                   className={subLinkMega}
-                                  onClick={() => onOpenChange(false)}
                                 >
                                   {sub.label}
-                                </Link>
+                                </HeaderMenuLink>
                               </li>
                             ))}
                           </ul>
@@ -398,24 +516,24 @@ function NavDropdown({
               >
                 {item.children.map((col) => (
                   <section key={col.id} className="min-w-0 px-5 py-4 sm:px-6 sm:py-5">
-                    <Link
+                    <HeaderMenuLink
                       href={resolvePublicHref(locale, col.href)}
+                      onClose={closeFlyout}
                       className={megaCategoryHeading}
-                      onClick={() => onOpenChange(false)}
                     >
                       {col.label}
-                    </Link>
+                    </HeaderMenuLink>
                     {col.children.length > 0 ? (
                       <ul className="m-0 mt-3 list-none space-y-0 p-0">
                         {col.children.map((sub) => (
                           <li key={sub.id} className="m-0 p-0">
-                            <Link
+                            <HeaderMenuLink
                               href={resolvePublicHref(locale, sub.href)}
+                              onClose={closeFlyout}
                               className={subLinkMega}
-                              onClick={() => onOpenChange(false)}
                             >
                               {sub.label}
-                            </Link>
+                            </HeaderMenuLink>
                           </li>
                         ))}
                       </ul>
@@ -427,14 +545,14 @@ function NavDropdown({
           ) : (
             <div className="space-y-0.5 px-3 py-2">
               {item.children.map((ch) => (
-                <Link
+                <HeaderMenuLink
                   key={ch.id}
                   href={resolvePublicHref(locale, ch.href)}
+                  onClose={closeFlyout}
                   className={subLink}
-                  onClick={() => onOpenChange(false)}
                 >
                   {ch.label}
-                </Link>
+                </HeaderMenuLink>
               ))}
             </div>
           )}
@@ -448,9 +566,12 @@ function NavDropdown({
 
 export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
   const pathname = usePathname();
+  const headerRef = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
+  const [portalReady, setPortalReady] = useState(false);
+  const [menuTop, setMenuTop] = useState(0);
 
   const resolvedLogoSrc = logoUrl?.trim() || DEFAULT_HEADER_LOGO;
   const logoIsRemote = /^https?:\/\//i.test(resolvedLogoSrc);
@@ -476,7 +597,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
 
   useEffect(() => {
     if (!openDropdownId) return;
-    const onDocMouseDown = (e: MouseEvent) => {
+    const onDocMouseDown = (e: globalThis.MouseEvent) => {
       const t = e.target;
       if (!(t instanceof Node)) return;
       if (navRef.current?.contains(t)) return;
@@ -494,11 +615,52 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
   }, [openDropdownId]);
 
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [hoveredDropdownId, setHoveredDropdownId] = useState<string | null>(null);
+  const [dismissedDropdownId, setDismissedDropdownId] = useState<string | null>(null);
+  const prevPathnameRef = useRef(pathname);
   const lightHeader = onLight || mobileNavOpen;
 
-  useEffect(() => {
+  const closeAllNav = useCallback(() => {
     setMobileNavOpen(false);
-  }, [pathname]);
+    setOpenDropdownId(null);
+    setHoveredDropdownId(null);
+    document.body.style.overflow = "";
+  }, []);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!mobileNavOpen || !headerRef.current) return;
+    const syncTop = () => {
+      setMenuTop(headerRef.current!.getBoundingClientRect().bottom);
+    };
+    syncTop();
+    window.addEventListener("resize", syncTop);
+    window.addEventListener("scroll", syncTop, { passive: true });
+    return () => {
+      window.removeEventListener("resize", syncTop);
+      window.removeEventListener("scroll", syncTop);
+    };
+  }, [mobileNavOpen]);
+
+  useEffect(() => {
+    const prev = prevPathnameRef.current;
+    prevPathnameRef.current = pathname;
+    if (prev === pathname) return;
+    closeAllNav();
+    setDismissedDropdownId(null);
+  }, [pathname, closeAllNav]);
+
+  useEffect(() => {
+    const onHash = () => {
+      closeAllNav();
+      setDismissedDropdownId(null);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, [closeAllNav]);
 
   /* Lock body scroll when mobile menu is open */
   useEffect(() => {
@@ -541,13 +703,15 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
 
   return (
     <header
+      ref={headerRef}
       className={`fixed left-0 right-0 top-0 z-[200] w-full pt-[env(safe-area-inset-top)] ${lightHeader ? "transition-colors duration-300" : ""} ${headerShell}`}
     >
       {/* ── Header bar ─────────────────────────────────────────── */}
       <div className="relative z-[2] mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5 ps-[max(0.75rem,env(safe-area-inset-left))] pe-[max(0.75rem,env(safe-area-inset-right))] sm:gap-3 sm:px-4 sm:py-3 md:grid-cols-[auto_1fr_auto] md:gap-6 md:px-10 md:py-3.5 lg:px-14">
         {/* Logo */}
-        <Link
+        <HeaderMenuLink
           href={`/${locale}`}
+          onClose={closeAllNav}
           className="site-header-logo-link relative z-20 flex min-w-0 max-w-[min(100%,76vw)] items-center justify-self-start sm:max-w-[min(100%,80vw)] md:max-w-[min(100%,580px)]"
         >
           <Image
@@ -562,7 +726,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
             className="pointer-events-none block h-[4.1rem] w-auto max-h-[4.1rem] max-w-full select-none object-contain object-left sm:h-[4.35rem] sm:max-h-[4.35rem] md:h-[5.15rem] md:max-h-[5.15rem] lg:h-[5.5rem] lg:max-h-[5.5rem]"
             sizes="(max-width: 768px) 80vw, 580px"
           />
-        </Link>
+        </HeaderMenuLink>
 
         {/* Desktop nav */}
         <nav
@@ -578,6 +742,16 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
               onLight={onLight}
               isOpen={openDropdownId === item.id}
               onOpenChange={(open) => setOpenDropdownId(open ? item.id : null)}
+              isHovered={hoveredDropdownId === item.id}
+              dismissedDropdownId={dismissedDropdownId}
+              onHover={() => setHoveredDropdownId(item.id)}
+              onLeave={() => {
+                setHoveredDropdownId((cur) => (cur === item.id ? null : cur));
+                setOpenDropdownId((cur) => (cur === item.id ? null : cur));
+                setDismissedDropdownId((cur) => (cur === item.id ? null : cur));
+              }}
+              onDismiss={() => setDismissedDropdownId(item.id)}
+              onNavigate={closeAllNav}
             />
           ))}
         </nav>
@@ -586,12 +760,13 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
         <div className="relative z-20 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 md:justify-self-end">
           <SiteLanguageSwitcher locale={locale} onLight={lightHeader} compact />
           {/* CTA u headeru samo na tablet/desktop — na telefonu je u mobilnom meniju (veći, touch-friendly) */}
-          <Link
+          <HeaderMenuLink
             href={resolvePublicHref(locale, s["header.cta_book_href"] ?? "")}
+            onClose={closeAllNav}
             className={`${ctaPrimary} hidden md:inline-flex`}
           >
             {s["header.cta_book"]}
-          </Link>
+          </HeaderMenuLink>
 
           {/* Hamburger — premium pill style on mobile */}
           <button
@@ -625,88 +800,80 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
         </div>
       </div>
 
-      {/* ── Premium Mobile Nav Panel ────────────────────────────── */}
-      {/*
-       * Panel je uvijek u DOM-u ali transition-[max-height,opacity] animira otvaranje.
-       * overflow-hidden na vanjskom, overflow-y-auto na unutarnjem spriječava dvojni scroll.
-       */}
-      <div
-        id="site-mobile-nav"
-        aria-hidden={!mobileNavOpen}
-        className={[
-          "md:hidden",
-          "overflow-hidden transition-[max-height,opacity] duration-300 ease-out",
-          mobileNavOpen
-            ? "max-h-[calc(100dvh-4rem)] opacity-100"
-            : "max-h-0 opacity-0",
-        ].join(" ")}
-      >
-        <div
-          className={[
-            "flex max-h-[calc(100dvh-4rem)] flex-col overflow-y-auto overscroll-contain",
-            // Premium background
-            "bg-[#faf8f6]/[0.98] backdrop-blur-2xl",
-            // Shadow beneath
-            "border-0 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.22)]",
-          ].join(" ")}
-        >
-          {/* ── Panel header: brand tagline ── */}
-          <div className="flex shrink-0 items-center border-0 px-5 py-3">
-            <span className="font-header-nav text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
-              {s["org.brand"] || ""}
-            </span>
-          </div>
-
-          {/* ── Nav items (scrollable) ── */}
-          <div className="flex-1 overflow-y-auto overscroll-contain pb-2 pt-1">
-            <MobileNavSections
-              nav={nav}
-              locale={locale}
-              s={s}
-              onNavigate={() => setMobileNavOpen(false)}
-            />
-          </div>
-
-          {/* ── Premium CTA zone ── */}
-          <div
-            className={[
-              "shrink-0 border-t border-zinc-100/80 px-5 py-4",
-              "pb-[max(1.25rem,env(safe-area-inset-bottom))]",
-              // Subtle gradient tint
-              "bg-gradient-to-b from-transparent to-site-brand/[0.03]",
-            ].join(" ")}
-          >
-            {/* Phone row — shown if configured */}
-            {phoneHref && phoneLabel ? (
-              <a
-                href={phoneHref}
-                className="mb-3 flex items-center gap-2.5 text-zinc-500 transition-colors hover:text-site-brand"
+      {portalReady && mobileNavOpen
+        ? createPortal(
+            <>
+              <button
+                type="button"
+                aria-label="Zatvori navigaciju"
+                className="fixed inset-x-0 bottom-0 z-[500] bg-black/30 md:hidden"
+                style={{ top: menuTop }}
+                onClick={closeAllNav}
+              />
+              <div
+                id="site-mobile-nav"
+                className="fixed inset-x-0 bottom-0 z-[501] flex flex-col overflow-hidden bg-[#faf8f6] shadow-[0_32px_80px_-16px_rgba(0,0,0,0.22)] md:hidden"
+                style={{ top: menuTop }}
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-site-brand/20 bg-site-brand/[0.07] text-site-brand">
-                  <Phone className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
-                </span>
-                <span className="font-sans text-[13px] font-medium tracking-wide">
-                  {phoneLabel}
-                </span>
-              </a>
-            ) : null}
+                <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
+                  <div className="flex shrink-0 items-center border-0 px-5 py-3">
+                    <span className="font-header-nav text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
+                      {s["org.brand"] || ""}
+                    </span>
+                  </div>
 
-            {/* CTA button — full width, premium */}
-            <Link
-              href={resolvePublicHref(locale, s["header.cta_book_href"] ?? "")}
-              onClick={() => setMobileNavOpen(false)}
-              className={[
-                "site-btn-primary",
-                "flex w-full items-center justify-center",
-                "py-[0.875rem] font-serif text-[14px] font-medium tracking-[0.14em]",
-                "rounded-xl",
-              ].join(" ")}
-            >
-              {s["header.cta_book"]}
-            </Link>
-          </div>
-        </div>
-      </div>
+                  <div className="flex-1 overflow-y-auto overscroll-contain pb-2 pt-1">
+                    <MobileNavSections
+                      nav={nav}
+                      locale={locale}
+                      s={s}
+                      onNavigate={closeAllNav}
+                    />
+                  </div>
+
+                  <div
+                    className={[
+                      "shrink-0 border-t border-zinc-100/80 px-5 py-4",
+                      "pb-[max(1.25rem,env(safe-area-inset-bottom))]",
+                      "bg-gradient-to-b from-transparent to-site-brand/[0.03]",
+                    ].join(" ")}
+                  >
+                    {phoneHref && phoneLabel ? (
+                      <a
+                        href={phoneHref}
+                        onClick={() => {
+                          flushSync(() => closeAllNav());
+                        }}
+                        className="mb-3 flex items-center gap-2.5 text-zinc-500 transition-colors hover:text-site-brand"
+                      >
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-site-brand/20 bg-site-brand/[0.07] text-site-brand">
+                          <Phone className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
+                        </span>
+                        <span className="font-sans text-[13px] font-medium tracking-wide">
+                          {phoneLabel}
+                        </span>
+                      </a>
+                    ) : null}
+
+                    <HeaderMenuLink
+                      href={resolvePublicHref(locale, s["header.cta_book_href"] ?? "")}
+                      onClose={closeAllNav}
+                      className={[
+                        "site-btn-primary",
+                        "flex w-full items-center justify-center",
+                        "py-[0.875rem] font-serif text-[14px] font-medium tracking-[0.14em]",
+                        "rounded-xl",
+                      ].join(" ")}
+                    >
+                      {s["header.cta_book"]}
+                    </HeaderMenuLink>
+                  </div>
+                </div>
+              </div>
+            </>,
+            document.body,
+          )
+        : null}
     </header>
   );
 }
