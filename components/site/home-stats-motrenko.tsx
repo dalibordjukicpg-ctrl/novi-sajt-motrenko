@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Baby, Heart, Star, Users } from "lucide-react";
 
 import { CLINIC_PAGE_HERO_BG } from "@/lib/clinic-assets";
@@ -19,7 +19,7 @@ const STAT_ICONS = [
   <Star size={16} strokeWidth={1.5} fill="currentColor" key="star" />,
 ];
 
-function StatPremiumIcon({ children }: { children: React.ReactNode }) {
+function StatPremiumIcon({ children }: { children: ReactNode }) {
   return (
     <div className="relative mx-auto shrink-0">
       <div

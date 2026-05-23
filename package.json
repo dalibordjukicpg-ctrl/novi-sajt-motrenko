@@ -14,7 +14,7 @@
     "share:dev": "node scripts/share-dev-tunnel.cjs",
     "share:dev:cf": "node scripts/share-dev-cloudflare.cjs",
     "vercel:checklist": "node scripts/print-vercel-deploy.mjs",
-    "build": "next build",
+    "build": "node scripts/run-build.cjs",
     "postbuild": "node -e \"const fs=require('fs'); if(!fs.existsSync('.next/BUILD_ID')){console.error('[postbuild] missing .next/BUILD_ID'); process.exit(1)} console.log('[postbuild] ok')\"",
     "db:setup-home": "node --env-file=.env scripts/setup-home-content.mjs",
     "start": "node scripts/start-prod.cjs",
