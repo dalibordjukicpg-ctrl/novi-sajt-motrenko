@@ -8,7 +8,6 @@ import {
   isHeroBackgroundVideoUrl,
   isHeroBackgroundYoutubeUrl,
 } from "@/lib/hero-background-media";
-import { HERO_VIDEO_POSTER } from "@/lib/clinic-assets";
 
 export type HomeHeroSlide = {
   eyebrow: string;
@@ -53,6 +52,7 @@ export function HomeHeroMotrenko({
 
   const [current, setCurrent] = useState(0);
   const [leaving, setLeaving] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const bgRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
 
@@ -90,8 +90,24 @@ export function HomeHeroMotrenko({
   const isYoutube = !isSplit && url ? isHeroBackgroundYoutubeUrl(url) : false;
   const isVideo =
     !isSplit && url ? !isYoutube && isHeroBackgroundVideoUrl(url) : false;
-  const poster = posterUrl?.trim() || HERO_VIDEO_POSTER;
+  const customPoster = posterUrl?.trim() ?? "";
   const isLocalImg = url.startsWith("/");
+
+  useEffect(() => {
+    setVideoReady(false);
+  }, [url]);
+
+  useEffect(() => {
+    if (!isVideo || !url) return;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "video";
+    link.href = url;
+    document.head.appendChild(link);
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, [isVideo, url]);
 
   if (isSplit) {
     const credit = doctorCredit?.trim() ?? "";
@@ -183,6 +199,7 @@ export function HomeHeroMotrenko({
         style={{ transform: "translateY(var(--py, 0%))" }}
         aria-hidden
       >
+        <div className="absolute inset-0 bg-zinc-950" aria-hidden />
         {isYoutube && url ? (
           <iframe
             title=""
@@ -196,8 +213,14 @@ export function HomeHeroMotrenko({
             muted
             loop
             playsInline
-            poster={poster}
-            className="h-full w-full object-cover max-md:object-[center_38%] md:object-[center_28%]"
+            preload="auto"
+            {...(customPoster ? { poster: customPoster } : {})}
+            onLoadedData={() => setVideoReady(true)}
+            onCanPlay={() => setVideoReady(true)}
+            className={[
+              "h-full w-full object-cover transition-opacity duration-500 ease-out max-md:object-[center_38%] md:object-[center_28%]",
+              videoReady ? "opacity-100" : "opacity-0",
+            ].join(" ")}
           >
             <source src={url} type="video/mp4" />
           </video>
@@ -217,14 +240,7 @@ export function HomeHeroMotrenko({
             alt=""
             className="h-full w-full object-cover max-md:object-[center_38%] md:object-[center_28%]"
           />
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={poster}
-            alt=""
-            className="h-full w-full object-cover max-md:object-[center_38%] md:object-[center_28%]"
-          />
-        )}
+        ) : null}
       </div>
 
       {/* Desktop: gradient s lijeve strane za čitljivost teksta */}

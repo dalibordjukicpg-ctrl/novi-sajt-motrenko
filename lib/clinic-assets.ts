@@ -8,9 +8,6 @@ export const HEADER_LOGO_PIXEL_HEIGHT = 343;
 /** Pozadina hero bloka na unutrašnjim stranicama (panorama recepcije). */
 export const CLINIC_PAGE_HERO_BG = "/page-hero-panorama.png";
 
-export const HERO_VIDEO_POSTER =
-  "/wp-media/d5c26935cb9c_humana-reprodukcija-naslovna.jpg";
-
 export const STORY_IMAGES = [
   "/wp-media/63f6680aaa47_centar-za-humanu-reprodukciju-budva-1000-beba-dr-tatjana-motrenko-simic-humanreproduction.jpg",
   "/wp-media/345dd5202c8f_centar-za-humanu-reprodukciju-budva-1000-beba-humanreproduction.jpg",
