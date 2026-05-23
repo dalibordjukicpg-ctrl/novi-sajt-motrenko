@@ -6,20 +6,32 @@ const { spawnSync } = require("child_process");
 
 const cwd = process.cwd();
 const nodeVersion = process.version;
+const parsed = /^v(\d+)\.(\d+)/.exec(nodeVersion);
+const major = parsed ? Number.parseInt(parsed[1], 10) : 0;
+const minor = parsed ? Number.parseInt(parsed[2], 10) : 0;
 
 console.log("[run-build] cwd:", cwd);
 console.log("[run-build] node:", nodeVersion);
 
-const major = Number.parseInt(nodeVersion.slice(1), 10);
-if (Number.isFinite(major) && major < 20) {
+if (!Number.isFinite(major) || major < 18 || (major === 18 && minor < 18)) {
   console.error(
-    "[run-build] FATAL: Node 20+ required (package.json engines). Hostinger panel → Node 20.",
+    "[run-build] FATAL: Node 18.18+ required. Hostinger panel → Node 20.",
   );
   process.exit(1);
 }
 
+if (major < 20) {
+  console.warn("[run-build] WARN: Node 20+ preporučen za Next.js 15.");
+}
+
+const heapMb = process.env.BUILD_HEAP_MB?.trim() || "2048";
 const prev = process.env.NODE_OPTIONS?.trim() ?? "";
-process.env.NODE_OPTIONS = [prev, "--max-old-space-size=4096"].filter(Boolean).join(" ");
+process.env.NODE_OPTIONS = [
+  prev,
+  `--max-old-space-size=${heapMb}`,
+]
+  .filter(Boolean)
+  .join(" ");
 
 let nextBin;
 try {
@@ -40,4 +52,8 @@ if (result.error) {
   process.exit(1);
 }
 
-process.exit(result.status ?? 1);
+const code = result.status ?? 1;
+if (code !== 0) {
+  console.error("[run-build] next build failed with code:", code);
+}
+process.exit(code);

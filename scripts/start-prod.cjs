@@ -50,7 +50,10 @@ try {
 
 console.log("[start-prod] BUILD_ID ok, pokrećem:", nextBin);
 
-const child = spawn(process.execPath, [nextBin, "start", "-H", host, "-p", port], {
+const args = ["start", "-H", host, "-p", port];
+console.log("[start-prod] args:", args.join(" "));
+
+const child = spawn(process.execPath, [nextBin, ...args], {
   stdio: "inherit",
   cwd,
   env: process.env,
