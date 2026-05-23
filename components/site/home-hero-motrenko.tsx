@@ -52,9 +52,9 @@ export function HomeHeroMotrenko({
 
   const [current, setCurrent] = useState(0);
   const [leaving, setLeaving] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
   const bgRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (isSplit || safeSlides.length <= 1) return;
@@ -94,19 +94,13 @@ export function HomeHeroMotrenko({
   const isLocalImg = url.startsWith("/");
 
   useEffect(() => {
-    setVideoReady(false);
-  }, [url]);
-
-  useEffect(() => {
     if (!isVideo || !url) return;
-    const link = document.createElement("link");
-    link.rel = "preload";
-    link.as = "video";
-    link.href = url;
-    document.head.appendChild(link);
-    return () => {
-      document.head.removeChild(link);
-    };
+    const el = videoRef.current;
+    if (!el) return;
+    el.load();
+    void el.play().catch(() => {
+      /* autoplay policy — video ostaje vidljiv, korisnik može scroll/tap */
+    });
   }, [isVideo, url]);
 
   if (isSplit) {
@@ -209,18 +203,14 @@ export function HomeHeroMotrenko({
           />
         ) : isVideo && url ? (
           <video
+            ref={videoRef}
             autoPlay
             muted
             loop
             playsInline
             preload="auto"
             {...(customPoster ? { poster: customPoster } : {})}
-            onLoadedData={() => setVideoReady(true)}
-            onCanPlay={() => setVideoReady(true)}
-            className={[
-              "h-full w-full object-cover transition-opacity duration-500 ease-out max-md:object-[center_38%] md:object-[center_28%]",
-              videoReady ? "opacity-100" : "opacity-0",
-            ].join(" ")}
+            className="h-full w-full object-cover max-md:object-[center_38%] md:object-[center_28%]"
           >
             <source src={url} type="video/mp4" />
           </video>
