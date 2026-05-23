@@ -26,7 +26,7 @@ function telHref(raw: string): string {
 }
 
 const COL_TITLE =
-  "mb-7 min-h-[1.25rem] text-[11px] font-semibold uppercase leading-none tracking-[0.3em] text-site-brand";
+  "mb-5 text-[11px] font-semibold uppercase leading-snug tracking-[0.22em] text-site-brand";
 
 const FOOTER_DAY_LABELS = [
   "Ponedjeljak",
@@ -50,24 +50,19 @@ function FooterAccordionSection({
   title,
   children,
   className = "",
-  alignEnd = false,
 }: {
   title: string;
   children: ReactNode;
   className?: string;
-  alignEnd?: boolean;
 }) {
   const summaryClasses = `${COL_TITLE} mb-0 list-none cursor-pointer px-4 py-4 [&::-webkit-details-marker]:hidden flex items-center justify-between gap-2`;
   const bodyClasses =
     "border-t border-site-line px-4 pb-4 pt-3 md:border-0 md:px-0 md:pb-0 md:pt-0";
 
-  const titleDesk = alignEnd ? `${COL_TITLE} md:text-right` : COL_TITLE;
-  const deskWrap = alignEnd ? "md:text-right" : "";
-
   return (
     <div className={className}>
-      <div className={`hidden md:block ${deskWrap}`}>
-        <p className={titleDesk}>{title}</p>
+      <div className="hidden md:block">
+        <p className={COL_TITLE}>{title}</p>
         {children}
       </div>
 
@@ -146,25 +141,20 @@ export function SiteFooter({
 
       <div className="mx-auto max-w-7xl px-6 lg:px-14">
         <FadeIn>
-          <div className="border-b border-site-line py-16 lg:py-[4.5rem]">
-            <div
-              className={[
-                "grid grid-cols-1 gap-0 md:grid-cols-2 md:gap-y-14 md:gap-x-0",
-                "lg:grid-cols-4 lg:gap-y-0",
-              ].join(" ")}
-            >
+          <div className="border-b border-site-line py-14 lg:py-16">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-10 md:gap-y-12 lg:grid-cols-12 lg:items-start lg:gap-x-8 xl:gap-x-10">
               <FooterAccordionSection
                 title={s["footer.hours_title"]}
-                className="md:min-w-0 lg:border-r lg:border-site-line lg:pr-8 xl:pr-10"
+                className="md:min-w-0 lg:col-span-3"
               >
-                <div className="space-y-0">
+                <div className="divide-y divide-site-line/80">
                   {FOOTER_DAY_LABELS.map((day, i) => {
                     const time = formatHoursDisplay(hourSlots[i] ?? "");
                     const closed = time === closedLabel;
                     return (
                       <div
                         key={day}
-                        className="flex items-baseline justify-between gap-4 border-b border-site-line py-2.5 text-[14px] last:border-b-0 last:pb-0"
+                        className="flex items-center justify-between gap-3 py-2 text-[13px] first:pt-0 last:pb-0"
                       >
                         <span className="text-zinc-600">{day}</span>
                         <span
@@ -184,17 +174,17 @@ export function SiteFooter({
 
               <FooterAccordionSection
                 title={s["footer.social_title"]}
-                className="md:min-w-0 lg:border-r lg:border-site-line lg:px-8 xl:px-10"
+                className="md:min-w-0 lg:col-span-2"
               >
                 {socialItems.length > 0 ? (
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2">
                     {socialItems.map((item) => (
                       <a
                         key={item.label}
                         href={item.href}
                         target="_blank"
                         rel="noreferrer"
-                        className="group flex items-center gap-3.5 text-[14px] text-zinc-800 transition-colors hover:text-site-brand"
+                        className="group flex items-center gap-3 text-[13px] text-zinc-800 transition-colors hover:text-site-brand"
                       >
                         <IconTile>
                           <svg
@@ -258,23 +248,24 @@ export function SiteFooter({
 
               <FooterAccordionSection
                 title={s["footer.col_contact"]}
-                className="md:min-w-0 lg:border-r lg:border-site-line lg:px-8 xl:px-10"
+                className="md:min-w-0 lg:col-span-4"
               >
-                <div className="space-y-5">
+                <div className="space-y-4">
                   {tagline ? (
-                    <p className="text-[14px] leading-[1.7] text-zinc-800">{tagline}</p>
+                    <p className="text-[13px] leading-relaxed text-zinc-700">{tagline}</p>
                   ) : null}
 
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                   {primaryPhone ? (
                     <a
                       href={telHref(primaryPhone)}
-                      className="group flex items-start gap-3.5 text-[14px] transition-colors hover:text-site-brand"
+                      className="group flex items-start gap-3 text-[13px] transition-colors hover:text-site-brand"
                     >
                       <IconTile>
                         <Phone size={15} strokeWidth={1.5} aria-hidden />
                       </IconTile>
                       <span className="min-w-0">
-                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
+                        <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
                           Telefon
                         </span>
                         <span className="font-medium text-zinc-900 transition group-hover:text-site-brand">
@@ -287,13 +278,13 @@ export function SiteFooter({
                   {secondaryPhone && secondaryPhone !== primaryPhone ? (
                     <a
                       href={telHref(secondaryPhone)}
-                      className="group flex items-start gap-3.5 text-[14px] transition-colors hover:text-site-brand"
+                      className="group flex items-start gap-3 text-[13px] transition-colors hover:text-site-brand"
                     >
                       <IconTile>
                         <Phone size={15} strokeWidth={1.5} aria-hidden />
                       </IconTile>
                       <span className="min-w-0">
-                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
+                        <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
                           Telefon 2
                         </span>
                         <span className="font-medium text-zinc-900 transition group-hover:text-site-brand">
@@ -306,13 +297,13 @@ export function SiteFooter({
                   {email ? (
                     <a
                       href={`mailto:${email}`}
-                      className="group flex items-start gap-3.5 break-all text-[14px] transition-colors hover:text-site-brand"
+                      className="group flex items-start gap-3 break-all text-[13px] transition-colors hover:text-site-brand sm:col-span-2 lg:col-span-1 xl:col-span-2"
                     >
                       <IconTile>
                         <Mail size={15} strokeWidth={1.5} aria-hidden />
                       </IconTile>
                       <span className="min-w-0">
-                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
+                        <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
                           Email
                         </span>
                         <span className="font-medium text-zinc-900 transition group-hover:text-site-brand">
@@ -321,6 +312,7 @@ export function SiteFooter({
                       </span>
                     </a>
                   ) : null}
+                  </div>
 
                   {address ? (
                     mapsIsUrl ? (
@@ -328,30 +320,31 @@ export function SiteFooter({
                         href={mapsHref}
                         target="_blank"
                         rel="noreferrer"
-                        className="group flex items-start gap-3.5 text-[14px] transition-colors hover:text-site-brand"
+                        className="group flex items-start gap-3 text-[13px] transition-colors hover:text-site-brand"
                       >
                         <IconTile>
                           <MapPin size={15} strokeWidth={1.5} aria-hidden />
                         </IconTile>
                         <span className="min-w-0">
-                          <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
+                          <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
                             Adresa
                           </span>
-                          <span className="font-medium text-zinc-900 transition group-hover:text-site-brand">
+                          <span className="block font-medium leading-snug text-zinc-900 transition group-hover:text-site-brand">
                             {address}
                           </span>
-                          <span className="mt-1.5 inline-block text-[11px] font-medium uppercase tracking-[0.18em] text-site-brand">
-                            Google Maps →
+                          <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.14em] text-site-brand">
+                            Google Maps
+                            <span aria-hidden>→</span>
                           </span>
                         </span>
                       </a>
                     ) : (
-                      <div className="flex items-start gap-3.5 text-[14px] text-zinc-800">
+                      <div className="flex items-start gap-3 text-[13px] text-zinc-800">
                         <IconTile>
                           <MapPin size={15} strokeWidth={1.5} aria-hidden />
                         </IconTile>
                         <span className="min-w-0">
-                          <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
+                          <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
                             Adresa
                           </span>
                           {address}
@@ -360,16 +353,16 @@ export function SiteFooter({
                     )
                   ) : null}
 
-                  <div className="flex flex-col gap-2.5 pt-1">
+                  <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:flex-wrap lg:flex-col xl:flex-row">
                     <Link
                       href={bookHref}
-                      className="site-btn-primary inline-flex h-11 items-center justify-center px-6 text-[10px] tracking-[0.22em]"
+                      className="site-btn-primary inline-flex h-10 flex-1 items-center justify-center px-5 text-[10px] tracking-[0.2em] sm:min-w-[9.5rem] lg:flex-none xl:flex-1"
                     >
                       {s["header.cta_book"]}
                     </Link>
                     <Link
                       href={kontaktHref}
-                      className="inline-flex h-10 items-center justify-center rounded-md border border-site-border bg-site-card px-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-site-brand shadow-site-card transition hover:border-site-brand/30 hover:text-site-brand-muted"
+                      className="inline-flex h-10 flex-1 items-center justify-center rounded-md border border-site-border bg-site-card px-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-site-brand shadow-site-card transition hover:border-site-brand/30 hover:text-site-brand-muted sm:min-w-[9.5rem] lg:flex-none xl:flex-1"
                     >
                       Kontakt forma
                     </Link>
@@ -379,25 +372,22 @@ export function SiteFooter({
 
               <FooterAccordionSection
                 title={s["footer.col_clinic"]}
-                alignEnd={true}
-                className="md:min-w-0 md:col-span-2 lg:col-span-1 lg:pl-8 xl:pl-10"
+                className="md:min-w-0 md:col-span-2 lg:col-span-3"
               >
-                <div className="space-y-5 md:flex md:flex-col md:items-end">
-                  <div className="md:text-right">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={resolvedLogo}
-                      alt={s["org.brand"]}
-                      className="h-[4.65rem] w-auto max-w-[258px] object-contain object-right drop-shadow-[0_1px_10px_rgba(0,0,0,0.06)] sm:h-[5rem] sm:max-w-[276px]"
-                    />
-                  </div>
+                <div className="space-y-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={resolvedLogo}
+                    alt={s["org.brand"]}
+                    className="h-[4.25rem] w-auto max-w-[240px] object-contain object-left drop-shadow-[0_1px_10px_rgba(0,0,0,0.06)]"
+                  />
                   <p
                     style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                    className="max-w-[18.5rem] text-[14px] font-semibold uppercase tracking-[0.14em] text-site-ink md:text-right"
+                    className="text-[13px] font-semibold uppercase leading-snug tracking-[0.12em] text-site-ink"
                   >
                     {s["org.brand"]}
                   </p>
-                  <p className="max-w-[18.5rem] text-[14px] leading-[1.75] text-zinc-800 md:text-right">
+                  <p className="text-[13px] leading-[1.7] text-zinc-700">
                     {s["footer.about_body"]}
                   </p>
                 </div>
@@ -406,22 +396,30 @@ export function SiteFooter({
           </div>
         </FadeIn>
 
-        <div className="flex flex-col items-stretch gap-5 py-8 text-[13px] leading-relaxed text-zinc-800 sm:flex-row sm:items-center sm:justify-between sm:gap-8 lg:py-9">
-          <p className="text-center sm:text-left">
+        <div className="grid grid-cols-1 gap-6 py-8 text-[13px] leading-relaxed text-zinc-800 lg:grid-cols-3 lg:items-center lg:gap-8 lg:py-9">
+          <p className="text-center lg:text-left">
             © {new Date().getFullYear()} {s["footer.copyright"]}
           </p>
-          <p className="text-center sm:text-left">
-            {s["footer.crafted"]}{" "}
+          <div className="flex flex-col items-center justify-center gap-1.5 text-center">
+            <span className="text-[12px] tracking-wide text-zinc-600">
+              {s["footer.crafted"]}
+            </span>
             <a
               href={CRAFTED_BY_HREF}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-site-brand underline-offset-4 transition-colors hover:text-site-brand-muted hover:underline"
+              className="group inline-flex items-center rounded-full border border-site-brand/25 bg-gradient-to-br from-white via-[#fffaf6] to-[#ffefe3] px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-site-brand shadow-[0_2px_14px_-6px_rgba(243,112,33,0.45),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-sm transition duration-200 hover:-translate-y-px hover:border-site-brand/45 hover:from-white hover:to-[#ffe8d9] hover:shadow-[0_6px_20px_-8px_rgba(243,112,33,0.55)]"
             >
-              {s["footer.crafted_by"]}
+              <span className="relative">
+                {s["footer.crafted_by"]}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-x-1 -inset-y-0.5 rounded-full bg-site-brand/0 transition group-hover:bg-site-brand/[0.04]"
+                />
+              </span>
             </a>
-          </p>
-          <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 sm:justify-end">
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 lg:justify-end">
             <Link
               href={resolvePublicHref(locale, s["footer.privacy_href"])}
               className="font-medium text-zinc-900 underline-offset-4 transition-colors hover:text-site-brand hover:underline"
