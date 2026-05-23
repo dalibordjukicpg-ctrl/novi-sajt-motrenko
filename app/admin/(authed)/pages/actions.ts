@@ -101,7 +101,7 @@ export async function createSitePageAction(formData: FormData): Promise<void> {
 
   revalidateSitePage(slug);
   revalidatePath("/admin/pages");
-  redirect(adminPath(`pages/${pageId}/edit`));
+  redirect(`${adminPath(`pages/${pageId}/edit`)}?created=1`);
 }
 
 export async function updateSitePageAction(formData: FormData): Promise<void> {
@@ -195,6 +195,7 @@ export async function updateSitePageAction(formData: FormData): Promise<void> {
   }
   revalidatePath("/admin/pages");
   revalidatePath(`/admin/pages/${pageId}/edit`);
+  redirect(`${adminPath(`pages/${pageId}/edit`)}?saved=1`);
 }
 
 export async function deleteSitePageAction(formData: FormData): Promise<void> {
@@ -216,5 +217,5 @@ export async function deleteSitePageAction(formData: FormData): Promise<void> {
   await db.delete(sitePages).where(eq(sitePages.id, pageId));
   revalidateSitePage(row.slug);
   revalidatePath("/admin/pages");
-  redirect(adminPath("pages"));
+  redirect(`${adminPath("pages")}?deleted=1`);
 }

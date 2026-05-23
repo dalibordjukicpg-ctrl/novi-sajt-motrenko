@@ -81,6 +81,7 @@ export default async function HeaderFooterContentPage() {
           action={createNavLinkAction}
           className="mt-8 rounded-xl border border-dashed border-[#e8d9ca] bg-[#fff9f5]/80 p-4"
         >
+          <input type="hidden" name="returnTo" value={adminPath("content/header-footer")} />
           <input type="hidden" name="placement" value="footer" />
           <p className="text-sm font-medium text-[#3d342c]">Nova stavka (footer)</p>
           <div className="mt-3 flex flex-wrap items-end gap-3">

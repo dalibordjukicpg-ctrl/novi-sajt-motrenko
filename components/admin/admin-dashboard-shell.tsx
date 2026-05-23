@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { logoutAction } from "@/app/admin/actions";
+import { AdminActionBanner } from "@/components/admin/admin-action-banner";
 import { ClearSiteCacheButton } from "@/components/admin/clear-site-cache-button";
 import { adminPath } from "@/lib/admin-base-path";
 import type { UserRole } from "@/lib/db/schema";
@@ -342,7 +343,10 @@ export function AdminDashboardShell({
             </form>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-8">{children}</main>
+        <main className="flex-1 p-4 md:p-8">
+          <AdminActionBanner />
+          {children}
+        </main>
       </div>
     </div>
   );

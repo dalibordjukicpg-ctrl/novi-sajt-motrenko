@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { saveNavLinkAction } from "@/app/admin/(authed)/site/actions";
@@ -38,12 +39,14 @@ export function NavLinkRowForm({
   const [labels, setLabels] = useState<Record<Locale, string>>(initialLabels);
   const [translating, setTranslating] = useState(false);
   const [translateError, setTranslateError] = useState<string | null>(null);
+  const pathname = usePathname();
 
   return (
     <form
       action={saveNavLinkAction}
       className="rounded-lg border border-neutral-100 bg-neutral-50/50 p-4"
     >
+      <input type="hidden" name="returnTo" value={pathname} />
       <input type="hidden" name="linkId" value={linkId} />
       <input type="hidden" name="placement" value={placement} />
       <div className="flex flex-wrap items-end gap-4">

@@ -3,7 +3,9 @@
 import { randomUUID } from "crypto";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
+import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
@@ -338,7 +340,11 @@ export async function saveSiteGlobalsAction(
 export async function saveSiteGlobalsFormAction(
   formData: FormData,
 ): Promise<void> {
-  await saveSiteGlobalsAction(formData);
+  const res = await saveSiteGlobalsAction(formData);
+  if (res.error) {
+    redirect(`${adminPath("settings")}?error=save`);
+  }
+  redirect(`${adminPath("settings")}?saved=1`);
 }
 
 const ALT_RE = new RegExp(`^alt::([^:]+)::(${locales.join("|")})$`);

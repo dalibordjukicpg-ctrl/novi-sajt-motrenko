@@ -3,12 +3,34 @@
 import { randomUUID } from "crypto";
 import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
+import { adminPath, isAdminBasePathPrefix } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { navLinkTranslations, navLinks } from "@/lib/db/schema";
 import { locales } from "@/lib/i18n";
 import { revalidatePublicSite } from "@/lib/revalidate-content";
+
+function adminReturnPath(
+  formData: FormData,
+  fallback: string,
+): string {
+  const raw = String(formData.get("returnTo") ?? "").trim();
+  const pathOnly = raw.split("?")[0] ?? "";
+  if (pathOnly && isAdminBasePathPrefix(pathOnly)) {
+    return pathOnly;
+  }
+  return adminPath(fallback);
+}
+
+function redirectAdminFlash(
+  formData: FormData,
+  flash: "saved" | "created" | "deleted",
+  fallback: string,
+): never {
+  redirect(`${adminReturnPath(formData, fallback)}?${flash}=1`);
+}
 
 export async function saveNavLinkAction(formData: FormData): Promise<void> {
   const session = await getSession();
@@ -76,6 +98,7 @@ export async function saveNavLinkAction(formData: FormData): Promise<void> {
   revalidatePath("/admin/content/hero");
   revalidatePath("/admin/content/sections");
   revalidatePath("/admin/pages");
+  redirectAdminFlash(formData, "saved", "content/header-footer");
 }
 
 export async function createNavLinkAction(formData: FormData): Promise<void> {
@@ -126,6 +149,7 @@ export async function createNavLinkAction(formData: FormData): Promise<void> {
   revalidatePath("/admin/content/header");
   revalidatePath("/admin/content/header-footer");
   revalidatePath("/admin/pages");
+  redirectAdminFlash(formData, "created", "content/header");
 }
 
 export async function deleteNavLinkAction(formData: FormData): Promise<void> {
@@ -151,6 +175,7 @@ export async function deleteNavLinkAction(formData: FormData): Promise<void> {
   revalidatePublicSite();
   revalidatePath("/admin/content/header");
   revalidatePath("/admin/content/header-footer");
+  redirectAdminFlash(formData, "deleted", "content/header");
 }
 
 export async function moveNavLinkOrderAction(formData: FormData): Promise<void> {
@@ -205,4 +230,5 @@ export async function moveNavLinkOrderAction(formData: FormData): Promise<void> 
   revalidatePublicSite();
   revalidatePath("/admin/content/header");
   revalidatePath("/admin/content/header-footer");
+  redirectAdminFlash(formData, "saved", "content/header");
 }

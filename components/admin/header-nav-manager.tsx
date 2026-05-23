@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import {
   createNavLinkAction,
@@ -20,12 +21,19 @@ function nextSortOrder(rows: AdminNavRow[]): number {
   return Math.max(...rows.map((r) => r.sortOrder)) + 1;
 }
 
-function NavOrderButtons({ linkId }: { linkId: string }) {
+function NavOrderButtons({
+  linkId,
+  returnTo,
+}: {
+  linkId: string;
+  returnTo: string;
+}) {
   return (
     <div className="flex shrink-0 gap-1">
       <form action={moveNavLinkOrderAction}>
         <input type="hidden" name="linkId" value={linkId} />
         <input type="hidden" name="direction" value="up" />
+        <input type="hidden" name="returnTo" value={returnTo} />
         <button
           type="submit"
           title="Gore"
@@ -37,6 +45,7 @@ function NavOrderButtons({ linkId }: { linkId: string }) {
       <form action={moveNavLinkOrderAction}>
         <input type="hidden" name="linkId" value={linkId} />
         <input type="hidden" name="direction" value="down" />
+        <input type="hidden" name="returnTo" value={returnTo} />
         <button
           type="submit"
           title="Dole"
@@ -58,6 +67,7 @@ function NavOrderButtons({ linkId }: { linkId: string }) {
         }}
       >
         <input type="hidden" name="linkId" value={linkId} />
+        <input type="hidden" name="returnTo" value={returnTo} />
         <button
           type="submit"
           className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs text-red-800 hover:bg-red-100"
@@ -75,18 +85,21 @@ function NewNavItemForm({
   sortOrder,
   label,
   buttonLabel,
+  returnTo,
 }: {
   placement: "header" | "footer";
   parentId?: string | null;
   sortOrder: number;
   label: string;
   buttonLabel: string;
+  returnTo: string;
 }) {
   return (
     <form
       action={createNavLinkAction}
       className="rounded-xl border border-dashed border-[#e8d9ca] bg-[#fff9f5]/80 p-4"
     >
+      <input type="hidden" name="returnTo" value={returnTo} />
       <input type="hidden" name="placement" value={placement} />
       <input type="hidden" name="footerColumn" value="0" />
       {parentId ? <input type="hidden" name="parentId" value={parentId} /> : null}
@@ -126,6 +139,7 @@ type Props = {
 };
 
 export function HeaderNavManager({ rows, pageOptions }: Props) {
+  const pathname = usePathname();
   const headerRows = rows.filter((r) => r.placement === "header");
   const roots = headerRows
     .filter((r) => !r.parentId || !headerRows.some((h) => h.linkId === r.parentId))
@@ -147,6 +161,7 @@ export function HeaderNavManager({ rows, pageOptions }: Props) {
           sortOrder={nextSortOrder(roots)}
           label="Dodaj kategoriju u header"
           buttonLabel="Nova kategorija"
+          returnTo={pathname}
         />
       </AdminPanel>
 
@@ -169,7 +184,7 @@ export function HeaderNavManager({ rows, pageOptions }: Props) {
                 <p className="text-xs font-semibold uppercase tracking-wide text-[#c55a15]">
                   Glavna kategorija
                 </p>
-                <NavOrderButtons linkId={root.linkId} />
+                <NavOrderButtons linkId={root.linkId} returnTo={pathname} />
               </div>
               <NavLinkRowForm
                 linkId={root.linkId}
@@ -195,7 +210,7 @@ export function HeaderNavManager({ rows, pageOptions }: Props) {
                       <span className="text-xs font-medium uppercase tracking-wide text-[#8a7b6e]">
                         ↳ {child.labels.me?.trim() || "Podstavka"}
                       </span>
-                      <NavOrderButtons linkId={child.linkId} />
+                      <NavOrderButtons linkId={child.linkId} returnTo={pathname} />
                     </div>
                     <NavLinkRowForm
                       linkId={child.linkId}
@@ -215,6 +230,7 @@ export function HeaderNavManager({ rows, pageOptions }: Props) {
                   sortOrder={nextSortOrder(kids)}
                   label="Nova podstavka u ovoj kategoriji"
                   buttonLabel="Dodaj podstavku"
+                  returnTo={pathname}
                 />
               </div>
             </AdminPanel>

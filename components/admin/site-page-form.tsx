@@ -11,6 +11,7 @@ import {
 } from "@/app/admin/(authed)/pages/actions";
 import { translateSitePageFromMeAction } from "@/app/admin/(authed)/translate/actions";
 import { TranslateFromMeButton } from "@/components/admin/translate-from-me-button";
+import { AdminFormSubmit } from "@/components/admin/admin-form-submit";
 import { TiptapEditor } from "@/components/admin/tiptap-editor";
 import type { MediaOption } from "@/lib/queries/media-admin";
 import type { Locale } from "@/lib/i18n";
@@ -262,6 +263,7 @@ export function SitePageFormClient(props: Props) {
                   initialHtml={bodies[loc]}
                   mediaOptions={props.mediaOptions}
                   placeholder="Sadržaj stranice…"
+                  allowHtmlSource
                   onHtmlChange={(html) =>
                     setBodies((s) => ({ ...s, [loc]: html }))
                   }
@@ -275,12 +277,12 @@ export function SitePageFormClient(props: Props) {
         ))}
       </div>
 
-      <button
-        type="submit"
+      <AdminFormSubmit
+        pendingLabel="Čuvanje…"
         className="rounded-lg border border-neutral-300 bg-white px-5 py-2 text-sm font-medium hover:bg-neutral-50"
       >
         {props.mode === "create" ? "Kreiraj stranicu" : "Sačuvaj izmjene"}
-      </button>
+      </AdminFormSubmit>
     </form>
   );
 }

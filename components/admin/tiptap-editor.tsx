@@ -29,6 +29,8 @@ type Props = {
   className?: string;
   /** Galerija iz Mediji (admin) */
   mediaOptions?: MediaOption[];
+  /** Stranice: prebacivanje vizuelno ↔ HTML source */
+  allowHtmlSource?: boolean;
 };
 
 export type TiptapEditorHandle = {
@@ -43,11 +45,14 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
       placeholder = "Sadržaj stranice…",
       className,
       mediaOptions = [],
+      allowHtmlSource = false,
     },
     ref,
   ) {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [sourceMode, setSourceMode] = useState(false);
+  const [sourceHtml, setSourceHtml] = useState(initialHtml || "");
 
   const editor = useEditor({
     extensions: [
@@ -75,19 +80,49 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
 
   useEffect(() => {
     if (!editor) return;
+    if (sourceMode) return;
     const cur = editor.getHTML();
     const next = initialHtml || "";
     if (next !== cur && (next !== "<p></p>" || cur === "")) {
       editor.commands.setContent(next, false);
     }
-  }, [initialHtml, editor]);
+  }, [initialHtml, editor, sourceMode]);
+
+  useEffect(() => {
+    if (!sourceMode) {
+      setSourceHtml(initialHtml || "");
+    }
+  }, [initialHtml, sourceMode]);
+
+  const toggleSourceMode = useCallback(() => {
+    if (!editor) return;
+    if (sourceMode) {
+      editor.commands.setContent(sourceHtml || "", false);
+      onHtmlChange(editor.getHTML());
+      setSourceMode(false);
+      return;
+    }
+    const html = editor.getHTML();
+    setSourceHtml(html);
+    onHtmlChange(html);
+    setSourceMode(true);
+  }, [editor, onHtmlChange, sourceHtml, sourceMode]);
+
+  const onSourceHtmlChange = useCallback(
+    (value: string) => {
+      setSourceHtml(value);
+      onHtmlChange(value);
+    },
+    [onHtmlChange],
+  );
 
   useImperativeHandle(
     ref,
     () => ({
-      getHtml: () => editor?.getHTML() ?? initialHtml ?? "",
+      getHtml: () =>
+        sourceMode ? sourceHtml : (editor?.getHTML() ?? initialHtml ?? ""),
     }),
-    [editor, initialHtml],
+    [editor, initialHtml, sourceHtml, sourceMode],
   );
 
   const insertImageUrl = useCallback(
@@ -143,6 +178,22 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
     <>
       <div className={cn("rounded-md border border-neutral-200 bg-white", className)}>
         <div className="flex flex-wrap gap-1 border-b border-neutral-100 bg-neutral-50 px-2 py-1.5">
+          {allowHtmlSource ? (
+            <button
+              type="button"
+              onClick={toggleSourceMode}
+              className={cn(
+                "rounded px-2 py-1 text-xs font-medium",
+                sourceMode
+                  ? "bg-neutral-800 text-white"
+                  : "text-neutral-700 hover:bg-neutral-200",
+              )}
+            >
+              {sourceMode ? "Vizuelno" : "</> HTML"}
+            </button>
+          ) : null}
+          {!sourceMode ? (
+            <>
           <ToolbarBtn
             active={editor.isActive("bold")}
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -190,8 +241,20 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
           >
             Galerija
           </button>
+            </>
+          ) : null}
         </div>
-        <EditorContent editor={editor} />
+        {sourceMode ? (
+          <textarea
+            value={sourceHtml}
+            onChange={(e) => onSourceHtmlChange(e.target.value)}
+            spellCheck={false}
+            className="block min-h-[220px] w-full resize-y border-0 bg-white px-3 py-2 font-mono text-xs leading-relaxed text-neutral-900 focus:outline-none"
+            placeholder="<p>HTML sadržaj…</p>"
+          />
+        ) : (
+          <EditorContent editor={editor} />
+        )}
       </div>
 
       <AdminMediaPicker
