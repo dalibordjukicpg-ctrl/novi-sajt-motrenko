@@ -2,13 +2,18 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import {
   isHeroBackgroundVideoUrl,
   isHeroBackgroundYoutubeUrl,
 } from "@/lib/hero-background-media";
-import { HERO_VIDEO_POSTER } from "@/lib/clinic-assets";
+import {
+  getHomeHeroVideoReady,
+  getSavedHeroVideoTime,
+  persistHeroVideoProgress,
+  setHomeHeroVideoReady,
+} from "@/lib/hero-video-session";
 
 export type HomeHeroSlide = {
   eyebrow: string;
@@ -53,7 +58,7 @@ export function HomeHeroMotrenko({
 
   const [current, setCurrent] = useState(0);
   const [leaving, setLeaving] = useState(false);
-  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(false);
   const bgRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -92,8 +97,39 @@ export function HomeHeroMotrenko({
   const isYoutube = !isSplit && url ? isHeroBackgroundYoutubeUrl(url) : false;
   const isVideo =
     !isSplit && url ? !isYoutube && isHeroBackgroundVideoUrl(url) : false;
-  const customPoster = posterUrl?.trim() || HERO_VIDEO_POSTER;
   const isLocalImg = url.startsWith("/");
+
+  const markVideoActive = () => {
+    setVideoVisible(true);
+    setHomeHeroVideoReady();
+  };
+
+  useLayoutEffect(() => {
+    if (!isVideo || !url) return;
+    const el = videoRef.current;
+    if (!el) return;
+
+    const saved = getSavedHeroVideoTime();
+    if (saved > 0.05) {
+      const applySaved = () => {
+        try {
+          if (el.duration && saved < el.duration - 0.25) {
+            el.currentTime = saved;
+          }
+        } catch {
+          /* seek blocked until metadata */
+        }
+        setVideoVisible(true);
+        void el.play().catch(() => {});
+      };
+
+      if (el.readyState >= 1) applySaved();
+      else el.addEventListener("loadedmetadata", applySaved, { once: true });
+    } else if (getHomeHeroVideoReady()) {
+      setVideoVisible(true);
+      void el.play().catch(() => {});
+    }
+  }, [isVideo, url]);
 
   useEffect(() => {
     if (!isVideo || !url) return;
@@ -102,13 +138,19 @@ export function HomeHeroMotrenko({
     if (!el || !section) return;
 
     const tryPlay = () => {
-      void el.play().then(() => setVideoPlaying(true)).catch(() => {
-        /* iOS low power / autoplay — poster ostaje vidljiv */
-      });
+      void el.play().then(markVideoActive).catch(() => {});
     };
 
     tryPlay();
     el.addEventListener("loadeddata", tryPlay);
+
+    const onTime = () => {
+      if (el.currentTime > 0.08) {
+        markVideoActive();
+        persistHeroVideoProgress(el.currentTime);
+      }
+    };
+    el.addEventListener("timeupdate", onTime);
 
     const obs = new IntersectionObserver(
       ([entry]) => {
@@ -120,7 +162,11 @@ export function HomeHeroMotrenko({
 
     return () => {
       el.removeEventListener("loadeddata", tryPlay);
+      el.removeEventListener("timeupdate", onTime);
       obs.disconnect();
+      if (el.currentTime > 0.08) {
+        persistHeroVideoProgress(el.currentTime);
+      }
     };
   }, [isVideo, url]);
 
@@ -223,38 +269,20 @@ export function HomeHeroMotrenko({
             allow="autoplay; encrypted-media"
           />
         ) : isVideo && url ? (
-          <>
-            <Image
-              src={customPoster}
-              alt=""
-              fill
-              priority
-              sizes="100vw"
-              className={[
-                "absolute inset-0 z-[1] object-cover transition-opacity duration-700 max-md:object-[center_38%] md:object-[center_28%]",
-                videoPlaying ? "opacity-0" : "opacity-100",
-              ].join(" ")}
-            />
-            <video
-              key={url}
-              ref={videoRef}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              poster={customPoster}
-              src={url}
-              onPlaying={() => setVideoPlaying(true)}
-              onTimeUpdate={(e) => {
-                if (e.currentTarget.currentTime > 0.05) setVideoPlaying(true);
-              }}
-              className={[
-                "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover max-md:object-[center_38%] md:object-[center_28%]",
-                videoPlaying ? "opacity-100" : "opacity-0",
-              ].join(" ")}
-            />
-          </>
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            src={url}
+            onPlaying={markVideoActive}
+            className={[
+              "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover max-md:object-[center_38%] md:object-[center_28%]",
+              videoVisible ? "opacity-100" : "opacity-0",
+            ].join(" ")}
+          />
         ) : url && isLocalImg ? (
           <Image
             src={url}

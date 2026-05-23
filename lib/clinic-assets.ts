@@ -12,6 +12,9 @@ export const CLINIC_PAGE_HERO_BG = "/page-hero-panorama.png";
 export const HERO_VIDEO_POSTER =
   "/wp-media/8542326401b1_centar-za-humanu-reprodukciju-budva-1000-beba-naslovna-humanreproduction-1024x768.jpg";
 
+/** Statički hero video u `public/video/` (client-safe putanja). */
+export const FALLBACK_HERO_VIDEO_PATH_REL = "/video/nova-beba.mp4";
+
 export const STORY_IMAGES = [
   "/wp-media/63f6680aaa47_centar-za-humanu-reprodukciju-budva-1000-beba-dr-tatjana-motrenko-simic-humanreproduction.jpg",
   "/wp-media/345dd5202c8f_centar-za-humanu-reprodukciju-budva-1000-beba-humanreproduction.jpg",

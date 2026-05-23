@@ -1,11 +1,9 @@
 import { existsSync } from "fs";
 import path from "path";
 
-/**
- * Statički hero video u repou (`public/video/nova-beba.mp4`), ako CMS nema pozadinu.
- * Ostaje `hero-banner.mp4` kao rezerva ako novi fajl nedostaje.
- */
-export const FALLBACK_HERO_VIDEO_PATH_REL = "/video/nova-beba.mp4";
+import { FALLBACK_HERO_VIDEO_PATH_REL } from "@/lib/clinic-assets";
+
+export { FALLBACK_HERO_VIDEO_PATH_REL };
 
 const FALLBACK_FILENAMES = ["nova-beba.mp4", "hero-banner.mp4"] as const;
 
