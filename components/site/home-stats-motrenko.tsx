@@ -14,11 +14,27 @@ export type HomeStatItem = {
 
 /* Ikone se dodjeljuju po indeksu — da promijenite ikonu, promijenite ovaj niz */
 const STAT_ICONS = [
-  <Heart size={18} strokeWidth={1.6} key="heart" />,
-  <Baby size={18} strokeWidth={1.6} key="baby" />,
-  <Users size={18} strokeWidth={1.6} key="users" />,
-  <Star size={18} strokeWidth={1.6} key="star" />,
+  <Heart size={17} strokeWidth={1.45} fill="currentColor" key="heart" />,
+  <Baby size={17} strokeWidth={1.45} key="baby" />,
+  <Users size={17} strokeWidth={1.45} key="users" />,
+  <Star size={17} strokeWidth={1.45} fill="currentColor" key="star" />,
 ];
+
+function StatPremiumIcon({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative shrink-0">
+      <div
+        aria-hidden
+        className="absolute -inset-1.5 rounded-full bg-[rgb(232_104_42/0.45)] blur-md"
+      />
+      <div className="relative flex size-9 items-center justify-center rounded-full border border-white/35 bg-gradient-to-br from-white/30 via-white/12 to-[rgb(232_104_42/0.22)] text-[#fff6ef] shadow-[0_8px_22px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.5)] backdrop-blur-xl sm:size-10">
+        <span className="drop-shadow-[0_1px_6px_rgba(232,104,42,0.55)] [&_svg]:opacity-95">
+          {children}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 function parseStatParts(raw: string): { target: number; suffix: string; displayStatic: string | null } {
   const t = raw.trim();
@@ -107,7 +123,7 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
           "hover:-translate-y-1 hover:shadow-[0_24px_52px_-14px_rgba(28,18,10,0.36)] hover:ring-site-brand/30",
           vis ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
         ].join(" ")}
-        style={{ transitionDelay: `${delay}ms`, containerType: "inline-size" }}
+        style={{ transitionDelay: `${delay}ms` }}
       >
         <div
           className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl sm:rounded-[1.35rem]"
@@ -128,42 +144,43 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
           />
         </div>
 
-        <div className="relative z-10 flex min-h-[11rem] w-full min-w-0 flex-col px-4 pb-5 pt-4 sm:min-h-[12.5rem] sm:px-6 sm:pb-7 sm:pt-6">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-site-brand/35 bg-site-brand/[0.15] text-[var(--site-peach)] shadow-[0_4px_16px_rgba(0,0,0,0.15)] backdrop-blur-md sm:size-10">
-            {STAT_ICONS[index % STAT_ICONS.length]}
+        <div className="relative z-10 flex min-h-[10.75rem] flex-col justify-end px-3.5 pb-4 pt-3.5 sm:min-h-[12.5rem] sm:px-5 sm:pb-6 sm:pt-5">
+          <div className="absolute right-3 top-3 sm:right-4 sm:top-4">
+            <StatPremiumIcon>{STAT_ICONS[index % STAT_ICONS.length]}</StatPremiumIcon>
           </div>
 
-          <div className="min-h-2 flex-1" aria-hidden />
-
-          <div className="mt-auto w-full min-w-0 text-left">
-            <p
-              className="min-h-[2rem] w-full min-w-0 text-[clamp(1.2rem,14cqw,2.65rem)] font-semibold leading-none tracking-tight text-white tabular-nums sm:min-h-[2.65rem]"
-              style={{
-                fontFamily: "var(--font-playfair), Georgia, serif",
-                textShadow: "0 2px 24px rgba(0,0,0,0.35)",
-              }}
-            >
-              <span className="inline-block max-w-full leading-none">
+          <div className="w-full min-w-0 pr-10 sm:pr-12">
+            <div className="flex h-[2rem] w-full items-end sm:h-[2.5rem]">
+              <p
+                className="w-full min-w-0 text-left text-[1.875rem] font-semibold leading-none tracking-tight text-white tabular-nums sm:text-[2.35rem]"
+                style={{
+                  fontFamily: "var(--font-playfair), Georgia, serif",
+                  textShadow: "0 2px 24px rgba(0,0,0,0.35)",
+                }}
+              >
                 {displayStatic !== null ? (
                   <span>{displayStatic}</span>
                 ) : (
                   <>
                     <span>{count.toLocaleString("sr-Latn-ME")}</span>
                     {suffix ? (
-                      <span className="ml-px text-[0.62em] font-semibold leading-none text-[var(--site-peach)]">
+                      <span className="ml-0.5 text-[0.58em] font-semibold leading-none text-[var(--site-peach)]">
                         {suffix}
                       </span>
                     ) : null}
                   </>
                 )}
-              </span>
-            </p>
-
-            <div className="mt-2.5 w-full border-t border-white/20 pt-2.5 sm:mt-3 sm:pt-3">
-              <p className="text-balance text-[8px] font-semibold uppercase leading-[1.35] tracking-[0.16em] text-white/90 sm:text-[10px] sm:tracking-[0.22em]">
-                {stat.label}
               </p>
             </div>
+
+            <div
+              aria-hidden
+              className="mt-2.5 h-px w-full bg-gradient-to-r from-white/45 via-white/18 to-transparent sm:mt-3"
+            />
+
+            <p className="mt-2.5 min-h-[2.85rem] w-full text-left text-[8.5px] font-semibold uppercase leading-[1.32] tracking-[0.11em] text-white/92 sm:mt-3 sm:min-h-[2.95rem] sm:text-[10px] sm:leading-[1.35] sm:tracking-[0.18em]">
+              {stat.label}
+            </p>
           </div>
         </div>
       </article>
