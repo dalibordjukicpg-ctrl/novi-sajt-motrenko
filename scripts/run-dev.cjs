@@ -79,11 +79,28 @@ if (clean) {
 } else {
   killListenersOnPort(port);
   sleepMs(400);
+  const nextDir = path.join(process.cwd(), ".next");
+  const prodBuildMarker = path.join(nextDir, "BUILD_ID");
+  const vendorLucide = path.join(nextDir, "server", "vendor-chunks", "lucide-react.js");
+  const localePageJs = path.join(nextDir, "server", "app", "[locale]", "page.js");
+  let referencesLucideChunk = false;
+  if (fs.existsSync(localePageJs)) {
+    try {
+      referencesLucideChunk = fs
+        .readFileSync(localePageJs, "utf8")
+        .includes("vendor-chunks/lucide-react.js");
+    } catch {
+      /* ignore */
+    }
+  }
+  const staleVendorChunks =
+    fs.existsSync(prodBuildMarker) ||
+    (referencesLucideChunk && !fs.existsSync(vendorLucide));
+
   /** `npm run build` pa `npm run dev` bez clean — vendor-chunk 500 na Windowsu. */
-  const prodBuildMarker = path.join(process.cwd(), ".next", "BUILD_ID");
-  if (fs.existsSync(prodBuildMarker)) {
+  if (staleVendorChunks) {
     console.log(
-      "U .next je ostao production build — brišem cache prije dev servera (inače 500 / vendor-chunks).\n" +
+      "Neispravan .next cache (production build ili nedostaje vendor-chunks/lucide-react.js) — brišem prije dev servera.\n" +
         "  Savjet: nakon builda koristi `npm run dev:fresh` umjesto `npm run dev`.\n",
     );
     for (const rel of [".next", path.join("node_modules", ".cache")]) {

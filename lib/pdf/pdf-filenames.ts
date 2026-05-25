@@ -1,8 +1,16 @@
-/** Fiksna imena priloga — bez emaila ili ličnih podataka korisnika. */
+/** Sigurno ime fajla iz email adrese (Windows + email prilozi). */
+function emailToPdfBasename(email: string): string {
+  const raw = email.trim().toLowerCase();
+  const safe = raw
+    .replace(/[^a-z0-9@.+_-]/g, "")
+    .replace(/@+/g, "@")
+    .slice(0, 120);
+  return safe.length > 0 ? safe : "prijavnica-bez-emaila";
+}
 
-export function bookingPdfAttachmentName(publicRef: string): string {
-  const ref = publicRef.replace(/[^A-Za-z0-9-]/g, "").slice(0, 12).toUpperCase();
-  return `prijavnica-HRC-${ref || "NOVI"}.pdf`;
+/** Ime priloga za prijavnicu — email korisnika radi lakše pretrage u inboxu. */
+export function bookingPdfAttachmentName(email: string): string {
+  return `${emailToPdfBasename(email)}.pdf`;
 }
 
 export function contactPdfAttachmentName(submissionId: string): string {

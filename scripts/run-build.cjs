@@ -33,6 +33,15 @@ process.env.NODE_OPTIONS = [
   .filter(Boolean)
   .join(" ");
 
+const fontCopy = spawnSync(process.execPath, ["scripts/copy-pdf-fonts.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
+if (fontCopy.status !== 0) {
+  console.warn("[run-build] copy-pdf-fonts nije uspio — PDF UTF-8 može biti neispravan.");
+}
+
 let nextBin;
 try {
   nextBin = require.resolve("next/dist/bin/next");

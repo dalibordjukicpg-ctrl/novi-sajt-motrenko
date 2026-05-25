@@ -234,7 +234,7 @@ export async function submitBookingRequestAction(
       console.error("[booking] pdf", e);
     }
 
-    const filename = bookingPdfAttachmentName(publicRef);
+    const filename = bookingPdfAttachmentName(data.email);
 
     const sent = await sendBookingNotificationEmail({
       to: notifyTo,

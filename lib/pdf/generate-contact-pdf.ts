@@ -1,9 +1,12 @@
+import { getContactPdfLabels } from "@/lib/pdf/contact-pdf-labels";
+
 import {
+  assertSinglePdfPage,
   bufferFromPdfDoc,
   createA4PdfDocument,
-  drawCategorySection,
   drawFooters,
   drawPdfHeader,
+  drawSinglePageSections,
   type PdfBranding,
 } from "./pdf-layout";
 
@@ -24,70 +27,81 @@ export async function generateContactPdf(
   data: ContactPdfPayload,
   branding: ContactPdfBranding,
 ): Promise<Buffer> {
+  const labels = getContactPdfLabels(data.locale);
+
   const doc = createA4PdfDocument({
-    title: "Kontakt upit sa sajta — A4",
+    title: `${labels.title} — A4`,
     author: branding.clinicName,
-    subject: `Upit: ${data.fullName}`,
-    keywords: "kontakt, ordinacija, A4",
+    subject: `${labels.title}: ${data.fullName}`,
+    keywords: "kontakt, contact, A4",
     creator: "Website contact form",
   });
 
   const pdfPromise = bufferFromPdfDoc(doc);
 
   drawPdfHeader(doc, {
-    title: "Kontakt upit sa veb prezentacije",
+    title: labels.title,
     submittedAt: data.submittedAt,
     locale: data.locale,
+    metaLabels: {
+      submittedAt: labels.metaSubmitted,
+      formLanguage: labels.metaLanguage,
+      referenceId: "",
+    },
   });
 
-  drawCategorySection(doc, {
-    index: 1,
-    title: "Podaci korisnika",
-    fields: [
-      { kind: "pair", label: "Ime i prezime", value: data.fullName },
-    ],
-  });
-
-  drawCategorySection(doc, {
-    index: 2,
-    title: "Kontakt",
-    fields: [
-      { kind: "pair", label: "E-mail", value: data.email },
-      { kind: "pair", label: "Telefon", value: data.phone },
-    ],
-  });
-
-  drawCategorySection(doc, {
-    index: 3,
-    title: "Razlog javljanja",
-    fields: [
-      {
-        kind: "pair",
-        label: "Tip upita / usluga",
-        value:
-          data.inquiryType && data.inquiryType.trim().length > 0
-            ? data.inquiryType.trim()
-            : "—",
-      },
-      { kind: "block", label: "Poruka", value: data.message.trim(), maxChars: 480 },
-    ],
-  });
-
-  drawCategorySection(doc, {
-    index: 4,
-    title: "Saglasnost",
-    fields: [
-      {
-        kind: "block",
-        label: "Potvrda",
-        value: data.consentAccepted
-          ? "Potvrđena saglasnost za obradu podataka radi odgovora na upit."
-          : "Saglasnost nije zabilježena.",
-      },
-    ],
-  });
+  drawSinglePageSections(doc, [
+    {
+      index: 1,
+      title: labels.sectionUser,
+      fields: [{ kind: "pair", label: labels.fullName, value: data.fullName }],
+    },
+    {
+      index: 2,
+      title: labels.sectionContact,
+      fields: [
+        { kind: "pair", label: labels.email, value: data.email },
+        { kind: "pair", label: labels.phone, value: data.phone },
+      ],
+    },
+    {
+      index: 3,
+      title: labels.sectionReason,
+      fields: [
+        {
+          kind: "pair",
+          label: labels.inquiryType,
+          value:
+            data.inquiryType && data.inquiryType.trim().length > 0
+              ? data.inquiryType.trim()
+              : "—",
+        },
+        {
+          kind: "block",
+          label: labels.message,
+          value: data.message.trim(),
+          flex: 2,
+        },
+      ],
+    },
+    {
+      index: 4,
+      title: labels.sectionConsent,
+      fields: [
+        {
+          kind: "block",
+          label: labels.confirmation,
+          value: data.consentAccepted
+            ? labels.consentConfirmed
+            : labels.consentMissing,
+          flex: 1,
+        },
+      ],
+    },
+  ]);
 
   drawFooters(doc, branding);
+  assertSinglePdfPage(doc);
   doc.end();
   return pdfPromise;
 }

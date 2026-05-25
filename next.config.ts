@@ -47,16 +47,7 @@ const nextConfig: NextConfig = {
     return buildLegacyWordPressRedirects();
   },
   /**
-   * Tree-shake lucide-react imports — manje server chunkova u devu (Windows:
-   * često `Cannot find module './vendor-chunks/lucide-react.js'` kad je `.next` „prljava”).
-   */
-  experimental: {
-    optimizePackageImports: ["lucide-react"],
-  },
-  /**
-   * Spriječava webpack vendor chunkove koji u dev na Windowsu često „puknu“
-   * (MODULE_NOT_FOUND za ./vendor-chunks/*.js, zatim TypeError u webpack-runtime).
-   * bcryptjs / tailwind-merge: često nedostaje vendor-chunk nakon HMR ili build+dev miks.
+   * Paketi iz node_modules — bez nestabilnih vendor-chunks u devu (Windows).
    */
   serverExternalPackages: [
     "mysql2",

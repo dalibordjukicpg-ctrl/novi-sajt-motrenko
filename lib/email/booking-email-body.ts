@@ -35,12 +35,12 @@ export function buildBookingEmailBody(opts: {
 
   const lines = [
     `${labels.formEyebrow} — ${labels.formTitle}`,
-    `Ref / ID: ${publicRef}`,
+    `${labels.pdfMetaReference}: ${publicRef}`,
     `---`,
     `${labels.fullName}: ${data.fullName}`,
     `${labels.email}: ${data.email}`,
     `${labels.phone}: ${data.phone}`,
-    `Datum rođenja: ${dob}`,
+    `${labels.pdfDateOfBirth}: ${dob}`,
     `${labels.whoAttends}: ${who}`,
     `${labels.partnerName}: ${partnerName}`,
     `${labels.partnerPhone}: ${partnerPhone}`,
@@ -48,10 +48,10 @@ export function buildBookingEmailBody(opts: {
     data.whatBroughtYou,
     `${labels.tryingConceive}: ${ttc}`,
     "",
-    "Puni pregled je u prilogu (PDF, A4 — spreman za štampu).",
+    labels.pdfAttachmentNote,
   ];
 
-  const subject = `[Prijavnica] ${data.fullName}`;
+  const subject = `[${labels.formEyebrow}] ${data.fullName}`;
 
   return { subject: subject.slice(0, 200), text: lines.join("\n") };
 }

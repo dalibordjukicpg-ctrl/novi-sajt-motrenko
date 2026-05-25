@@ -3,22 +3,22 @@ import path from "path";
 
 import PDFDocument from "pdfkit";
 
-import { PDF_FONT, pdfFontAvailable, registerPdfFonts } from "./pdf-fonts";
+import { fontBold, fontRegular, registerPdfFonts } from "./pdf-fonts";
 
-/** Margine prilagođene A4 štampi. */
+/** Margine prilagođene A4 štampi — kompaktno, jedna stranica. */
 export function mm(n: number): number {
   return (n * 72) / 25.4;
 }
 
 export const PDF_MARGINS = {
-  top: mm(14),
-  bottom: mm(22),
-  left: mm(16),
-  right: mm(16),
+  top: mm(12),
+  bottom: mm(16),
+  left: mm(14),
+  right: mm(14),
 };
 
 /** Zona sadržaja iznad fiksnog footera. */
-export const PDF_FOOTER_RESERVE = mm(20);
+export const PDF_FOOTER_RESERVE = mm(18);
 
 export type PdfBranding = {
   clinicName: string;
@@ -29,19 +29,25 @@ export type PdfBranding = {
 
 export type PdfFieldRow =
   | { kind: "pair"; label: string; value: string }
-  | { kind: "block"; label: string; value: string; maxChars?: number };
+  | { kind: "block"; label: string; value: string; flex?: number };
 
-function fontRegular(doc: InstanceType<typeof PDFDocument>): string {
-  return pdfFontAvailable(doc) ? PDF_FONT.regular : "Helvetica";
-}
+export type PdfSection = {
+  index: number;
+  title: string;
+  fields: PdfFieldRow[];
+};
 
-function fontBold(doc: InstanceType<typeof PDFDocument>): string {
-  return pdfFontAvailable(doc) ? PDF_FONT.bold : "Helvetica-Bold";
-}
+export type PdfHeaderMetaLabels = {
+  submittedAt: string;
+  formLanguage: string;
+  referenceId: string;
+};
 
-export function formatSubmittedAt(d: Date): string {
+const SINGLE_PAGE_SCALES = [1, 0.94, 0.88, 0.82, 0.76, 0.7] as const;
+
+export function formatSubmittedAt(d: Date, locale = "sr-Latn-ME"): string {
   try {
-    return new Intl.DateTimeFormat("sr-Latn-ME", {
+    return new Intl.DateTimeFormat(locale, {
       dateStyle: "long",
       timeStyle: "short",
       timeZone: "Europe/Podgorica",
@@ -86,6 +92,7 @@ export function createA4PdfDocument(info: {
   const doc = new PDFDocument({
     size: "A4",
     margins: PDF_MARGINS,
+    autoFirstPage: true,
     info: {
       Title: info.title,
       Author: info.author,
@@ -112,14 +119,15 @@ export function bufferFromPdfDoc(
 function drawLogo(
   doc: InstanceType<typeof PDFDocument>,
   logoPath: string,
+  scale: number,
 ): void {
   const left = doc.page.margins.left;
-  const maxW = Math.min(140, contentWidth(doc));
-  const maxH = 40;
+  const maxW = Math.min(128 * scale, contentWidth(doc));
+  const maxH = 34 * scale;
   const top = doc.page.margins.top;
   try {
     doc.image(logoPath, left, top, { fit: [maxW, maxH] });
-    doc.y = top + maxH + 8;
+    doc.y = top + maxH + 6 * scale;
   } catch (e) {
     console.warn("[pdf] Učitavanje loga nije uspjelo.", e);
     doc.y = top;
@@ -129,33 +137,37 @@ function drawLogo(
 function drawMetaBox(
   doc: InstanceType<typeof PDFDocument>,
   rows: Array<{ label: string; value: string }>,
+  scale: number,
 ): void {
   const left = doc.page.margins.left;
   const w = contentWidth(doc);
-  const padX = 8;
-  const padY = 6;
-  const rowH = 13;
+  const padX = 7 * scale;
+  const padY = 5 * scale;
+  const rowH = 11.5 * scale;
   const boxH = padY * 2 + rows.length * rowH;
   const y = doc.y;
 
-  doc.roundedRect(left, y, w, boxH, 4).fillAndStroke("#faf7f4", "#eadfce");
+  doc.roundedRect(left, y, w, boxH, 3).fillAndStroke("#faf7f4", "#eadfce");
 
   let rowY = y + padY;
   for (const row of rows) {
     doc
       .font(fontBold(doc))
-      .fontSize(8)
+      .fontSize(7.5 * scale)
       .fillColor("#7a6a5c")
-      .text(row.label, left + padX, rowY, { width: 108 });
+      .text(row.label, left + padX, rowY, { width: 100 * scale, lineBreak: false });
     doc
       .font(fontRegular(doc))
-      .fontSize(8.5)
+      .fontSize(8 * scale)
       .fillColor("#1a1208")
-      .text(row.value, left + padX + 112, rowY, { width: w - padX * 2 - 112 });
+      .text(row.value, left + padX + 102 * scale, rowY, {
+        width: w - padX * 2 - 102 * scale,
+        lineBreak: false,
+      });
     rowY += rowH;
   }
 
-  doc.y = y + boxH + 8;
+  doc.y = y + boxH + 6 * scale;
 }
 
 export function drawPdfHeader(
@@ -166,60 +178,279 @@ export function drawPdfHeader(
     submittedAt: Date;
     locale: string;
     publicRef?: string;
+    metaLabels: PdfHeaderMetaLabels;
+    dateLocale?: string;
+    scale?: number;
   },
 ): void {
+  const scale = opts.scale ?? 1;
   const cw = contentWidth(doc);
   const logoPath = resolveLogoPath();
 
   if (logoPath) {
-    drawLogo(doc, logoPath);
+    drawLogo(doc, logoPath, scale);
   } else {
     doc.y = doc.page.margins.top;
   }
 
   doc
     .font(fontBold(doc))
-    .fontSize(15)
+    .fontSize(14 * scale)
     .fillColor("#1a1208")
-    .text(opts.title, doc.page.margins.left, doc.y, { width: cw });
-  doc.moveDown(0.08);
+    .text(opts.title, doc.page.margins.left, doc.y, { width: cw, lineBreak: false });
+  doc.y += 16 * scale;
 
   if (opts.subtitle) {
     doc
       .font(fontRegular(doc))
-      .fontSize(10.5)
+      .fontSize(9.5 * scale)
       .fillColor("#5c4a3a")
-      .text(opts.subtitle, { width: cw });
-    doc.moveDown(0.25);
+      .text(opts.subtitle, doc.page.margins.left, doc.y, {
+        width: cw,
+        lineBreak: false,
+      });
+    doc.y += 12 * scale;
   }
+
+  const dateLocale =
+    opts.dateLocale ??
+    (opts.locale === "ru"
+      ? "ru-RU"
+      : opts.locale === "en"
+        ? "en-GB"
+        : "sr-Latn-ME");
 
   const metaRows = [
-    { label: "Datum slanja", value: formatSubmittedAt(opts.submittedAt) },
-    { label: "Jezik forme", value: opts.locale.toUpperCase() },
+    {
+      label: opts.metaLabels.submittedAt,
+      value: formatSubmittedAt(opts.submittedAt, dateLocale),
+    },
+    {
+      label: opts.metaLabels.formLanguage,
+      value: opts.locale.toUpperCase(),
+    },
   ];
   if (opts.publicRef) {
-    metaRows.push({ label: "Referenca / ID", value: opts.publicRef });
+    metaRows.push({
+      label: opts.metaLabels.referenceId,
+      value: opts.publicRef,
+    });
   }
-  drawMetaBox(doc, metaRows);
+  drawMetaBox(doc, metaRows, scale);
 }
 
-function measureBlockHeight(
+function sectionMinBodyHeight(
   doc: InstanceType<typeof PDFDocument>,
-  value: string,
-  width: number,
-  fontSize = 9,
+  fields: PdfFieldRow[],
+  innerW: number,
+  scale: number,
 ): number {
-  doc.font(fontRegular(doc)).fontSize(fontSize);
-  return doc.heightOfString(value.trim() || "—", { width, lineGap: 2 });
+  const padY = 5 * scale;
+  const pairH = 11.5 * scale;
+  const blockLabelH = 9 * scale;
+  const blockMinH = 18 * scale;
+  let h = padY * 2;
+
+  for (const field of fields) {
+    if (field.kind === "pair") {
+      h += pairH;
+    } else {
+      h += blockLabelH + blockMinH + 3 * scale;
+    }
+  }
+  return h;
 }
 
-function normalizeBlockValue(value: string, maxChars?: number): string {
-  const t = value.trim() || "—";
-  if (!maxChars || t.length <= maxChars) return t;
-  return `${t.slice(0, maxChars - 1).trim()}…`;
+type SectionPlan = {
+  section: PdfSection;
+  bodyHeight: number;
+  titleHeight: number;
+  gap: number;
+};
+
+function planSinglePageSections(
+  doc: InstanceType<typeof PDFDocument>,
+  sections: PdfSection[],
+  startY: number,
+  endY: number,
+  scale: number,
+): SectionPlan[] | null {
+  const left = doc.page.margins.left;
+  const w = contentWidth(doc);
+  const padX = 8 * scale;
+  const innerW = w - padX * 2;
+  const titleH = 16 * scale;
+  const sectionGap = 3.5 * scale;
+
+  const mins = sections.map((section) => ({
+    section,
+    minBody: sectionMinBodyHeight(doc, section.fields, innerW, scale),
+  }));
+
+  let total =
+    mins.reduce((sum, m) => sum + titleH + sectionGap + m.minBody, 0) - sectionGap;
+  const available = endY - startY;
+  if (total > available) return null;
+
+  const extra = available - total;
+  const flexUnits = mins.reduce((sum, m) => {
+    return (
+      sum +
+      m.section.fields.reduce((f, field) => f + (field.kind === "block" ? field.flex ?? 1 : 0), 0)
+    );
+  }, 0);
+
+  return mins.map((m) => {
+    const flexCount = m.section.fields.reduce(
+      (f, field) => f + (field.kind === "block" ? field.flex ?? 1 : 0),
+      0,
+    );
+    const bonus =
+      flexUnits > 0 ? (extra * flexCount) / flexUnits : 0;
+    return {
+      section: m.section,
+      titleHeight: titleH,
+      gap: sectionGap,
+      bodyHeight: m.minBody + bonus,
+    };
+  });
 }
 
-/** Kategorija — kompaktno, jedna A4 stranica. */
+function drawSectionAt(
+  doc: InstanceType<typeof PDFDocument>,
+  plan: SectionPlan,
+  y: number,
+  scale: number,
+): number {
+  const left = doc.page.margins.left;
+  const w = contentWidth(doc);
+  const padX = 8 * scale;
+  const padY = 5 * scale;
+  const labelW = 128 * scale;
+  const gap = 5 * scale;
+  const valueW = w - padX * 2 - labelW - gap;
+  const { section, titleHeight, bodyHeight } = plan;
+
+  doc.roundedRect(left, y, w, titleHeight, 3).fill("#e8682a");
+  doc
+    .font(fontBold(doc))
+    .fontSize(8.5 * scale)
+    .fillColor("#ffffff")
+    .text(`${section.index}. ${section.title.toUpperCase()}`, left + padX, y + 4.5 * scale, {
+      width: w - padX * 2,
+      lineBreak: false,
+    });
+
+  const bodyY0 = y + titleHeight + 2.5 * scale;
+  doc.roundedRect(left, bodyY0, w, bodyHeight, 3).fillAndStroke("#ffffff", "#e8ddd2");
+
+  let blockFields = section.fields.filter((f) => f.kind === "block");
+  let blockExtra = 0;
+  if (blockFields.length > 0) {
+    const usedByPairs =
+      padY * 2 +
+      section.fields.filter((f) => f.kind === "pair").length * 11.5 * scale +
+      blockFields.length * (9 * scale + 3 * scale);
+    blockExtra = Math.max(0, bodyHeight - usedByPairs) / blockFields.length;
+  }
+
+  let cursorY = bodyY0 + padY;
+  const bodyBottom = bodyY0 + bodyHeight - padY;
+
+  for (const field of section.fields) {
+    if (cursorY >= bodyBottom - 2) break;
+
+    if (field.kind === "pair") {
+      const value = field.value.trim() || "—";
+      doc
+        .font(fontBold(doc))
+        .fontSize(7.5 * scale)
+        .fillColor("#6b5c4f")
+        .text(field.label, left + padX, cursorY, { width: labelW, lineGap: 0 });
+      doc
+        .font(fontRegular(doc))
+        .fontSize(8 * scale)
+        .fillColor("#1a1208")
+        .text(value, left + padX + labelW + gap, cursorY, {
+          width: valueW,
+          lineGap: 0,
+          height: 11 * scale,
+          ellipsis: true,
+        });
+      cursorY += 11.5 * scale;
+    } else {
+      const value = field.value.trim() || "—";
+      const blockH = Math.min(blockExtra, bodyBottom - cursorY - 9 * scale);
+      doc
+        .font(fontBold(doc))
+        .fontSize(7.5 * scale)
+        .fillColor("#6b5c4f")
+        .text(field.label, left + padX, cursorY, {
+          width: w - padX * 2,
+          lineBreak: false,
+        });
+      cursorY += 9 * scale;
+      doc
+        .font(fontRegular(doc))
+        .fontSize(8 * scale)
+        .fillColor("#1a1208")
+        .text(value, left + padX, cursorY, {
+          width: w - padX * 2,
+          lineGap: 1,
+          height: Math.max(12 * scale, blockH),
+          ellipsis: true,
+        });
+      cursorY += Math.max(12 * scale, blockH) + 3 * scale;
+    }
+  }
+
+  return bodyY0 + bodyHeight;
+}
+
+/** Cijeli formular na jednoj A4 stranici — skalira se ako ima puno teksta. */
+export function drawSinglePageSections(
+  doc: InstanceType<typeof PDFDocument>,
+  sections: PdfSection[],
+): void {
+  const startY = doc.y;
+  const endY = contentBottomLimit(doc);
+
+  for (const scale of SINGLE_PAGE_SCALES) {
+    const plans = planSinglePageSections(doc, sections, startY, endY, scale);
+    if (!plans) continue;
+
+    let y = startY;
+    for (let i = 0; i < plans.length; i++) {
+      const plan = plans[i]!;
+      y = drawSectionAt(doc, plan, y, scale) + plan.gap;
+    }
+    doc.y = y;
+    return;
+  }
+
+  const scale = SINGLE_PAGE_SCALES[SINGLE_PAGE_SCALES.length - 1]!;
+  const plans =
+    planSinglePageSections(doc, sections, startY, endY, scale) ??
+    sections.map((section, i) => ({
+      section,
+      titleHeight: 16 * scale,
+      gap: 3.5 * scale,
+      bodyHeight: sectionMinBodyHeight(
+        doc,
+        section.fields,
+        contentWidth(doc) - 16 * scale,
+        scale,
+      ),
+    }));
+
+  let y = startY;
+  for (const plan of plans) {
+    y = drawSectionAt(doc, plan, y, scale) + plan.gap;
+  }
+  doc.y = Math.min(y, endY);
+}
+
+/** @deprecated Koristiti drawSinglePageSections */
 export function drawCategorySection(
   doc: InstanceType<typeof PDFDocument>,
   opts: {
@@ -228,138 +459,64 @@ export function drawCategorySection(
     fields: PdfFieldRow[];
   },
 ): void {
-  const limit = contentBottomLimit(doc);
-  if (doc.y > limit - 28) return;
-
-  const left = doc.page.margins.left;
-  const w = contentWidth(doc);
-  const titleH = 20;
-  const padX = 10;
-  const padY = 7;
-  const labelW = 136;
-  const gap = 6;
-  const valueW = w - padX * 2 - labelW - gap;
-
-  doc.moveDown(0.15);
-  let y = doc.y;
-
-  doc.roundedRect(left, y, w, titleH, 4).fill("#e8682a");
-  doc
-    .font(fontBold(doc))
-    .fontSize(9.5)
-    .fillColor("#ffffff")
-    .text(`${opts.index}. ${opts.title.toUpperCase()}`, left + padX, y + 6, {
-      width: w - padX * 2,
-    });
-
-  y += titleH + 4;
-  let bodyH = padY * 2;
-  for (const field of opts.fields) {
-    if (field.kind === "pair") {
-      bodyH += 15;
-    } else {
-      const v = normalizeBlockValue(field.value, field.maxChars);
-      bodyH += 12 + measureBlockHeight(doc, v, w - padX * 2, 9) + 5;
-    }
-  }
-
-  const maxBody = limit - y;
-  if (bodyH > maxBody) bodyH = Math.max(28, maxBody);
-
-  doc.roundedRect(left, y, w, bodyH, 4).fillAndStroke("#ffffff", "#e8ddd2");
-
-  let bodyY = y + padY;
-  for (const field of opts.fields) {
-    if (bodyY > y + bodyH - 8) break;
-
-    if (field.kind === "pair") {
-      doc
-        .font(fontBold(doc))
-        .fontSize(8.5)
-        .fillColor("#6b5c4f")
-        .text(field.label, left + padX, bodyY, { width: labelW });
-      doc
-        .font(fontRegular(doc))
-        .fontSize(9)
-        .fillColor("#1a1208")
-        .text(field.value || "—", left + padX + labelW + gap, bodyY, {
-          width: valueW,
-          lineGap: 1,
-        });
-      bodyY += 15;
-    } else {
-      const v = normalizeBlockValue(field.value, field.maxChars);
-      doc
-        .font(fontBold(doc))
-        .fontSize(8.5)
-        .fillColor("#6b5c4f")
-        .text(field.label, left + padX, bodyY, { width: w - padX * 2 });
-      bodyY += 11;
-      doc
-        .font(fontRegular(doc))
-        .fontSize(9)
-        .fillColor("#1a1208")
-        .text(v, left + padX, bodyY, {
-          width: w - padX * 2,
-          lineGap: 2,
-          height: Math.max(12, y + bodyH - bodyY - padY),
-          ellipsis: true,
-        });
-      bodyY += measureBlockHeight(doc, v, w - padX * 2, 9) + 5;
-    }
-  }
-
-  doc.y = y + bodyH + 3;
+  drawSinglePageSections(doc, [
+    { index: opts.index, title: opts.title, fields: opts.fields },
+  ]);
 }
 
-/** Fiksni footer na dnu A4 — ime klinike + web adresa. */
+/** Fiksni footer u donjoj margini — uvijek na prvoj stranici. */
 export function drawFooters(
   doc: InstanceType<typeof PDFDocument>,
   branding: PdfBranding,
 ): void {
-  const range = doc.bufferedPageRange();
-  for (let i = 0; i < range.count; i++) {
-    doc.switchToPage(range.start + i);
-    const left = doc.page.margins.left;
-    const right = doc.page.width - doc.page.margins.right;
-    const w = contentWidth(doc);
-    const footerTop = doc.page.height - doc.page.margins.bottom + mm(1);
-    const lineY = footerTop - mm(2.5);
+  doc.switchToPage(0);
 
-    doc
-      .moveTo(left, lineY)
-      .lineTo(right, lineY)
-      .strokeColor("#c9bdb1")
-      .lineWidth(0.55)
-      .stroke();
+  const left = doc.page.margins.left;
+  const right = doc.page.width - doc.page.margins.right;
+  const w = contentWidth(doc);
+  const footerTop = doc.page.height - doc.page.margins.bottom - mm(13);
+  const lineY = footerTop - mm(2);
 
-    const web = branding.clinicWeb.replace(/^https?:\/\//i, "");
-    const webFull = branding.clinicWeb.startsWith("http")
-      ? branding.clinicWeb
-      : `https://${web}`;
+  doc
+    .moveTo(left, lineY)
+    .lineTo(right, lineY)
+    .strokeColor("#c9bdb1")
+    .lineWidth(0.5)
+    .stroke();
 
-    doc
-      .font(fontBold(doc))
-      .fontSize(8.5)
-      .fillColor("#1a1208")
-      .text(branding.clinicName, left, footerTop, { width: w, align: "center" });
+  const web = branding.clinicWeb.replace(/^https?:\/\//i, "");
+  const webFull = branding.clinicWeb.startsWith("http")
+    ? branding.clinicWeb
+    : `https://${web}`;
 
+  doc
+    .font(fontBold(doc))
+    .fontSize(8)
+    .fillColor("#1a1208")
+    .text(branding.clinicName, left, footerTop, { width: w, align: "center", lineBreak: false });
+
+  doc
+    .font(fontRegular(doc))
+    .fontSize(7.5)
+    .fillColor("#e8682a")
+    .text(webFull, left, footerTop + 10, { width: w, align: "center", lineBreak: false });
+
+  const subLines = [branding.clinicEmail, branding.clinicAddress]
+    .filter((x): x is string => Boolean(x && x.trim()))
+    .join("  ·  ");
+
+  if (subLines) {
     doc
       .font(fontRegular(doc))
-      .fontSize(8)
-      .fillColor("#e8682a")
-      .text(webFull, left, footerTop + 11, { width: w, align: "center" });
+      .fontSize(7)
+      .fillColor("#666666")
+      .text(subLines, left, footerTop + 20, { width: w, align: "center", lineBreak: false });
+  }
+}
 
-    const subLines = [branding.clinicEmail, branding.clinicAddress]
-      .filter((x): x is string => Boolean(x && x.trim()))
-      .join("  ·  ");
-
-    if (subLines) {
-      doc
-        .font(fontRegular(doc))
-        .fontSize(7.5)
-        .fillColor("#666666")
-        .text(subLines, left, footerTop + 22, { width: w, align: "center" });
-    }
+export function assertSinglePdfPage(doc: InstanceType<typeof PDFDocument>): void {
+  const range = doc.bufferedPageRange();
+  if (range.count > 1) {
+    console.warn("[pdf] Očekivana jedna A4 stranica, generisano:", range.count);
   }
 }

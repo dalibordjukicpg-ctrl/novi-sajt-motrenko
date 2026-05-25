@@ -37,6 +37,15 @@ export type BookingIntakeLabels = {
   errorValidation: string;
   consentRequired: string;
   partnerNameRequired: string;
+  pdfMetaSubmitted: string;
+  pdfMetaLanguage: string;
+  pdfMetaReference: string;
+  pdfDateOfBirth: string;
+  pdfConsentSection: string;
+  pdfConfirmation: string;
+  pdfConsentConfirmed: string;
+  pdfConsentMissing: string;
+  pdfAttachmentNote: string;
 };
 
 const ME: BookingIntakeLabels = {
@@ -87,6 +96,16 @@ const ME: BookingIntakeLabels = {
   consentRequired:
     "Potrebno je prihvatiti obradu podataka (politika privatnosti).",
   partnerNameRequired: "Unesite ime partnera.",
+  pdfMetaSubmitted: "Datum slanja",
+  pdfMetaLanguage: "Jezik forme",
+  pdfMetaReference: "Referenca / ID",
+  pdfDateOfBirth: "Datum rođenja",
+  pdfConsentSection: "Saglasnost",
+  pdfConfirmation: "Potvrda",
+  pdfConsentConfirmed:
+    "Potvrđena saglasnost za obradu podataka radi zakazivanja i pripreme pregleda.",
+  pdfConsentMissing: "Saglasnost nije zabilježena.",
+  pdfAttachmentNote: "Puni pregled je u prilogu (PDF, A4 — spreman za štampu).",
 };
 
 const EN: BookingIntakeLabels = {
@@ -135,6 +154,16 @@ const EN: BookingIntakeLabels = {
   errorValidation: "Please check the highlighted fields.",
   consentRequired: "Please accept the privacy policy to submit.",
   partnerNameRequired: "Please enter your partner’s name.",
+  pdfMetaSubmitted: "Submitted at",
+  pdfMetaLanguage: "Form language",
+  pdfMetaReference: "Reference / ID",
+  pdfDateOfBirth: "Date of birth",
+  pdfConsentSection: "Consent",
+  pdfConfirmation: "Confirmation",
+  pdfConsentConfirmed:
+    "Consent confirmed for processing data to schedule and prepare the visit.",
+  pdfConsentMissing: "Consent was not recorded.",
+  pdfAttachmentNote: "Full details are attached (PDF, A4 — print-ready).",
 };
 
 const RU: BookingIntakeLabels = {
@@ -184,6 +213,16 @@ const RU: BookingIntakeLabels = {
   consentRequired:
     "Нужно подтвердить согласие в соответствии с политикой конфиденциальности.",
   partnerNameRequired: "Введите имя партнёра.",
+  pdfMetaSubmitted: "Дата отправки",
+  pdfMetaLanguage: "Язык формы",
+  pdfMetaReference: "Ссылка / ID",
+  pdfDateOfBirth: "Дата рождения",
+  pdfConsentSection: "Согласие",
+  pdfConfirmation: "Подтверждение",
+  pdfConsentConfirmed:
+    "Подтверждено согласие на обработку данных для записи и подготовки приёма.",
+  pdfConsentMissing: "Согласие не зафиксировано.",
+  pdfAttachmentNote: "Полная анкета в приложении (PDF, A4 — готово к печати).",
 };
 
 const MAP: Record<Locale, BookingIntakeLabels> = {

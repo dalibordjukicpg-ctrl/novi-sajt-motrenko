@@ -16,6 +16,7 @@ import type { PublicNavItem } from "@/lib/queries/site";
 import { resolvePublicHref } from "@/lib/queries/site";
 import type { HomeServiceCard } from "@/lib/queries/home-service-cards";
 import { STAT_BG_IMAGES, TEAM_HOME_PORTRAIT_FALLBACKS } from "@/lib/clinic-assets";
+import { resolveHeroBackgroundUrl } from "@/lib/fallback-hero-video";
 import { isHeroBackgroundVideoUrl } from "@/lib/hero-background-media";
 import type { SiteStringKey } from "@/lib/site-fields";
 
@@ -147,8 +148,9 @@ export function HomePageView({
           { title: s["team.hl3.title"], body: s["team.hl3.body"] },
         ];
 
+  const heroMediaUrl = resolveHeroBackgroundUrl(heroBgUrl);
   const heroVideoPreload =
-    heroBgUrl && isHeroBackgroundVideoUrl(heroBgUrl) ? heroBgUrl : null;
+    heroMediaUrl && isHeroBackgroundVideoUrl(heroMediaUrl) ? heroMediaUrl : null;
 
   return (
     <>
@@ -157,7 +159,7 @@ export function HomePageView({
       ) : null}
       <HomeHeroMotrenko
         slides={heroSlides}
-        mediaUrl={heroBgUrl ?? null}
+        mediaUrl={heroMediaUrl}
         primaryCta={{
           label: s["hero.cta_primary"],
           href: resolvePublicHref(locale, s["hero.cta_primary_href"]),

@@ -2,11 +2,12 @@ import type { BookingIntakeLabels } from "@/lib/booking/intake-labels";
 import type { BookingRequestInput } from "@/lib/validations/booking-request";
 
 import {
+  assertSinglePdfPage,
   bufferFromPdfDoc,
   createA4PdfDocument,
-  drawCategorySection,
   drawFooters,
   drawPdfHeader,
+  drawSinglePageSections,
   type PdfBranding,
 } from "./pdf-layout";
 
@@ -23,10 +24,10 @@ export async function generateBookingPdf(
 ): Promise<Buffer> {
   const { submittedAt, publicRef, data, labels } = payload;
   const doc = createA4PdfDocument({
-    title: "Prijavnica za pregled — A4",
+    title: `${labels.formEyebrow} — A4`,
     author: branding.clinicName,
-    subject: `Prijavnica ref ${publicRef}`,
-    keywords: "prijavnica, termin, ordinacija, A4",
+    subject: `${labels.formEyebrow} ref ${publicRef}`,
+    keywords: "prijavnica, booking, A4",
     creator: "Website booking form",
   });
 
@@ -38,6 +39,11 @@ export async function generateBookingPdf(
     submittedAt,
     locale: data.locale,
     publicRef,
+    metaLabels: {
+      submittedAt: labels.pdfMetaSubmitted,
+      formLanguage: labels.pdfMetaLanguage,
+      referenceId: labels.pdfMetaReference,
+    },
   });
 
   const who =
@@ -64,60 +70,61 @@ export async function generateBookingPdf(
       ? "—"
       : (data.partnerPhone ?? "").trim() || "—";
 
-  drawCategorySection(doc, {
-    index: 1,
-    title: labels.sectionBasic,
-    fields: [
-      { kind: "pair", label: labels.fullName, value: data.fullName },
-      { kind: "pair", label: labels.email, value: data.email },
-      { kind: "pair", label: labels.phone, value: data.phone },
-      { kind: "pair", label: "Datum rođenja", value: dob },
-    ],
-  });
-
-  drawCategorySection(doc, {
-    index: 2,
-    title: labels.whoAttends.replace(/\?$/, ""),
-    fields: [
-      { kind: "pair", label: labels.whoAttends, value: who },
-      { kind: "pair", label: labels.partnerName, value: partnerName },
-      { kind: "pair", label: labels.partnerPhone, value: partnerPhone },
-    ],
-  });
-
-  drawCategorySection(doc, {
-    index: 3,
-    title: labels.sectionReasonVisit,
-    fields: [
-      {
-        kind: "block",
-        label: labels.whatBroughtYou,
-        value: data.whatBroughtYou.trim(),
-        maxChars: 420,
-      },
-      {
-        kind: "pair",
-        label: labels.tryingConceive.replace(/\?$/, ""),
-        value: ttc,
-      },
-    ],
-  });
-
-  drawCategorySection(doc, {
-    index: 4,
-    title: "Saglasnost",
-    fields: [
-      {
-        kind: "block",
-        label: "Potvrda",
-        value: data.consentAccepted
-          ? "Potvrđena saglasnost za obradu podataka radi zakazivanja pregleda."
-          : "Saglasnost nije zabilježena.",
-      },
-    ],
-  });
+  drawSinglePageSections(doc, [
+    {
+      index: 1,
+      title: labels.sectionBasic,
+      fields: [
+        { kind: "pair", label: labels.fullName, value: data.fullName },
+        { kind: "pair", label: labels.email, value: data.email },
+        { kind: "pair", label: labels.phone, value: data.phone },
+        { kind: "pair", label: labels.pdfDateOfBirth, value: dob },
+      ],
+    },
+    {
+      index: 2,
+      title: labels.whoAttends.replace(/\?$/, ""),
+      fields: [
+        { kind: "pair", label: labels.whoAttends, value: who },
+        { kind: "pair", label: labels.partnerName, value: partnerName },
+        { kind: "pair", label: labels.partnerPhone, value: partnerPhone },
+      ],
+    },
+    {
+      index: 3,
+      title: labels.sectionReasonVisit,
+      fields: [
+        {
+          kind: "block",
+          label: labels.whatBroughtYou,
+          value: data.whatBroughtYou.trim(),
+          flex: 2,
+        },
+        {
+          kind: "pair",
+          label: labels.tryingConceive.replace(/\?$/, ""),
+          value: ttc,
+        },
+      ],
+    },
+    {
+      index: 4,
+      title: labels.pdfConsentSection,
+      fields: [
+        {
+          kind: "block",
+          label: labels.pdfConfirmation,
+          value: data.consentAccepted
+            ? labels.pdfConsentConfirmed
+            : labels.pdfConsentMissing,
+          flex: 1,
+        },
+      ],
+    },
+  ]);
 
   drawFooters(doc, branding);
+  assertSinglePdfPage(doc);
   doc.end();
   return pdfPromise;
 }

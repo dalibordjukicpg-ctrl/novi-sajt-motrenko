@@ -9,7 +9,6 @@ import {
   isHeroBackgroundYoutubeUrl,
 } from "@/lib/hero-background-media";
 import {
-  getHomeHeroVideoReady,
   getSavedHeroVideoTime,
   persistHeroVideoProgress,
   setHomeHeroVideoReady,
@@ -31,7 +30,6 @@ export type HomeHeroPortrait = {
 type Props = {
   slides: HomeHeroSlide[];
   mediaUrl: string | null;
-  posterUrl?: string | null;
   primaryCta: Cta;
   secondaryCta: Cta;
   /** Moderan split layout: tekst + portret (npr. dr Motrenko). */
@@ -43,7 +41,6 @@ type Props = {
 export function HomeHeroMotrenko({
   slides,
   mediaUrl,
-  posterUrl,
   primaryCta,
   secondaryCta,
   portrait,
@@ -58,8 +55,7 @@ export function HomeHeroMotrenko({
 
   const [current, setCurrent] = useState(0);
   const [leaving, setLeaving] = useState(false);
-  const [videoVisible, setVideoVisible] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const bgRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -100,41 +96,33 @@ export function HomeHeroMotrenko({
     !isSplit && url ? !isYoutube && isHeroBackgroundVideoUrl(url) : false;
   const isLocalImg = url.startsWith("/");
 
-  const markVideoActive = () => {
-    setVideoVisible(true);
+  const markVideoPlaying = () => {
+    setVideoReady(true);
     setHomeHeroVideoReady();
   };
-
-  useLayoutEffect(() => {
-    setHydrated(true);
-  }, []);
 
   useLayoutEffect(() => {
     if (!isVideo || !url) return;
     const el = videoRef.current;
     if (!el) return;
 
-    if (getHomeHeroVideoReady()) {
-      setVideoVisible(true);
-      void el.play().catch(() => {});
-    }
-
     const saved = getSavedHeroVideoTime();
-    if (saved > 0.05) {
-      const applySaved = () => {
-        try {
-          if (el.duration && saved < el.duration - 0.25) {
-            el.currentTime = saved;
-          }
-        } catch {
-          /* seek blocked until metadata */
+    const applySaved = () => {
+      try {
+        if (saved > 0.05 && el.duration && saved < el.duration - 0.25) {
+          el.currentTime = saved;
         }
-        setVideoVisible(true);
-        void el.play().catch(() => {});
-      };
+      } catch {
+        /* seek blocked until metadata */
+      }
+      void el.play().catch(() => {});
+    };
 
+    if (saved > 0.05) {
       if (el.readyState >= 1) applySaved();
       else el.addEventListener("loadedmetadata", applySaved, { once: true });
+    } else {
+      void el.play().catch(() => {});
     }
   }, [isVideo, url]);
 
@@ -145,15 +133,13 @@ export function HomeHeroMotrenko({
     if (!el || !section) return;
 
     const tryPlay = () => {
-      void el.play().then(markVideoActive).catch(() => {});
+      void el.play().catch(() => {});
     };
 
     tryPlay();
-    el.addEventListener("loadeddata", tryPlay);
 
     const onTime = () => {
       if (el.currentTime > 0.08) {
-        markVideoActive();
         persistHeroVideoProgress(el.currentTime);
       }
     };
@@ -168,7 +154,6 @@ export function HomeHeroMotrenko({
     obs.observe(section);
 
     return () => {
-      el.removeEventListener("loadeddata", tryPlay);
       el.removeEventListener("timeupdate", onTime);
       obs.disconnect();
       if (el.currentTime > 0.08) {
@@ -255,14 +240,11 @@ export function HomeHeroMotrenko({
     );
   }
 
-  const showVideo = hydrated && videoVisible;
-
   return (
     <section
       ref={containerRef}
       className="relative isolate -mt-[calc(4.25rem+env(safe-area-inset-top,0px))] overflow-hidden rounded-b-3xl bg-zinc-950 max-md:min-h-[min(78svh,580px)] max-md:h-[min(78svh,580px)] md:-mt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
     >
-      {/* Slika/video — jedini sloj, bez duplikata */}
       <div
         ref={bgRef}
         className="absolute inset-0 overflow-hidden md:-bottom-[6%] md:-top-[6%]"
@@ -270,7 +252,7 @@ export function HomeHeroMotrenko({
         aria-hidden
       >
         <div
-          className="absolute inset-0 z-0 bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950"
+          className="absolute inset-0 z-0 bg-zinc-950"
           aria-hidden
         />
         {isYoutube && url ? (
@@ -281,20 +263,26 @@ export function HomeHeroMotrenko({
             allow="autoplay; encrypted-media"
           />
         ) : isVideo && url ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            src={url}
-            onPlaying={markVideoActive}
-            className={[
-              "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover transition-opacity duration-700 ease-out max-md:object-[center_38%] md:object-[center_28%]",
-              showVideo ? "opacity-100" : "opacity-0",
-            ].join(" ")}
-          />
+          <>
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              src={url}
+              onPlaying={markVideoPlaying}
+              className="absolute inset-0 z-[1] h-full w-full min-h-full min-w-full object-cover max-md:object-[center_38%] md:object-[center_28%]"
+            />
+            <div
+              className={[
+                "absolute inset-0 z-[2] bg-zinc-950 transition-opacity duration-700 ease-out",
+                videoReady ? "pointer-events-none opacity-0" : "opacity-100",
+              ].join(" ")}
+              aria-hidden
+            />
+          </>
         ) : url && isLocalImg ? (
           <Image
             src={url}
@@ -314,12 +302,10 @@ export function HomeHeroMotrenko({
         ) : null}
       </div>
 
-      {/* Desktop: gradient s lijeve strane za čitljivost teksta */}
       <div
         aria-hidden
         className="absolute inset-0 hidden md:block bg-gradient-to-r from-black/55 via-black/25 to-transparent"
       />
-      {/* Mobile: lagani header-zona overlay + blaži gradient na dnu za tekst */}
       <div
         aria-hidden
         className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/20 to-transparent md:hidden"
@@ -329,7 +315,6 @@ export function HomeHeroMotrenko({
         className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-black/72 via-black/28 to-transparent md:hidden"
       />
 
-      {/* Tekst i CTA */}
       <div className="relative z-10 flex h-full flex-col px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[calc(4.25rem+env(safe-area-inset-top))] max-md:justify-end max-md:pb-12 sm:px-8 md:justify-center md:px-24 md:pb-0 md:pt-[calc(4.5rem+env(safe-area-inset-top))]">
         <div className="w-full max-w-2xl max-md:mx-auto max-md:text-center">
           <p
@@ -356,7 +341,6 @@ export function HomeHeroMotrenko({
             <span className="hidden md:inline whitespace-pre-line">{slide.heading}</span>
           </h1>
 
-          {/* Podnaslov: sakriven na mobu — beba treba da bude vidljiva */}
           <p
             style={{
               opacity: leaving ? 0 : 1,

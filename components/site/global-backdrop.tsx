@@ -140,9 +140,8 @@ export function GlobalBackdrop() {
             opacity: 0.44,
             mixBlendMode: "multiply",
           }}
-          loading="eager"
+          loading="lazy"
           decoding="async"
-          fetchPriority="high"
         />
       </div>
 
