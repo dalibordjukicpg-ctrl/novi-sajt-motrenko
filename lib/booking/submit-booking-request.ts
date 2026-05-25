@@ -209,58 +209,60 @@ export async function submitBookingRequestAction(
     userAgent,
   });
 
-  const notifyTo = await resolveBookingNotifyEmail();
-  const publicRef = id.slice(0, 8).toUpperCase();
-  const emailPayload = buildBookingEmailBody({
-    labels,
-    data,
-    publicRef,
-  });
-
-  let pdf: Buffer | undefined;
   try {
-    pdf = await generateBookingPdf(
-      {
-        submittedAt: now,
-        publicRef,
-        data,
-        labels,
-      },
-      bookingPdfBranding(),
-    );
-  } catch (e) {
-    console.error("[booking] pdf", e);
-  }
-
-  const filename = `prijavnica-${now
-    .toISOString()
-    .slice(0, 19)
-    .replace(/:/g, "-")}.pdf`;
-
-  let sent = await sendBookingNotificationEmail({
-    to: notifyTo,
-    subject: emailPayload.subject,
-    text: emailPayload.text,
-    replyTo: data.email,
-    pdfBuffer: pdf,
-    pdfFilename: filename,
-  });
-
-  if (!sent.ok && pdf) {
-    console.warn("[booking] email with PDF failed, retrying without attachment", {
-      id,
-      to: notifyTo,
+    const notifyTo = await resolveBookingNotifyEmail();
+    const publicRef = id.slice(0, 8).toUpperCase();
+    const emailPayload = buildBookingEmailBody({
+      labels,
+      data,
+      publicRef,
     });
-    sent = await sendBookingNotificationEmail({
+
+    let pdf: Buffer | undefined;
+    try {
+      pdf = await generateBookingPdf(
+        {
+          submittedAt: now,
+          publicRef,
+          data,
+          labels,
+        },
+        bookingPdfBranding(),
+      );
+    } catch (e) {
+      console.error("[booking] pdf", e);
+    }
+
+    const filename = `prijavnica-${now
+      .toISOString()
+      .slice(0, 19)
+      .replace(/:/g, "-")}.pdf`;
+
+    const sent = await sendBookingNotificationEmail({
       to: notifyTo,
       subject: emailPayload.subject,
-      text: `${emailPayload.text}\n\n(Napomena: PDF prilog nije poslat — provjerite server log.)`,
+      text: emailPayload.text,
       replyTo: data.email,
+      pdfBuffer: pdf,
+      pdfFilename: filename,
     });
-  }
 
-  if (!sent.ok) {
-    console.error("[booking] email failed", { id, to: notifyTo });
+    if (!sent.ok) {
+      console.error("[booking] email failed", {
+        id,
+        to: notifyTo,
+        skipped: sent.skipped ?? false,
+      });
+    } else {
+      console.info("[booking] email sent", {
+        id,
+        to: notifyTo,
+        resendId: sent.resendId,
+        pdfBytes: pdf?.length ?? 0,
+      });
+    }
+  } catch (e) {
+    console.error("[booking] email block failed", e);
   }
 
   return { ok: true };

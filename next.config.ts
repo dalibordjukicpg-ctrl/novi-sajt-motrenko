@@ -64,6 +64,7 @@ const nextConfig: NextConfig = {
     "bcryptjs",
     "tailwind-merge",
     "clsx",
+    "pdfkit",
   ],
   /** Spriječi Watchpack da dira Windows root sistem fajlove (EINVAL na hiberfil.sys). */
   webpack: (config, { dev }) => {

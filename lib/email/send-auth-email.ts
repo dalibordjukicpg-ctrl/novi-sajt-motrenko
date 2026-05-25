@@ -14,7 +14,8 @@ export async function sendAuthEmail(payload: {
     text: payload.text,
     logPrefix: "[auth email]",
   });
-  if (r.ok) return { ok: true, skipped: r.skipped };
+  if (r.ok) return { ok: true };
+  if (r.code === "missing_api_key") return { ok: true, skipped: true };
   return { ok: false };
 }
 

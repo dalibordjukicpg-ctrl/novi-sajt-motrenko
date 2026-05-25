@@ -3,7 +3,7 @@
  * RESEND_API_KEY + RESEND_FROM u okruženju; primalac: CONTACT_FORM_NOTIFY_EMAIL ili info@humanreproduction.com
  */
 
-import { sendResendEmail } from "@/lib/email/send-resend-email";
+import { sendResendEmailWithFallbacks } from "@/lib/email/send-resend-email";
 import type { ContactPdfBranding, ContactPdfPayload } from "@/lib/pdf/generate-contact-pdf";
 
 export function buildContactEmailSummary(
@@ -81,7 +81,7 @@ export async function sendContactFormEmail(opts: {
   pdfBuffer: Buffer;
   pdfFilename: string;
 }): Promise<SendContactEmailResult> {
-  const sent = await sendResendEmail({
+  const sent = await sendResendEmailWithFallbacks({
     to: opts.to,
     subject: opts.subject,
     text: opts.summaryText,
@@ -92,9 +92,6 @@ export async function sendContactFormEmail(opts: {
     logPrefix: "[contact form email]",
   });
 
-  if (sent.ok && sent.skipped) {
-    return { ok: false, code: "missing_api_key" };
-  }
   if (sent.ok) return { ok: true };
   if (sent.code === "missing_api_key") return { ok: false, code: "missing_api_key" };
   return {
