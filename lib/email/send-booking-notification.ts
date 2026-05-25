@@ -7,7 +7,7 @@ export async function sendBookingNotificationEmail(payload: {
   replyTo?: string;
   pdfBuffer?: Buffer;
   pdfFilename?: string;
-}): Promise<{ ok: boolean }> {
+}): Promise<{ ok: boolean; skipped?: boolean }> {
   const r = await sendResendEmail({
     to: payload.to,
     subject: payload.subject,
@@ -17,5 +17,11 @@ export async function sendBookingNotificationEmail(payload: {
     pdfFilename: payload.pdfFilename,
     logPrefix: "[booking email]",
   });
+  if (r.ok && r.skipped) {
+    console.error(
+      "[booking email] RESEND_API_KEY nedostaje na serveru — mail nije poslat.",
+    );
+    return { ok: false, skipped: true };
+  }
   return { ok: r.ok };
 }

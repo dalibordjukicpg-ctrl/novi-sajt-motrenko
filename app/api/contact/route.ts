@@ -11,6 +11,10 @@ import {
   buildContactEmailHtml,
   sendContactFormEmail,
 } from "@/lib/email/send-contact-form";
+import {
+  DEFAULT_NOTIFY_INBOX,
+  resolveNotifyInboxFromEnv,
+} from "@/lib/email/resolve-notify-inbox";
 import { generateContactPdf } from "@/lib/pdf/generate-contact-pdf";
 import { getSiteUrl, PRODUCTION_SITE_URL } from "@/lib/site-url";
 import { contactFormPayloadSchema } from "@/lib/validations/contact-form";
@@ -18,7 +22,7 @@ import { contactFormPayloadSchema } from "@/lib/validations/contact-form";
 export const runtime = "nodejs";
 
 /** Fiksni primalac e-pošte sa kontakt forme (tekst + PDF). */
-const CONTACT_FORM_NOTIFY_INBOX = "info@humanreproduction.com";
+const CONTACT_FORM_NOTIFY_INBOX = DEFAULT_NOTIFY_INBOX;
 
 function getClientIp(h: Headers): string {
   const forwarded = h.get("x-forwarded-for");
@@ -45,9 +49,7 @@ function contactBranding() {
 }
 
 function notifyEmail(): string {
-  const fromEnv = process.env.CONTACT_FORM_NOTIFY_EMAIL?.trim();
-  if (fromEnv && fromEnv.includes("@")) return fromEnv;
-  return CONTACT_FORM_NOTIFY_INBOX;
+  return resolveNotifyInboxFromEnv("contact");
 }
 
 type ErrorBody = {

@@ -8,6 +8,10 @@ import { writeAuditLog } from "@/lib/auth";
 import { getBookingIntakeLabels } from "@/lib/booking/intake-labels";
 import { buildBookingEmailBody } from "@/lib/email/booking-email-body";
 import { sendBookingNotificationEmail } from "@/lib/email/send-booking-notification";
+import {
+  DEFAULT_NOTIFY_INBOX,
+  resolveNotifyInboxFromEnv,
+} from "@/lib/email/resolve-notify-inbox";
 import { db } from "@/lib/db";
 import { appointmentRequests, siteLocaleStrings } from "@/lib/db/schema";
 import { generateBookingPdf } from "@/lib/pdf/generate-booking-pdf";
@@ -34,24 +38,29 @@ function bookingPdfBranding() {
   };
 }
 
-async function resolveBookingNotifyEmail(): Promise<string | null> {
-  const fromEnv = process.env.BOOKING_NOTIFY_EMAIL?.trim();
-  if (fromEnv && fromEnv.includes("@")) return fromEnv;
+async function resolveBookingNotifyEmail(): Promise<string> {
+  const fromEnv = resolveNotifyInboxFromEnv("booking");
+  if (fromEnv !== DEFAULT_NOTIFY_INBOX) return fromEnv;
 
-  const [row] = await db
-    .select({ value: siteLocaleStrings.value })
-    .from(siteLocaleStrings)
-    .where(
-      and(
-        eq(siteLocaleStrings.fieldKey, "contact.email"),
-        eq(siteLocaleStrings.locale, "me"),
-      ),
-    )
-    .limit(1);
+  try {
+    const [row] = await db
+      .select({ value: siteLocaleStrings.value })
+      .from(siteLocaleStrings)
+      .where(
+        and(
+          eq(siteLocaleStrings.fieldKey, "contact.email"),
+          eq(siteLocaleStrings.locale, "me"),
+        ),
+      )
+      .limit(1);
 
-  const v = row?.value?.trim();
-  if (v && v.includes("@")) return v;
-  return null;
+    const v = row?.value?.trim();
+    if (v && v.includes("@")) return v;
+  } catch (e) {
+    console.error("[booking] notify email db lookup", e);
+  }
+
+  return DEFAULT_NOTIFY_INBOX;
 }
 
 export type SubmitBookingState = {
@@ -201,42 +210,57 @@ export async function submitBookingRequestAction(
   });
 
   const notifyTo = await resolveBookingNotifyEmail();
-  if (notifyTo) {
-    const publicRef = id.slice(0, 8).toUpperCase();
-    const emailPayload = buildBookingEmailBody({
-      labels,
-      data,
-      publicRef,
+  const publicRef = id.slice(0, 8).toUpperCase();
+  const emailPayload = buildBookingEmailBody({
+    labels,
+    data,
+    publicRef,
+  });
+
+  let pdf: Buffer | undefined;
+  try {
+    pdf = await generateBookingPdf(
+      {
+        submittedAt: now,
+        publicRef,
+        data,
+        labels,
+      },
+      bookingPdfBranding(),
+    );
+  } catch (e) {
+    console.error("[booking] pdf", e);
+  }
+
+  const filename = `prijavnica-${now
+    .toISOString()
+    .slice(0, 19)
+    .replace(/:/g, "-")}.pdf`;
+
+  let sent = await sendBookingNotificationEmail({
+    to: notifyTo,
+    subject: emailPayload.subject,
+    text: emailPayload.text,
+    replyTo: data.email,
+    pdfBuffer: pdf,
+    pdfFilename: filename,
+  });
+
+  if (!sent.ok && pdf) {
+    console.warn("[booking] email with PDF failed, retrying without attachment", {
+      id,
+      to: notifyTo,
     });
-
-    let pdf: Buffer | undefined;
-    try {
-      pdf = await generateBookingPdf(
-        {
-          submittedAt: now,
-          publicRef,
-          data,
-          labels,
-        },
-        bookingPdfBranding(),
-      );
-    } catch (e) {
-      console.error("[booking] pdf", e);
-    }
-
-    const filename = `prijavnica-${now
-      .toISOString()
-      .slice(0, 19)
-      .replace(/:/g, "-")}.pdf`;
-
-    await sendBookingNotificationEmail({
+    sent = await sendBookingNotificationEmail({
       to: notifyTo,
       subject: emailPayload.subject,
-      text: emailPayload.text,
+      text: `${emailPayload.text}\n\n(Napomena: PDF prilog nije poslat — provjerite server log.)`,
       replyTo: data.email,
-      pdfBuffer: pdf,
-      pdfFilename: filename,
     });
+  }
+
+  if (!sent.ok) {
+    console.error("[booking] email failed", { id, to: notifyTo });
   }
 
   return { ok: true };
