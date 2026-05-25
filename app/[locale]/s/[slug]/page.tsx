@@ -14,8 +14,9 @@ import { getPublishedSitePage } from "@/lib/queries/site-pages";
 import { listPublishedTeamSummaries } from "@/lib/queries/posts";
 import { getHomeBreadcrumbLabel, getSiteLayoutData } from "@/lib/queries/site";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
-import { stripTimPregledSection } from "@/lib/public-cms-html";
+import { stripTimPregledSection, isMeaningfulPublicHtml } from "@/lib/public-cms-html";
 import { getONamaInnerPageContext } from "@/lib/site-page-inner-layout";
+import { withCanonical } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const page = await getPublishedSitePage(raw, slug);
     if (!page) return {};
-    return { title: page.title };
+    return withCanonical(`/${raw}/s/${slug}`, { title: page.title });
   } catch {
     return { title: "Stranica" };
   }
@@ -66,17 +67,22 @@ export default async function SitePage({ params }: Props) {
   if (!page) notFound();
 
   let teamRoster: Awaited<ReturnType<typeof listPublishedTeamSummaries>> = [];
-  if (slug === "tim") {
+  const wantsTeamRoster = page.showTeamRoster ?? slug === "tim";
+  if (wantsTeamRoster) {
     try {
       teamRoster = await listPublishedTeamSummaries(raw);
     } catch (e) {
       console.error("[SitePage listPublishedTeamSummaries]", e);
     }
   }
-  const showTeamRoster = slug === "tim" && teamRoster.length > 0;
-  const articleHtml = showTeamRoster
+  const showTeamRoster = wantsTeamRoster && teamRoster.length > 0;
+  const rawArticleHtml = showTeamRoster
     ? stripTimPregledSection(page.body)
     : page.body;
+  const articleHtml =
+    rawArticleHtml && isMeaningfulPublicHtml(rawArticleHtml)
+      ? rawArticleHtml
+      : null;
 
   let navResolved = await resolveHeaderNav(FALLBACK_HEADER_NAV, raw);
   let privacyHref = resolvePublicHref(raw, "/s/politika-privatnosti");

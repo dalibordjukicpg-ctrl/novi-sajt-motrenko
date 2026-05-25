@@ -1,4 +1,5 @@
 import { sanitizeWordPressContent } from "@/scripts/lib/sanitize-wordpress-content";
+import { stripWordPressShortcodesFromContent } from "@/lib/wordpress-shortcodes";
 
 import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
@@ -282,6 +283,14 @@ function isSpuriousNNoise(plain: string): boolean {
   return /^n+(\s+n+)*$/i.test(t);
 }
 
+/** Da li HTML ima stvarni sadržaj (ne samo WP „nn“ artefakte). */
+export function isMeaningfulPublicHtml(html: string | null | undefined): boolean {
+  if (html == null || html === "") return false;
+  const plain = innerPlainOneLine(html);
+  if (!plain) return false;
+  return !isSpuriousNNoise(plain);
+}
+
 /** Uklanja segmente odvojene <br> koji su samo „nnnn“. */
 function stripNoiseSegmentsByBr(inner: string): string {
   const segments = inner.split(/<br\s*\/?>/gi);
@@ -305,10 +314,20 @@ export function stripNPlaceholderBlocks(html: string | null | undefined): string
   /* Vodeće „n“ prije prvog HTML taga (npr. n<figure>…) */
   out = out.replace(/^[\s\r\n]*(?:n[\s\r\n]*)+(?=<)/i, "");
 
+  /* Samo tagless n-artefakt (npr. n[shortcode]n → nn poslije uklanjanja shortcode-a) */
+  if (isSpuriousNNoise(innerPlainOneLine(out))) return "";
+
   const stripLooseBetweenTags = (s: string): string =>
     s.replace(
       />(?:\s|&nbsp;|<br\s*\/?>|\n|\r)*(?:n(?:\s|&nbsp;|<br\s*\/?>|\n|\r)*)+(?=<)/gi,
       ">",
+    );
+
+  /** n-smeće na kraju dokumenta (poslije zadnjeg taga, bez sljedećeg `<`). */
+  const stripTrailingNNoise = (s: string): string =>
+    s.replace(
+      /(?:\s|&nbsp;|\n|\r|(?:<br\s*\/?>)\s*)*(?:n(?:\s|&nbsp;|\n|\r|<br\s*\/?>)*)+$/gi,
+      "",
     );
 
   let iter = 0;
@@ -316,6 +335,7 @@ export function stripNPlaceholderBlocks(html: string | null | undefined): string
     const before = out;
 
     out = stripLooseBetweenTags(out);
+    out = stripTrailingNNoise(out);
 
     out = out.replace(
       /<p(\b[^>]*)>([\s\S]*?)<\/p>/gi,
@@ -345,6 +365,9 @@ export function stripNPlaceholderBlocks(html: string | null | undefined): string
       "footer",
       "td",
       "th",
+      "figure",
+      "main",
+      "nav",
     ]) {
       out = out.replace(loneNBlock(tag), "");
     }
@@ -411,8 +434,12 @@ export function stripNPlaceholderBlocks(html: string | null | undefined): string
   out = out
     .replace(/<p[^>]*>\s*<\/p>/gi, "")
     .replace(/<div\b[^>]*>\s*<\/div>/gi, "")
+    .replace(/<figure\b[^>]*>\s*<\/figure>/gi, "")
     .replace(/<ul\b[^>]*>\s*<\/ul>/gi, "")
     .replace(/<ol\b[^>]*>\s*<\/ol>/gi, "");
+
+  out = stripTrailingNNoise(out);
+  if (isSpuriousNNoise(innerPlainOneLine(out))) return "";
 
   return out.trim();
 }
@@ -429,7 +456,10 @@ export function stripTimPregledSection(html: string | null | undefined): string 
 /** Sanitizacija + ispravni interni linkovi za javni prikaz. */
 export function preparePublicHtml(html: string | null | undefined, locale: Locale): string {
   if (html == null || html === "") return "";
-  const linked = prefixRootRelativeAppLinks(sanitizePublicCmsHtml(html), locale);
+  const sanitized = stripWordPressShortcodesFromContent(
+    sanitizePublicCmsHtml(html),
+  );
+  const linked = prefixRootRelativeAppLinks(sanitized, locale);
   return stripNPlaceholderBlocks(linked);
 }
 

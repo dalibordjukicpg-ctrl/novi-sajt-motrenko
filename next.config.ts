@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { buildLegacyWordPressRedirects } from "@/lib/legacy-wordpress-redirects";
+
 const nextConfig: NextConfig = {
   images: {
     /**
@@ -39,6 +41,10 @@ const nextConfig: NextConfig = {
         ],
       },
     ];
+  },
+  /** 301 sa starih WordPress URL-ova na Next.js rute. */
+  async redirects() {
+    return buildLegacyWordPressRedirects();
   },
   /**
    * Tree-shake lucide-react imports — manje server chunkova u devu (Windows:

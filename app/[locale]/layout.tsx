@@ -15,6 +15,7 @@ import {
   getSiteBranding,
 } from "@/lib/queries/site-globals";
 import { isLocale } from "@/lib/i18n";
+import { withCanonical } from "@/lib/page-metadata";
 import { SITE_STRING_DEFAULTS } from "@/lib/site-fields";
 
 type Props = {
@@ -50,11 +51,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch {
     /* ignore */
   }
-  return {
+  return withCanonical(`/${raw}`, {
     title: defaults["org.brand"],
     description: defaults["hero.subtitle"].slice(0, 160),
     icons,
-  };
+  });
 }
 
 export default async function LocaleLayout({ children, params }: Props) {

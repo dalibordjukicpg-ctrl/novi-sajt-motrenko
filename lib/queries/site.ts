@@ -915,6 +915,9 @@ export function mergeSiteStrings(
   ) {
     base["hours.tuesday"] = base["hours.mon_fri"];
   }
+  if (base["footer.crafted"].trim().toLowerCase() === "crafted by") {
+    base["footer.crafted"] = defs["footer.crafted"];
+  }
   return base;
 }
 

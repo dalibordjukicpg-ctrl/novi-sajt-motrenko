@@ -239,6 +239,33 @@ export async function listPublishedSummaries(
   return draft;
 }
 
+/** Slugovi objavljenih blog postova (me) — za sitemap. */
+export async function listPublishedBlogSlugsForSitemap(): Promise<
+  { slug: string; updatedAt: Date }[]
+> {
+  const rows = await db
+    .select({
+      slug: postTranslations.slug,
+      updatedAt: posts.updatedAt,
+    })
+    .from(posts)
+    .innerJoin(
+      postTranslations,
+      and(
+        eq(postTranslations.postId, posts.id),
+        eq(postTranslations.locale, defaultLocale),
+      ),
+    )
+    .where(
+      and(eq(posts.published, true), eq(posts.contentRole, "blog")),
+    )
+    .orderBy(desc(posts.updatedAt));
+
+  return rows
+    .filter((r): r is { slug: string; updatedAt: Date } => !!r.slug?.trim())
+    .map((r) => ({ slug: r.slug.trim(), updatedAt: r.updatedAt }));
+}
+
 export type TeamMemberSummary = {
   slug: string;
   title: string;

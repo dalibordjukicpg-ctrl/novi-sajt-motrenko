@@ -7,6 +7,7 @@ import { CLINIC_PAGE_HERO_BG } from "@/lib/clinic-assets";
 import { getDbConnectionUserMessage, isDbConnectionError } from "@/lib/db-errors";
 import { isLocale } from "@/lib/i18n";
 import { getPublishedPostBySlug } from "@/lib/queries/posts";
+import { withCanonical } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = post.metaTitle?.trim() || post.title;
     const description =
       post.metaDescription?.trim() || post.excerpt || undefined;
-    return { title, description };
+    return withCanonical(`/${raw}/posts/${slug}`, {
+      title,
+      description,
+    });
   } catch {
     return { title: "Članak" };
   }

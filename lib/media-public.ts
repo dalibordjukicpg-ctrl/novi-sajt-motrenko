@@ -1,8 +1,10 @@
 /**
  * Javni URL fajla iz `media.storage_key`.
  * Lokalne putanje (`uploads/…`, `wp-media/…`) su **relativne** — rade na bilo kom domenu
- * (hostingersite.com, Vercel, localhost) i ne ovise o `NEXT_PUBLIC_SITE_URL` pri prikazu.
+ * (humanreproduction.com, preview, localhost) i ne ovise o env pri prikazu.
  */
+import { getSiteUrl } from "@/lib/site-url";
+
 export function publicUrlFromMediaStorageKey(storageKey: string): string {
   const k = storageKey.trim();
   if (!k) return "";
@@ -14,14 +16,13 @@ export function publicUrlFromMediaStorageKey(storageKey: string): string {
   return `/${k.replace(/^\/+/, "")}`;
 }
 
-/** Apsolutni URL za email / eksterne linkove (koristi NEXT_PUBLIC_SITE_URL). */
+/** Apsolutni URL za email / eksterne linkove (koristi getSiteUrl). */
 export function absolutePublicUrlFromMediaStorageKey(storageKey: string): string {
   const rel = publicUrlFromMediaStorageKey(storageKey);
   if (!rel) return "";
   if (rel.startsWith("http://") || rel.startsWith("https://")) return rel;
 
-  const baseRaw = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "";
-  const base = baseRaw.replace(/\/+$/, "");
+  const base = getSiteUrl();
   if (!base) return rel;
   return `${base}${rel.startsWith("/") ? rel : `/${rel}`}`;
 }

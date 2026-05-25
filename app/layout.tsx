@@ -5,6 +5,7 @@ import { AnalyticsInjector } from "@/components/site/analytics-injector";
 import { GlobalBackdrop } from "@/components/site/global-backdrop";
 import { HeroVideoWarmup } from "@/components/site/hero-video-warmup";
 import { getSiteBranding } from "@/lib/queries/site-globals";
+import { getMetadataBase, getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const lora = Lora({
@@ -32,12 +33,19 @@ const outfitHeader = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: getMetadataBase(),
   title: {
     default: "Human Reproduction Center",
     template: "%s · Human Reproduction Center",
   },
   description:
     "Centar za humanu reprodukciju — savremena reproduktivna medicina.",
+  openGraph: {
+    type: "website",
+    locale: "sr_ME",
+    siteName: "Human Reproduction Center",
+    url: getSiteUrl(),
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

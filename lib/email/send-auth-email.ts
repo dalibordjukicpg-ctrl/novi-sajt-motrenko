@@ -3,11 +3,8 @@
  * U devu bez API ključa: loguje sadržaj u konzolu.
  */
 
-function getSiteOrigin(): string {
-  const url = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (url) return url.replace(/\/$/, "");
-  return "http://localhost:7392";
-}
+import { adminPath } from "@/lib/admin-base-path";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function sendAuthEmail(payload: {
   to: string;
@@ -55,8 +52,8 @@ export async function sendAuthEmail(payload: {
 export function resetPasswordEmailBody(opts: {
   token: string;
 }): { subject: string; text: string } {
-  const origin = getSiteOrigin();
-  const link = `${origin}/admin/reset-password?token=${encodeURIComponent(opts.token)}`;
+  const origin = getSiteUrl();
+  const link = `${origin}${adminPath("/reset-password")}?token=${encodeURIComponent(opts.token)}`;
   return {
     subject: "Reset lozinke",
     text: `Zatražili ste reset lozinke. Otvorite link (važi ograničeno vrijeme):\n\n${link}\n\nAko niste vi, ignorisati.`,
@@ -67,8 +64,8 @@ export function verifyEmailBody(opts: { token: string }): {
   subject: string;
   text: string;
 } {
-  const origin = getSiteOrigin();
-  const link = `${origin}/admin/verify-email?token=${encodeURIComponent(opts.token)}`;
+  const origin = getSiteUrl();
+  const link = `${origin}${adminPath("/verify-email")}?token=${encodeURIComponent(opts.token)}`;
   return {
     subject: "Potvrdite email adresu",
     text: `Potvrdite adresu otvaranjem linka:\n\n${link}\n`,

@@ -4,6 +4,7 @@ import { HomePageView } from "@/components/site/home-page";
 import { getDbConnectionUserMessage, isDbConnectionError } from "@/lib/db-errors";
 import { FALLBACK_HEADER_NAV, resolveHeaderNav } from "@/lib/fallback-header-nav";
 import { isLocale } from "@/lib/i18n";
+import { withCanonical } from "@/lib/page-metadata";
 import { listPublishedSummaries } from "@/lib/queries/posts";
 import { getSiteLayoutData } from "@/lib/queries/site";
 import { listVisibleHomeServiceCards } from "@/lib/queries/home-service-cards";
@@ -16,6 +17,16 @@ import type { HomeTeamHighlight } from "@/lib/queries/home-team-highlights";
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: Props) {
+  const { locale: raw } = await params;
+  if (!isLocale(raw)) return {};
+  const defaults = SITE_STRING_DEFAULTS[raw];
+  return withCanonical(`/${raw}`, {
+    title: defaults["org.brand"],
+    description: defaults["hero.subtitle"].slice(0, 160),
+  });
+}
 
 export default async function LocaleHomePage({ params }: Props) {
   const { locale: raw } = await params;

@@ -11,6 +11,7 @@ import {
   sendContactFormEmail,
 } from "@/lib/email/send-contact-form";
 import { generateContactPdf } from "@/lib/pdf/generate-contact-pdf";
+import { getSiteUrl, PRODUCTION_SITE_URL } from "@/lib/site-url";
 import { contactFormPayloadSchema } from "@/lib/validations/contact-form";
 
 export const runtime = "nodejs";
@@ -28,7 +29,7 @@ function getClientIp(h: Headers): string {
 }
 
 function contactBranding() {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
+  const siteUrl = getSiteUrl();
   const addr = process.env.CONTACT_PDF_CLINIC_ADDRESS?.trim();
   return {
     clinicName:
@@ -37,7 +38,7 @@ function contactBranding() {
     clinicEmail:
       process.env.CONTACT_PDF_CLINIC_EMAIL?.trim() ||
       CONTACT_FORM_NOTIFY_INBOX,
-    clinicWeb: siteUrl || "https://humanreproduction.com",
+    clinicWeb: siteUrl || PRODUCTION_SITE_URL,
     clinicAddress: addr && addr.length > 0 ? addr : undefined,
   };
 }

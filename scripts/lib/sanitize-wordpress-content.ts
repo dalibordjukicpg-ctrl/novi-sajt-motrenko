@@ -11,6 +11,7 @@
  */
 
 import { rewriteWpContentUploadUrls } from "./rewrite-wp-upload-urls";
+import { stripWordPressShortcodesFromContent } from "../../lib/wordpress-shortcodes";
 
 export type SanitizeWordPressContentOptions = {
   /**
@@ -29,13 +30,12 @@ export type SanitizeWordPressContentOptions = {
   contentKind?: "html" | "plain";
 };
 
-/** Uobičajeni WordPress shortcode tagovi (whitelist da ne uklonimo markdown [link](url) ili [ISO 9001]). */
-const WP_SHORTCODE_NAMES =
-  "caption|wp_caption|gallery|embed|audio|video|playlist|shortcake|toc|sitemap|" +
-  "contact-form-7|contact-form|formidable|gravityform|ngg_images|slides|" +
-  "rev_slider|slider|layerslider|vc_row|vc_column|vc_btn|" +
-  "instagram-feed|instagram|foo_gallery|foogallery|" +
-  "chapters|latex|printfriendly";
+/**
+ * **Korak 2 (shortcode):** delegira na {@link stripWordPressShortcodesFromContent}.
+ */
+function stripWordPressShortcodes(html: string): string {
+  return stripWordPressShortcodesFromContent(html);
+}
 
 function buildOldSiteHosts(origin: string): Set<string> {
   const hosts = new Set<string>();
@@ -74,34 +74,6 @@ function protectMarkdown(html: string): { text: string; restore: () => string } 
       return out;
     },
   };
-}
-
-/**
- * **Korak 2 (shortcode):** uklanja `[gallery]`, `[caption]…[/caption]` (unutrašnjost ostaje), itd.
- * Whitelist imena + zaštita markdown `[tekst](url)` preko {@link protectMarkdown}.
- */
-function stripWordPressShortcodes(html: string): string {
-  const paired = new RegExp(
-    `\\[(${WP_SHORTCODE_NAMES})(?:\\s[^\\]]*)?\\]([\\s\\S]*?)\\[/\\1\\]`,
-    "gi",
-  );
-  let s = html;
-  for (let n = 0; n < 50; n++) {
-    const next = s.replace(paired, "$2");
-    if (next === s) break;
-    s = next;
-  }
-  const selfClosing = new RegExp(
-    `\\[(?:${WP_SHORTCODE_NAMES})(?:\\s[^\\]]*)?\\]`,
-    "gi",
-  );
-  s = s.replace(selfClosing, "");
-  /* Ostali nepoznati [plugin-foo …] često imaju bar jedan razmak ili kraće ime plugina */
-  s = s.replace(
-    /\[[a-z][a-z0-9_-]{2,}\s+[^\]]+\]/gi,
-    "",
-  );
-  return s;
 }
 
 /**
@@ -244,9 +216,7 @@ export function sanitizeWordPressContent(
     let s = rawContent;
     /* U plain tekstu samo ukloni Gutenberg komentare ako su zalijepljeni */
     s = stripGutenbergBlockComments(s);
-    const md = protectMarkdown(s);
-    s = stripWordPressShortcodes(md.text);
-    s = md.restore();
+    s = stripWordPressShortcodesFromContent(s);
     s = rewriteMediaUrls(s, oldUp, newUp);
     s = s.replace(/<[^>]+>/g, " ");
     s = s.replace(/\s+/g, " ").trim();
@@ -258,10 +228,8 @@ export function sanitizeWordPressContent(
   // Korak 3: Gutenberg smeće prvo — često omata ostatak.
   html = stripGutenbergBlockComments(html);
 
-  // Korak 2: shortcode + markdown zaštita
-  const md = protectMarkdown(html);
-  html = stripWordPressShortcodes(md.text);
-  html = md.restore();
+  // Korak 2: shortcode (markdown zaštita unutar stripWordPressShortcodesFromContent)
+  html = stripWordPressShortcodesFromContent(html);
 
   // Korak 1: medijske putanje
   html = rewriteMediaUrls(html, oldUp, newUp);

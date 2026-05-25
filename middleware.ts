@@ -11,6 +11,7 @@ import {
   isLikelyValidSessionCookieShape,
   SESSION_COOKIE_NAME,
 } from "@/lib/auth/constants";
+import { isPreviewHost } from "@/lib/site-url";
 
 /**
  * Edge sloj:
@@ -35,8 +36,19 @@ function withNoIndex(res: NextResponse): NextResponse {
   return res;
 }
 
+function withPreviewNoIndex(res: NextResponse): NextResponse {
+  res.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+  return res;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get("host");
+
+  // Preview domen (hostingersite.com) — ne indeksirati u pretraživačima
+  if (isPreviewHost(host)) {
+    return withPreviewNoIndex(NextResponse.next());
+  }
 
   // ── 1) Blokiraj direktan /admin* pristup ────────────────────────────────────
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {

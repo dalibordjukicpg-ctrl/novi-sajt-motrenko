@@ -5,6 +5,7 @@ import { sitePageTranslations, sitePages } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
 import { defaultLocale } from "@/lib/i18n";
 import { preparePublicHtml } from "@/lib/public-cms-html";
+import { containsStaffPostGridShortcode } from "@/lib/wordpress-shortcodes";
 import {
   isMachineTranslateTarget,
   isRuntimeTranslateEnabled,
@@ -17,6 +18,8 @@ export type PublicSitePage = {
   slug: string;
   title: string;
   body: string | null;
+  /** Stranica je imala WP shortcode za osoblje — prikaži React roster. */
+  showTeamRoster?: boolean;
 };
 
 async function fetchSitePageRow(
@@ -52,6 +55,15 @@ async function fetchSitePageRow(
   };
 }
 
+/** Svi slugovi objavljenih CMS stranica (za sitemap). */
+export async function listPublishedSitePageSlugs(): Promise<string[]> {
+  const rows = await db
+    .select({ slug: sitePages.slug })
+    .from(sitePages)
+    .where(eq(sitePages.published, true));
+  return rows.map((r) => r.slug);
+}
+
 export async function getPublishedSitePage(
   locale: Locale,
   slug: string,
@@ -60,10 +72,13 @@ export async function getPublishedSitePage(
   if (!meRow) return null;
 
   if (locale === defaultLocale) {
+    const rawBody = meRow.body;
     return {
       slug: meRow.slug,
       title: meRow.title,
-      body: meRow.body ? preparePublicHtml(meRow.body, locale) : null,
+      body: rawBody ? preparePublicHtml(rawBody, locale) : null,
+      showTeamRoster:
+        meRow.slug === "tim" || containsStaffPostGridShortcode(rawBody),
     };
   }
 
@@ -85,5 +100,7 @@ export async function getPublishedSitePage(
     slug: meRow.slug,
     title,
     body: bodyRaw ? preparePublicHtml(bodyRaw, locale) : null,
+    showTeamRoster:
+      meRow.slug === "tim" || containsStaffPostGridShortcode(meRow.body),
   };
 }
