@@ -59,10 +59,8 @@ export function HomeHeroMotrenko({
 
   const [current, setCurrent] = useState(0);
   const [leaving, setLeaving] = useState(false);
-  const [videoVisible, setVideoVisible] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return getHomeHeroVideoReady();
-  });
+  const [videoVisible, setVideoVisible] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const bgRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -110,9 +108,18 @@ export function HomeHeroMotrenko({
   };
 
   useLayoutEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useLayoutEffect(() => {
     if (!isVideo || !url) return;
     const el = videoRef.current;
     if (!el) return;
+
+    if (getHomeHeroVideoReady()) {
+      setVideoVisible(true);
+      void el.play().catch(() => {});
+    }
 
     const saved = getSavedHeroVideoTime();
     if (saved > 0.05) {
@@ -130,9 +137,6 @@ export function HomeHeroMotrenko({
 
       if (el.readyState >= 1) applySaved();
       else el.addEventListener("loadedmetadata", applySaved, { once: true });
-    } else if (getHomeHeroVideoReady()) {
-      setVideoVisible(true);
-      void el.play().catch(() => {});
     }
   }, [isVideo, url]);
 
@@ -253,6 +257,8 @@ export function HomeHeroMotrenko({
     );
   }
 
+  const showVideo = hydrated && videoVisible;
+
   return (
     <section
       ref={containerRef}
@@ -284,7 +290,7 @@ export function HomeHeroMotrenko({
                 sizes="100vw"
                 className={[
                   "absolute inset-0 z-[1] object-cover transition-opacity duration-500 ease-out max-md:object-[center_38%] md:object-[center_28%]",
-                  videoVisible ? "opacity-0" : "opacity-100",
+                  showVideo ? "opacity-0" : "opacity-100",
                 ].join(" ")}
               />
             ) : null}
@@ -302,7 +308,7 @@ export function HomeHeroMotrenko({
               onPlaying={markVideoActive}
               className={[
                 "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover transition-opacity duration-500 ease-out max-md:object-[center_38%] md:object-[center_28%]",
-                videoVisible ? "opacity-100" : "opacity-0",
+                showVideo ? "opacity-100" : "opacity-0",
               ].join(" ")}
             />
           </>
