@@ -222,6 +222,7 @@ export const appointmentRequests = mysqlTable(
       .notNull(),
     visitReasonOther: varchar("visit_reason_other", { length: 500 }),
     whatBroughtYou: text("what_brought_you"),
+    attachmentsJson: text("attachments_json"),
     tryingConceiveDuration: varchar("trying_conceive_duration", {
       length: 24,
     }),

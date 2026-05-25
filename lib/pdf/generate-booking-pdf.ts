@@ -1,5 +1,6 @@
 import type { BookingIntakeLabels } from "@/lib/booking/intake-labels";
 import type { BookingRequestInput } from "@/lib/validations/booking-request";
+import type { BookingAttachmentMeta } from "@/lib/validations/booking-attachments";
 
 import {
   assertSinglePdfPage,
@@ -16,13 +17,14 @@ export type BookingPdfPayload = {
   publicRef: string;
   data: BookingRequestInput;
   labels: BookingIntakeLabels;
+  attachments?: BookingAttachmentMeta[];
 };
 
 export async function generateBookingPdf(
   payload: BookingPdfPayload,
   branding: PdfBranding,
 ): Promise<Buffer> {
-  const { submittedAt, publicRef, data, labels } = payload;
+  const { submittedAt, publicRef, data, labels, attachments = [] } = payload;
   const doc = createA4PdfDocument({
     title: `${labels.formEyebrow} — A4`,
     author: branding.clinicName,
@@ -105,6 +107,16 @@ export async function generateBookingPdf(
           label: labels.tryingConceive.replace(/\?$/, ""),
           value: ttc,
         },
+        ...(attachments.length > 0
+          ? [
+              {
+                kind: "block" as const,
+                label: labels.attachmentsLabel,
+                value: attachments.map((a) => a.filename).join("\n"),
+                flex: 1,
+              },
+            ]
+          : []),
       ],
     },
     {

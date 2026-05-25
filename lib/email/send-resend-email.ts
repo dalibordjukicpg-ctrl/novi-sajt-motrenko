@@ -15,6 +15,7 @@ export async function sendResendEmail(opts: {
   replyTo?: string;
   pdfBuffer?: Buffer;
   pdfFilename?: string;
+  extraAttachments?: { filename: string; content: Buffer }[];
   logPrefix?: string;
 }): Promise<SendResendEmailResult> {
   const key = process.env.RESEND_API_KEY?.trim();
@@ -43,13 +44,25 @@ export async function sendResendEmail(opts: {
   if (opts.html) {
     body.html = opts.html;
   }
+
+  const attachmentList: { filename: string; content: string }[] = [];
   if (opts.pdfBuffer && opts.pdfFilename && opts.pdfBuffer.length > 0) {
-    body.attachments = [
-      {
-        filename: opts.pdfFilename,
-        content: opts.pdfBuffer.toString("base64"),
-      },
-    ];
+    attachmentList.push({
+      filename: opts.pdfFilename,
+      content: opts.pdfBuffer.toString("base64"),
+    });
+  }
+  if (opts.extraAttachments?.length) {
+    for (const a of opts.extraAttachments) {
+      if (!a.content.length) continue;
+      attachmentList.push({
+        filename: a.filename,
+        content: a.content.toString("base64"),
+      });
+    }
+  }
+  if (attachmentList.length > 0) {
+    body.attachments = attachmentList;
   }
 
   let res: Response;
@@ -105,6 +118,7 @@ export async function sendResendEmailWithFallbacks(opts: {
   replyTo?: string;
   pdfBuffer?: Buffer;
   pdfFilename?: string;
+  extraAttachments?: { filename: string; content: Buffer }[];
   logPrefix?: string;
 }): Promise<SendResendEmailResult> {
   const prefix = opts.logPrefix ?? "[email]";

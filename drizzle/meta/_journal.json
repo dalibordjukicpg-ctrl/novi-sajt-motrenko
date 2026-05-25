@@ -141,6 +141,13 @@
       "when": 1747831800000,
       "tag": "0019_translation_records",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1747918200000,
+      "tag": "0020_appointment_attachments",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
+import { parseBookingAttachmentsJson } from "@/lib/booking/save-booking-attachments";
 import { listAppointmentRequestsForAdmin } from "@/lib/queries/booking-requests-admin";
 import { redirect, unauthorized } from "next/navigation";
 
@@ -62,6 +63,7 @@ export default async function AdminBookingsPage() {
               <th className="px-3 py-2">Kontakt</th>
               <th className="px-3 py-2">Ko dolazi</th>
               <th className="px-3 py-2 min-w-[12rem]">Šta vas je dovelo</th>
+              <th className="px-3 py-2">Prilozi</th>
               <th className="px-3 py-2">TTC</th>
             </tr>
           </thead>
@@ -69,14 +71,16 @@ export default async function AdminBookingsPage() {
             {rows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="px-3 py-8 text-center text-[#8a7b6e]"
                 >
                   Još nema zahtjeva.
                 </td>
               </tr>
             ) : (
-              rows.map((r) => (
+              rows.map((r) => {
+                const attachments = parseBookingAttachmentsJson(r.attachmentsJson);
+                return (
                 <tr key={r.id} className="align-top text-[#2a2118]">
                   <td className="whitespace-nowrap px-3 py-2 text-xs text-[#6b5f54]">
                     {formatTs(r.createdAt)}
@@ -126,11 +130,30 @@ export default async function AdminBookingsPage() {
                       {clip(r.whatBroughtYou, 480)}
                     </p>
                   </td>
+                  <td className="max-w-[12rem] px-3 py-2 text-xs">
+                    {attachments.length === 0 ? (
+                      <span className="text-[#8a7b6e]">—</span>
+                    ) : (
+                      <ul className="space-y-1">
+                        {attachments.map((a) => (
+                          <li key={a.id}>
+                            <a
+                              className="text-[#c55a15] underline-offset-2 hover:underline"
+                              href={`/api/admin/booking-attachments/${r.id}/${a.id}`}
+                            >
+                              {clip(a.filename, 40)}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </td>
                   <td className="whitespace-nowrap px-3 py-2 text-xs text-[#6b5f54]">
                     {r.tryingConceiveDuration ?? "—"}
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

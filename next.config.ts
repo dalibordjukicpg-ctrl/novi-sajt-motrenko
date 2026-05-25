@@ -49,6 +49,11 @@ const nextConfig: NextConfig = {
   /**
    * Paketi iz node_modules — bez nestabilnih vendor-chunks u devu (Windows).
    */
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "26mb",
+    },
+  },
   serverExternalPackages: [
     "mysql2",
     "drizzle-orm",

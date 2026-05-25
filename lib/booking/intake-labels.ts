@@ -37,6 +37,16 @@ export type BookingIntakeLabels = {
   errorValidation: string;
   consentRequired: string;
   partnerNameRequired: string;
+  sectionAttachments: string;
+  attachmentsLabel: string;
+  attachmentsHint: string;
+  attachmentsChoose: string;
+  attachmentsRemove: string;
+  attachmentsErrorTooMany: string;
+  attachmentsErrorTooLarge: string;
+  attachmentsErrorTotalTooLarge: string;
+  attachmentsErrorType: string;
+  pdfAttachmentsNote: string;
   pdfMetaSubmitted: string;
   pdfMetaLanguage: string;
   pdfMetaReference: string;
@@ -96,6 +106,17 @@ const ME: BookingIntakeLabels = {
   consentRequired:
     "Potrebno je prihvatiti obradu podataka (politika privatnosti).",
   partnerNameRequired: "Unesite ime partnera.",
+  sectionAttachments: "Prilozi (opciono)",
+  attachmentsLabel: "Nalazi, medicinska dokumentacija",
+  attachmentsHint:
+    "JPG, PNG, WEBP, PDF ili Word (.doc/.docx). Do 5 fajlova, najviše 8 MB po fajlu.",
+  attachmentsChoose: "Izaberi fajlove",
+  attachmentsRemove: "Ukloni",
+  attachmentsErrorTooMany: "Možete priložiti najviše 5 fajlova.",
+  attachmentsErrorTooLarge: "Jedan fajl je prevelik (maks. 8 MB).",
+  attachmentsErrorTotalTooLarge: "Ukupna veličina priloga je prevelika.",
+  attachmentsErrorType: "Dozvoljeni formati: JPG, PNG, WEBP, PDF, DOC, DOCX.",
+  pdfAttachmentsNote: "Prilozi pacijenta su u e-poruci uz PDF prijavnice.",
   pdfMetaSubmitted: "Datum slanja",
   pdfMetaLanguage: "Jezik forme",
   pdfMetaReference: "Referenca / ID",
@@ -154,6 +175,17 @@ const EN: BookingIntakeLabels = {
   errorValidation: "Please check the highlighted fields.",
   consentRequired: "Please accept the privacy policy to submit.",
   partnerNameRequired: "Please enter your partner’s name.",
+  sectionAttachments: "Attachments (optional)",
+  attachmentsLabel: "Findings, medical documents",
+  attachmentsHint:
+    "JPG, PNG, WEBP, PDF or Word (.doc/.docx). Up to 5 files, 8 MB each.",
+  attachmentsChoose: "Choose files",
+  attachmentsRemove: "Remove",
+  attachmentsErrorTooMany: "You can attach up to 5 files.",
+  attachmentsErrorTooLarge: "One file is too large (max 8 MB).",
+  attachmentsErrorTotalTooLarge: "Total attachment size is too large.",
+  attachmentsErrorType: "Allowed formats: JPG, PNG, WEBP, PDF, DOC, DOCX.",
+  pdfAttachmentsNote: "Patient files are attached to the email with the PDF form.",
   pdfMetaSubmitted: "Submitted at",
   pdfMetaLanguage: "Form language",
   pdfMetaReference: "Reference / ID",
@@ -213,6 +245,17 @@ const RU: BookingIntakeLabels = {
   consentRequired:
     "Нужно подтвердить согласие в соответствии с политикой конфиденциальности.",
   partnerNameRequired: "Введите имя партнёра.",
+  sectionAttachments: "Вложения (необязательно)",
+  attachmentsLabel: "Анализы, медицинские документы",
+  attachmentsHint:
+    "JPG, PNG, WEBP, PDF или Word (.doc/.docx). До 5 файлов, до 8 МБ каждый.",
+  attachmentsChoose: "Выбрать файлы",
+  attachmentsRemove: "Удалить",
+  attachmentsErrorTooMany: "Можно прикрепить не более 5 файлов.",
+  attachmentsErrorTooLarge: "Один файл слишком большой (макс. 8 МБ).",
+  attachmentsErrorTotalTooLarge: "Общий размер вложений слишком большой.",
+  attachmentsErrorType: "Допустимые форматы: JPG, PNG, WEBP, PDF, DOC, DOCX.",
+  pdfAttachmentsNote: "Файлы пациента приложены к письму вместе с PDF анкеты.",
   pdfMetaSubmitted: "Дата отправки",
   pdfMetaLanguage: "Язык формы",
   pdfMetaReference: "Ссылка / ID",

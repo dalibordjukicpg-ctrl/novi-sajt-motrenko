@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { FileText, Upload, X } from "lucide-react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 
 import { getBookingIntakeLabels } from "@/lib/booking/intake-labels";
-import { submitBookingRequestAction } from "@/lib/booking/submit-booking-request";
+import type { SubmitBookingState } from "@/lib/booking/submit-booking-request";
 import type { BookingFormLocale } from "@/lib/validations/booking-request";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -14,6 +21,36 @@ const labelCls =
 const inputCls =
   "mt-1.5 w-full rounded-md border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-site-brand-solid focus:outline-none focus:ring-1 focus:ring-site-brand/35";
 const sectionTitleCls = "text-sm font-semibold text-neutral-800";
+
+type PickedAttachment = {
+  id: string;
+  file: File;
+  previewUrl?: string;
+};
+
+function isImageFile(file: File): boolean {
+  return file.type.startsWith("image/");
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function filesToPicked(files: FileList | File[]): PickedAttachment[] {
+  return Array.from(files).map((file, index) => ({
+    id: `${file.name}-${file.size}-${file.lastModified}-${index}`,
+    file,
+    previewUrl: isImageFile(file) ? URL.createObjectURL(file) : undefined,
+  }));
+}
+
+function syncInputFiles(input: HTMLInputElement, files: File[]) {
+  const dt = new DataTransfer();
+  for (const f of files) dt.items.add(f);
+  input.files = dt.files;
+}
 
 type Props = {
   locale: Locale;
@@ -35,22 +72,88 @@ export function BookingIntakeForm({
   );
   const formRef = useRef<HTMLFormElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
+  const attachmentsInputRef = useRef<HTMLInputElement>(null);
   const [whoAttends, setWhoAttends] = useState("");
-  const [state, formAction, pending] = useActionState(
-    submitBookingRequestAction,
-    {},
+  const [pickedAttachments, setPickedAttachments] = useState<PickedAttachment[]>(
+    [],
   );
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [state, setState] = useState<SubmitBookingState>({});
+  const [pending, setPending] = useState(false);
+
+  const attachmentsRef = useRef(pickedAttachments);
+  attachmentsRef.current = pickedAttachments;
+
+  useEffect(() => {
+    return () => {
+      for (const item of attachmentsRef.current) {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!state.ok) return;
     formRef.current?.reset();
     setWhoAttends("");
+    setPickedAttachments((prev) => {
+      for (const item of prev) {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      }
+      return [];
+    });
+    setFileInputKey((k) => k + 1);
     successRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [state.ok]);
 
   const err = (name: string) => state.fieldErrors?.[name];
   const showPartner =
     whoAttends === "couple_both" || whoAttends === "with_partner";
+
+  function applyPickedFiles(files: File[]) {
+    setPickedAttachments((prev) => {
+      for (const item of prev) {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      }
+      const next = filesToPicked(files);
+      if (attachmentsInputRef.current) {
+        syncInputFiles(attachmentsInputRef.current, files);
+      }
+      return next;
+    });
+  }
+
+  function handleAttachmentsChange(fileList: FileList | null) {
+    applyPickedFiles(Array.from(fileList ?? []));
+  }
+
+  function removeAttachment(id: string) {
+    const next = pickedAttachments.filter((item) => item.id !== id);
+    const removed = pickedAttachments.find((item) => item.id === id);
+    if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+    applyPickedFiles(next.map((item) => item.file));
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!formRef.current || pending) return;
+    setPending(true);
+    setState({});
+
+    try {
+      const fd = new FormData(formRef.current);
+      const res = await fetch("/api/booking", {
+        method: "POST",
+        body: fd,
+      });
+      const json = (await res.json().catch(() => ({}))) as SubmitBookingState;
+      setState(json);
+    } catch {
+      setState({ error: labels.errorGeneric });
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <div
@@ -81,7 +184,8 @@ export function BookingIntakeForm({
 
       <form
         ref={formRef}
-        action={formAction}
+        onSubmit={handleSubmit}
+        encType="multipart/form-data"
         className="relative mt-6 space-y-8 pb-2"
       >
         <input type="hidden" name="locale" value={locale} />
@@ -272,6 +376,92 @@ export function BookingIntakeForm({
               </option>
               <option value="na">{labels.ttcOptions.na}</option>
             </select>
+          </div>
+        </fieldset>
+
+        <fieldset className="space-y-4 border-t border-neutral-100 pt-6">
+          <legend className={cn(sectionTitleCls, "mb-1")}>
+            {labels.sectionAttachments}
+          </legend>
+
+          <div>
+            <span className={labelCls}>{labels.attachmentsLabel}</span>
+
+            <input
+              key={fileInputKey}
+              ref={attachmentsInputRef}
+              id="attachments"
+              name="attachments"
+              type="file"
+              multiple
+              accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,image/jpeg,image/png,image/webp,application/pdf"
+              className="sr-only"
+              onChange={(e) => handleAttachmentsChange(e.target.files)}
+            />
+
+            <div
+              className={cn(
+                "mt-1.5 rounded-md border border-neutral-200 bg-white p-3",
+                err("attachments") && "border-red-400",
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => attachmentsInputRef.current?.click()}
+                className="inline-flex items-center gap-2 rounded-md bg-site-brand px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_8px_20px_-8px_rgba(243,112,33,0.55)] transition-colors hover:bg-site-brand-hover"
+              >
+                <Upload className="h-4 w-4" aria-hidden />
+                {labels.attachmentsChoose}
+              </button>
+
+              <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+                {labels.attachmentsHint}
+              </p>
+
+              {pickedAttachments.length > 0 ? (
+                <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {pickedAttachments.map((item) => (
+                    <li
+                      key={item.id}
+                      className="flex items-center gap-3 rounded-lg border border-site-brand/15 bg-site-surface-a/40 p-2"
+                    >
+                      {item.previewUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.previewUrl}
+                          alt=""
+                          className="h-14 w-14 shrink-0 rounded-md border border-white object-cover shadow-sm"
+                        />
+                      ) : (
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-site-brand/20 bg-white text-site-brand">
+                          <FileText className="h-6 w-6" aria-hidden />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-medium text-neutral-800">
+                          {item.file.name}
+                        </p>
+                        <p className="text-[10px] text-neutral-500">
+                          {formatFileSize(item.file.size)}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(item.id)}
+                        className="shrink-0 rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                        aria-label={`${labels.attachmentsRemove}: ${item.file.name}`}
+                      >
+                        <X className="h-4 w-4" aria-hidden />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+
+            {err("attachments") ? (
+              <p className="mt-1 text-xs text-red-600">{err("attachments")}</p>
+            ) : null}
           </div>
         </fieldset>
 

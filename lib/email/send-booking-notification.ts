@@ -7,14 +7,19 @@ export async function sendBookingNotificationEmail(payload: {
   text: string;
   pdfBuffer?: Buffer;
   pdfFilename?: string;
+  extraAttachments?: { filename: string; content: Buffer }[];
 }): Promise<{ ok: boolean }> {
-  if (payload.pdfBuffer && payload.pdfFilename && payload.pdfBuffer.length > 0) {
+  if (
+    (payload.pdfBuffer && payload.pdfFilename && payload.pdfBuffer.length > 0) ||
+    (payload.extraAttachments?.length ?? 0) > 0
+  ) {
     const withPdf = await sendResendEmail({
       to: payload.to,
       subject: payload.subject,
       text: payload.text,
       pdfBuffer: payload.pdfBuffer,
       pdfFilename: payload.pdfFilename,
+      extraAttachments: payload.extraAttachments,
       logPrefix: "[booking email:pdf]",
     });
     if (withPdf.ok) return { ok: true };

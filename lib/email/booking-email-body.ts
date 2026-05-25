@@ -1,12 +1,14 @@
 import type { BookingIntakeLabels } from "@/lib/booking/intake-labels";
 import type { BookingRequestInput } from "@/lib/validations/booking-request";
+import type { BookingAttachmentMeta } from "@/lib/validations/booking-attachments";
 
 export function buildBookingEmailBody(opts: {
   labels: BookingIntakeLabels;
   data: BookingRequestInput;
   publicRef: string;
+  attachments?: BookingAttachmentMeta[];
 }): { subject: string; text: string } {
-  const { labels, data, publicRef } = opts;
+  const { labels, data, publicRef, attachments = [] } = opts;
 
   const who =
     labels.whoAttendsOptions[
@@ -50,6 +52,14 @@ export function buildBookingEmailBody(opts: {
     "",
     labels.pdfAttachmentNote,
   ];
+
+  if (attachments.length > 0) {
+    lines.push("");
+    lines.push(labels.pdfAttachmentsNote);
+    for (const a of attachments) {
+      lines.push(`- ${a.filename} (${Math.round(a.size / 1024)} KB)`);
+    }
+  }
 
   const subject = `[${labels.formEyebrow}] ${data.fullName}`;
 
