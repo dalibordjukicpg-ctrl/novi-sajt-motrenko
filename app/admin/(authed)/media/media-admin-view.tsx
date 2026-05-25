@@ -59,11 +59,11 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
       <div>
         <h1 className="text-2xl font-semibold text-neutral-900">Mediji</h1>
         <p className="mt-2 max-w-2xl text-sm text-neutral-600">
-          Za svaku stavku unesi alt tekst (SEO). Fajlovi idu u{" "}
-          <code className="rounded bg-neutral-100 px-1">public/uploads</code>. Video za
-          hero: kompresuj ispod ~20 MB (idealno 3–8 MB), MP4 H.264. Poslije redeploy-a na
-          Hostingeru otpremi slike ponovo ako nestanu (baza ih pamti, fajl na disku može
-          biti obrisan).
+          Za svaku stavku unesi alt tekst (SEO). Novi uploadi se čuvaju u trajnom folderu
+          van deploy-a (Hostinger:{" "}
+          <code className="rounded bg-neutral-100 px-1">../private/uploads</code>) — commit
+          i redeploy više ne brišu slike. Video za hero: kompresuj ispod ~20 MB (idealno
+          3–8 MB), MP4 H.264.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50">
@@ -106,9 +106,9 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
 
       {missingCount > 0 ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          {missingCount} fajlova nedostaje na disku (prazan prikaz u galeriji). To se
-          dešava kad se sajt redeploy-uje — baza i dalje ima zapis, ali slika nije sačuvana
-          na serveru. Otpremi ih ponovo ili obriši prazne stavke.
+          {missingCount} fajlova nedostaje na disku (prazan prikaz u galeriji). Obično su
+          izgubljeni starim deploy-om prije trajnog skladišta — otpremi ih ponovo ili obriši
+          prazne stavke. Nakon ovog ažuriranja, novi uploadi ostaju sačuvani poslije commita.
         </p>
       ) : null}
 

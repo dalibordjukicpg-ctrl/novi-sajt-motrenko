@@ -3,8 +3,6 @@
  * Logs Node version and raises heap limit to avoid OOM during `next build`.
  */
 const { spawnSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
 
 const cwd = process.cwd();
 const nodeVersion = process.version;
@@ -44,10 +42,13 @@ if (fontCopy.status !== 0) {
   console.warn("[run-build] copy-pdf-fonts nije uspio — PDF UTF-8 može biti neispravan.");
 }
 
-try {
-  fs.mkdirSync(path.join(cwd, "public", "uploads"), { recursive: true });
-} catch {
-  /* ignore */
+const ensureUploads = spawnSync(process.execPath, ["scripts/ensure-uploads-persistent.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
+if (ensureUploads.status !== 0) {
+  console.warn("[run-build] ensure-uploads nije uspio — uploadi možda neće preživjeti deploy.");
 }
 
 let nextBin;

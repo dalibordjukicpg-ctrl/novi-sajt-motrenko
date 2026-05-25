@@ -5,6 +5,8 @@ export type ShareCopy = {
   siteName: string;
   ogTitle: string;
   ogDescription: string;
+  /** Kratka linija na OG slici (ispod logotipa). */
+  ogImageTagline: string;
 };
 
 export const SHARE_COPY: Record<Locale, ShareCopy> = {
@@ -13,18 +15,21 @@ export const SHARE_COPY: Record<Locale, ShareCopy> = {
     ogTitle: "Human Reproduction Center · Budva",
     ogDescription:
       "Napredna reproduktivna medicina i IVF. Stručan tim, savremena laboratorija i individualna njega za vašu porodicu.",
+    ogImageTagline: "Reproduktivna medicina i IVF",
   },
   en: {
     siteName: "Human Reproduction Center",
     ogTitle: "Human Reproduction Center · Budva",
     ogDescription:
       "Advanced reproductive medicine and IVF. Expert team, modern laboratory, and personalized care for your family.",
+    ogImageTagline: "Reproductive medicine and IVF",
   },
   ru: {
     siteName: "Human Reproduction Center",
     ogTitle: "Human Reproduction Center · Budva",
     ogDescription:
       "Современная репродуктивная медицина и ЭКО. Опытная команда, современная лаборатория и индивидуальный подход.",
+    ogImageTagline: "Репродуктивная медицина и ЭКО",
   },
 };
 

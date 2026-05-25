@@ -1,9 +1,8 @@
-import path from "path";
-
 import { eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { media, posts, siteGlobals } from "@/lib/db/schema";
+import { localUploadAbsPathFromStorageKey } from "@/lib/media-storage-path";
 import { SITE_GLOBALS_ROW_ID } from "@/lib/queries/site-globals";
 
 export type MediaUsageRef = {
@@ -91,14 +90,9 @@ export async function clearMediaIdFromSiteGlobals(mediaId: string): Promise<void
     .where(eq(siteGlobals.id, SITE_GLOBALS_ROW_ID));
 }
 
-/** Apsolutna putanja samo za lokalne fajlove u `public/uploads/`. */
+/** Apsolutna putanja za lokalne fajlove u `uploads/…` (van deploy foldera u produkciji). */
 export function localUploadAbsPath(storageKey: string): string | null {
-  const k = storageKey.trim();
-  if (!k || /^https?:\/\//i.test(k)) return null;
-  const normalized = k.replace(/^\/+/, "").replace(/\\/g, "/");
-  if (normalized.includes("..")) return null;
-  if (!normalized.startsWith("uploads/")) return null;
-  return path.join(process.cwd(), "public", ...normalized.split("/"));
+  return localUploadAbsPathFromStorageKey(storageKey);
 }
 
 export async function getMediaRowForDelete(mediaId: string) {

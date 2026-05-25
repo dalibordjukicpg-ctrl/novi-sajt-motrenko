@@ -1,7 +1,6 @@
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
-
+import { writeFile } from "fs/promises";
 import { randomUUID } from "crypto";
+import path from "path";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
@@ -9,6 +8,7 @@ import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { media } from "@/lib/db/schema";
 import { publicUrlFromMediaStorageKey } from "@/lib/media-public";
+import { ensureUploadsRootDir, localUploadAbsPathFromStorageKey } from "@/lib/media-storage-path";
 
 export const dynamic = "force-dynamic";
 
@@ -107,11 +107,14 @@ export async function POST(req: Request) {
   const ext = path.extname(orig).slice(0, 12) || ".bin";
   const id = randomUUID();
   const relKey = `uploads/${id}${ext}`;
-  const absDir = path.join(process.cwd(), "public", "uploads");
-  const absFile = path.join(process.cwd(), "public", relKey);
+  const absFile = localUploadAbsPathFromStorageKey(relKey);
+
+  if (!absFile) {
+    return NextResponse.json({ error: "Neispravna putanja." }, { status: 400 });
+  }
 
   try {
-    await mkdir(absDir, { recursive: true });
+    await ensureUploadsRootDir();
     await writeFile(absFile, buf);
   } catch (e) {
     console.error(e);

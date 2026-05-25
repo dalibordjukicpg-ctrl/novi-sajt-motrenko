@@ -6,8 +6,9 @@ import { defaultLocale, locales } from "@/lib/i18n";
 import { db } from "@/lib/db";
 import { media, postTranslations, posts } from "@/lib/db/schema";
 import { publicUrlFromMediaStorageKey } from "@/lib/media-public";
-import { resolvePublishedPostIdForSlug } from "@/lib/post-locale-resolve";
+import { mediaFileExistsOnDisk } from "@/lib/media-local";
 import { resolveBestPublicImageUrl } from "@/lib/media-quality";
+import { resolvePublishedPostIdForSlug } from "@/lib/post-locale-resolve";
 import { preparePublicHtml, preparePublicPlainText, stripDuplicateTeamCoverFromBody, extractFirstImageSrcFromHtml } from "@/lib/public-cms-html";
 import { sortTeamMembersForDisplay } from "@/lib/team-roster-order";
 import {
@@ -18,6 +19,30 @@ import {
   translatePlainForLocale,
   translateTextPairsForLocale,
 } from "@/lib/runtime-translate";
+
+function resolveCoverPublicUrl(storageKey: string | null | undefined): string | null {
+  const raw = storageKey?.trim();
+  if (!raw) return null;
+  const url = resolveBestPublicImageUrl(publicUrlFromMediaStorageKey(raw));
+  if (!url) return null;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (url.startsWith("/uploads/") || url.startsWith("/wp-media/")) {
+    const key = url.replace(/^\//, "");
+    if (!mediaFileExistsOnDisk(key)) return null;
+  }
+  return url;
+}
+
+function resolveCoverPublicUrlFromPath(url: string | null | undefined): string | null {
+  const best = resolveBestPublicImageUrl(url);
+  if (!best) return null;
+  if (best.startsWith("http://") || best.startsWith("https://")) return best;
+  if (best.startsWith("/uploads/") || best.startsWith("/wp-media/")) {
+    const key = best.replace(/^\//, "");
+    if (!mediaFileExistsOnDisk(key)) return null;
+  }
+  return best;
+}
 
 export type AdminPostRow = {
   id: string;
@@ -174,10 +199,8 @@ export async function listPublishedSummaries(
       .from(media)
       .where(inArray(media.id, mediaIds));
     for (const m of mrows) {
-      coverUrlByMediaId.set(
-        m.id,
-        publicUrlFromMediaStorageKey(m.storageKey),
-      );
+      const url = resolveCoverPublicUrl(m.storageKey);
+      if (url) coverUrlByMediaId.set(m.id, url);
     }
   }
 
@@ -307,10 +330,8 @@ export async function listPublishedTeamSummaries(
       .from(media)
       .where(inArray(media.id, mediaIds));
     for (const m of mrows) {
-      coverUrlByMediaId.set(
-        m.id,
-        publicUrlFromMediaStorageKey(m.storageKey),
-      );
+      const url = resolveCoverPublicUrl(m.storageKey);
+      if (url) coverUrlByMediaId.set(m.id, url);
     }
   }
 
@@ -482,13 +503,10 @@ export async function getPublishedPostBySlug(
     }
   }
 
-  const coverFromMedia = row.coverKey
-    ? publicUrlFromMediaStorageKey(row.coverKey)
-    : null;
   const bodyHtml = bodySource ? preparePublicHtml(bodySource, locale) : null;
-  const coverUrlRaw =
-    coverFromMedia ?? extractFirstImageSrcFromHtml(bodyHtml) ?? null;
-  const coverUrl = resolveBestPublicImageUrl(coverUrlRaw);
+  const coverUrl =
+    resolveCoverPublicUrl(row.coverKey) ??
+    resolveCoverPublicUrlFromPath(extractFirstImageSrcFromHtml(bodyHtml));
   const bodyProcessed =
     bodyHtml && coverUrl
       ? stripDuplicateTeamCoverFromBody(bodyHtml, coverUrl)
