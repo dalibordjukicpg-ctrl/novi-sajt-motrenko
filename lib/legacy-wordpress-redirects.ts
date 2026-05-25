@@ -47,6 +47,54 @@ export const LEGACY_WP_PAGE_SLUGS = [
 /** Podrazumijevani locale — ne uvoziti `@/lib/i18n` (next.config se učitava bez TS path aliasa). */
 const LOCALE = "me";
 
+const LEGACY_WP_SLUG_SET = new Set<string>(LEGACY_WP_PAGE_SLUGS);
+
+const LEGACY_BLOG_INDEX_PATHS = new Set([
+  "/blog",
+  "/novosti",
+  "/category/novosti",
+  "/./novosti",
+]);
+
+/**
+ * Middleware / edge — 301 prije App Routera (radi pouzdano i u `next dev`).
+ * Vraća putanju (može sadržati `#fragment`), ili null.
+ */
+export function resolveLegacyWordPressRedirect(pathname: string): string | null {
+  const path = pathname.replace(/\/+$/, "") || "/";
+  const home = `/${LOCALE}`;
+
+  if (LEGACY_BLOG_INDEX_PATHS.has(path)) return `${home}#novosti`;
+
+  const novostiPost = path.match(/^\/novosti\/([^/]+)$/);
+  if (novostiPost?.[1]) {
+    return `/${LOCALE}/posts/${encodeURIComponent(novostiPost[1])}`;
+  }
+
+  const legacyPost = path.match(/^\/posts\/([^/]+)$/);
+  if (legacyPost?.[1]) {
+    return `/${LOCALE}/posts/${encodeURIComponent(legacyPost[1])}`;
+  }
+
+  const shortCms = path.match(/^\/s\/([^/]+)$/);
+  if (shortCms?.[1]) {
+    return `/${LOCALE}/s/${encodeURIComponent(shortCms[1])}`;
+  }
+
+  const rootSlug = path.match(/^\/([^/]+)$/);
+  if (rootSlug?.[1] && LEGACY_WP_SLUG_SET.has(rootSlug[1])) {
+    return `/${LOCALE}/s/${encodeURIComponent(rootSlug[1])}`;
+  }
+
+  if (path === "/index.php" || path.startsWith("/index.php/")) return home;
+  if (path === "/feed" || path.startsWith("/feed/")) return home;
+  if (path === "/comments/feed") return home;
+  if (path.startsWith("/wp-json/")) return home;
+  if (path === "/xmlrpc.php") return home;
+
+  return null;
+}
+
 export function buildLegacyWordPressRedirects(): Redirect[] {
   const redirects: Redirect[] = [];
   const home = `/${LOCALE}`;

@@ -11,6 +11,7 @@ import {
   isLikelyValidSessionCookieShape,
   SESSION_COOKIE_NAME,
 } from "@/lib/auth/constants";
+import { resolveLegacyWordPressRedirect } from "@/lib/legacy-wordpress-redirects";
 import { isPreviewHost } from "@/lib/site-url";
 
 /**
@@ -48,6 +49,14 @@ export function middleware(request: NextRequest) {
   // Preview domen (hostingersite.com) — ne indeksirati u pretraživačima
   if (isPreviewHost(host)) {
     return withPreviewNoIndex(NextResponse.next());
+  }
+
+  // Stari WordPress URL-ovi → 301 (radi i u dev, i kad je .next „prljava“)
+  const legacyTarget = resolveLegacyWordPressRedirect(pathname);
+  if (legacyTarget) {
+    const url = new URL(legacyTarget, request.url);
+    url.search = request.nextUrl.search;
+    return NextResponse.redirect(url, 301);
   }
 
   // ── 1) Blokiraj direktan /admin* pristup ────────────────────────────────────

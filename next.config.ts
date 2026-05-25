@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
    * često `Cannot find module './vendor-chunks/lucide-react.js'` kad je `.next` „prljava”).
    */
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ["lucide-react", "tailwind-merge", "clsx"],
   },
   /**
    * Spriječava webpack vendor chunkove koji u dev na Windowsu često „puknu“
