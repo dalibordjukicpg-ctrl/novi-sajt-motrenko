@@ -1,5 +1,6 @@
 import { sanitizeWordPressContent } from "@/scripts/lib/sanitize-wordpress-content";
 import { stripWordPressShortcodesFromContent } from "@/lib/wordpress-shortcodes";
+import { upgradeImageUrlsInHtml } from "@/lib/media-quality";
 
 import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
@@ -460,7 +461,8 @@ export function preparePublicHtml(html: string | null | undefined, locale: Local
     sanitizePublicCmsHtml(html),
   );
   const linked = prefixRootRelativeAppLinks(sanitized, locale);
-  return stripNPlaceholderBlocks(linked);
+  const cleaned = stripNPlaceholderBlocks(linked);
+  return upgradeImageUrlsInHtml(cleaned);
 }
 
 /** Kratki plain/HTML tekst (excerpt, meta) — uklanja WP „n“ smeće. */

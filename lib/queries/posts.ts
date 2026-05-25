@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { media, postTranslations, posts } from "@/lib/db/schema";
 import { publicUrlFromMediaStorageKey } from "@/lib/media-public";
 import { resolvePublishedPostIdForSlug } from "@/lib/post-locale-resolve";
+import { resolveBestPublicImageUrl } from "@/lib/media-quality";
 import { preparePublicHtml, preparePublicPlainText, stripDuplicateTeamCoverFromBody, extractFirstImageSrcFromHtml } from "@/lib/public-cms-html";
 import { sortTeamMembersForDisplay } from "@/lib/team-roster-order";
 import {
@@ -485,8 +486,9 @@ export async function getPublishedPostBySlug(
     ? publicUrlFromMediaStorageKey(row.coverKey)
     : null;
   const bodyHtml = bodySource ? preparePublicHtml(bodySource, locale) : null;
-  const coverUrl =
+  const coverUrlRaw =
     coverFromMedia ?? extractFirstImageSrcFromHtml(bodyHtml) ?? null;
+  const coverUrl = resolveBestPublicImageUrl(coverUrlRaw);
   const bodyProcessed =
     bodyHtml && coverUrl
       ? stripDuplicateTeamCoverFromBody(bodyHtml, coverUrl)

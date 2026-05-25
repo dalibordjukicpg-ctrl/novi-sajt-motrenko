@@ -52,6 +52,8 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
     });
   }
 
+  const missingCount = items.filter((item) => !item.fileExists).length;
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
@@ -59,7 +61,9 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
         <p className="mt-2 max-w-2xl text-sm text-neutral-600">
           Za svaku stavku unesi alt tekst (SEO). Fajlovi idu u{" "}
           <code className="rounded bg-neutral-100 px-1">public/uploads</code>. Video za
-          hero: kompresuj ispod ~20 MB (idealno 3–8 MB), MP4 H.264.
+          hero: kompresuj ispod ~20 MB (idealno 3–8 MB), MP4 H.264. Poslije redeploy-a na
+          Hostingeru otpremi slike ponovo ako nestanu (baza ih pamti, fajl na disku može
+          biti obrisan).
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50">
@@ -99,6 +103,14 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
           )}
         </div>
       </div>
+
+      {missingCount > 0 ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          {missingCount} fajlova nedostaje na disku (prazan prikaz u galeriji). To se
+          dešava kad se sajt redeploy-uje — baza i dalje ima zapis, ali slika nije sačuvana
+          na serveru. Otpremi ih ponovo ili obriši prazne stavke.
+        </p>
+      ) : null}
 
       {deleteMsg && (
         <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm text-neutral-800">
@@ -149,6 +161,13 @@ export function MediaAdminView({ items }: { items: MediaAdminRow[] }) {
                       </span>
                       <span className="text-[11px] text-white/70">
                         {(item.sizeBytes / (1024 * 1024)).toFixed(1)} MB
+                      </span>
+                    </div>
+                  ) : !item.fileExists ? (
+                    <div className="flex h-full flex-col items-center justify-center gap-1 bg-amber-50 px-3 text-center text-amber-900">
+                      <span className="text-xs font-semibold">Fajl nedostaje</span>
+                      <span className="text-[11px] leading-snug text-amber-800">
+                        Otpremi ponovo ili obriši stavku
                       </span>
                     </div>
                   ) : (

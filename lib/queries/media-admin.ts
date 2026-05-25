@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { media, mediaAltTranslations } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
 import { isLocale, locales } from "@/lib/i18n";
+import { mediaFileExistsOnDisk } from "@/lib/media-local";
 import { publicUrlFromMediaStorageKey } from "@/lib/media-public";
 
 export type MediaAdminRow = {
@@ -15,6 +16,7 @@ export type MediaAdminRow = {
   width: number | null;
   height: number | null;
   publicUrl: string;
+  fileExists: boolean;
   altByLocale: Record<Locale, string>;
 };
 
@@ -63,6 +65,7 @@ export async function listMediaForAdmin(): Promise<MediaAdminRow[]> {
     width: m.width,
     height: m.height,
     publicUrl: publicUrlFromMediaStorageKey(m.storageKey),
+    fileExists: mediaFileExistsOnDisk(m.storageKey),
     altByLocale: altMap.get(m.id) ?? emptyAltByLocale(),
   }));
 }
@@ -72,6 +75,7 @@ export type MediaOption = {
   label: string;
   url: string;
   mimeType: string;
+  fileMissing?: boolean;
 };
 
 export async function listMediaOptions(): Promise<MediaOption[]> {
@@ -89,5 +93,6 @@ export async function listMediaOptions(): Promise<MediaOption[]> {
     label: `${r.filename}${r.mimeType.startsWith("video/") ? " (video)" : ""}`,
     url: publicUrlFromMediaStorageKey(r.storageKey),
     mimeType: r.mimeType,
+    fileMissing: !mediaFileExistsOnDisk(r.storageKey),
   }));
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { PageHero } from "@/components/site/page-hero";
@@ -96,14 +97,24 @@ export default async function PublicPostPage({ params }: Props) {
             <div className="order-1 mx-auto w-full max-w-[min(100%,22rem)] shrink-0 self-start sm:max-w-[20rem] lg:order-none lg:mx-0 lg:w-[min(100%,20rem)] lg:max-w-[36%]">
               {post.coverUrl ? (
                 <div className="relative aspect-[4/5] w-full min-h-[17.5rem] overflow-hidden rounded-2xl border border-site-border bg-site-surface-a shadow-site-lift sm:min-h-[19rem]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={post.coverUrl}
-                    alt={post.title}
-                    loading="eager"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover object-[center_12%]"
-                  />
+                  {post.coverUrl.startsWith("/") ? (
+                    <Image
+                      src={post.coverUrl}
+                      alt={post.title}
+                      fill
+                      unoptimized
+                      priority
+                      sizes="(min-width: 1024px) 320px, (min-width: 640px) 280px, 88vw"
+                      className="object-cover object-[center_12%]"
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={post.coverUrl}
+                      alt={post.title}
+                      className="absolute inset-0 h-full w-full object-cover object-[center_12%]"
+                    />
+                  )}
                 </div>
               ) : null}
             </div>

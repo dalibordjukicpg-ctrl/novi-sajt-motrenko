@@ -40,6 +40,7 @@ export async function uploadAdminMediaFile(file: File): Promise<MediaOption> {
     url: j.url,
     label: j.filename ?? file.name,
     mimeType: j.mimeType ?? file.type,
+    fileMissing: false,
   };
 }
 
@@ -67,6 +68,11 @@ export function AdminMediaPicker({
     }
     return out;
   }, [extra, mediaOptions, imagesOnly]);
+
+  const missingCount = useMemo(
+    () => items.filter((m) => m.fileMissing).length,
+    [items],
+  );
 
   const handleUpload = useCallback(
     (file: File) => {
@@ -146,6 +152,12 @@ export function AdminMediaPicker({
             Novi fajl se dodaje u <span className="font-medium">Mediji</span> i odmah možeš da
             ga izabereš.
           </p>
+          {missingCount > 0 ? (
+            <p className="mt-2 text-xs text-amber-800">
+              {missingCount} stavki nema fajl na disku (npr. poslije redeploy-a). Otpremi
+              ponovo ili obriši u Admin → Mediji.
+            </p>
+          ) : null}
           {error ? (
             <p className="mt-2 text-sm text-red-600" role="alert">
               {error}
@@ -165,22 +177,33 @@ export function AdminMediaPicker({
                 <li key={item.id}>
                   <button
                     type="button"
-                    disabled={pending}
+                    disabled={pending || item.fileMissing}
                     onClick={() => {
                       onPick(item);
                       onClose();
                     }}
                     className={cn(
-                      "group relative aspect-square w-full overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100",
-                      "transition hover:border-[#f37021] hover:ring-2 hover:ring-[#f37021]/30 focus:outline-none focus:ring-2 focus:ring-[#f37021]",
+                      "group relative aspect-square w-full overflow-hidden rounded-lg border bg-neutral-100",
+                      item.fileMissing
+                        ? "cursor-not-allowed border-amber-300 opacity-80"
+                        : "border-neutral-200 transition hover:border-[#f37021] hover:ring-2 hover:ring-[#f37021]/30 focus:outline-none focus:ring-2 focus:ring-[#f37021]",
                     )}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.url}
-                      alt=""
-                      className="h-full w-full object-cover transition group-hover:scale-[1.03]"
-                    />
+                    {item.fileMissing ? (
+                      <div className="flex h-full flex-col items-center justify-center gap-1 bg-amber-50 px-2 text-center">
+                        <ImageIcon className="h-7 w-7 text-amber-400" aria-hidden />
+                        <span className="text-[10px] font-medium leading-tight text-amber-900">
+                          Fajl nedostaje
+                        </span>
+                      </div>
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.url}
+                        alt=""
+                        className="h-full w-full object-cover transition group-hover:scale-[1.03]"
+                      />
+                    )}
                     <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5 text-left text-[10px] leading-tight text-white">
                       {item.label}
                     </span>

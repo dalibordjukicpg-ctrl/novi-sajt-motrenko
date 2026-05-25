@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { CLINIC_PAGE_HERO_BG } from "@/lib/clinic-assets";
@@ -17,18 +18,38 @@ const CARD_MIN_H = "min-h-[260px]";
 function MemberPhoto({
   coverUrl,
   className = "",
+  sizes,
+  priority = false,
 }: {
   coverUrl: string | null;
   className?: string;
+  sizes: string;
+  priority?: boolean;
 }) {
   const src = coverUrl && coverUrl.length > 0 ? coverUrl : CLINIC_PAGE_HERO_BG;
+  const isLocal = src.startsWith("/");
+
+  if (isLocal) {
+    return (
+      <Image
+        src={src}
+        alt=""
+        fill
+        unoptimized
+        priority={priority}
+        sizes={sizes}
+        className={`object-cover object-[center_12%] select-none ${className}`}
+      />
+    );
+  }
+
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt=""
-      className={`absolute inset-0 h-full w-full object-cover object-[center_15%] transition duration-300 group-hover:scale-[1.04] select-none ${className}`}
-      loading="lazy"
+      className={`absolute inset-0 h-full w-full object-cover object-[center_12%] select-none ${className}`}
+      loading={priority ? "eager" : "lazy"}
       decoding="async"
     />
   );
@@ -50,7 +71,11 @@ function FeaturedMemberCard({
     >
       <div className="grid gap-0 md:grid-cols-[minmax(0,17rem)_1fr] md:items-stretch">
         <div className="relative aspect-[4/5] min-h-[17rem] max-h-[28rem] bg-site-surface-a md:max-h-none md:min-h-[22rem]">
-          <MemberPhoto coverUrl={m.coverUrl} className="group-hover:scale-[1.02]" />
+          <MemberPhoto
+            coverUrl={m.coverUrl}
+            sizes="(min-width: 768px) 272px, 88vw"
+            priority
+          />
           <div
             aria-hidden
             className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:via-transparent md:to-black/[0.04]"
@@ -95,8 +120,11 @@ function MemberCard({
         href={`/${locale}/posts/${m.slug}`}
         className={`group flex ${CARD_MIN_H} h-full w-full gap-4 rounded-2xl border border-site-border bg-site-card p-4 shadow-site-card transition hover:border-site-brand/25 hover:shadow-site-lift`}
       >
-        <div className="relative min-h-[11rem] w-[7.25rem] shrink-0 self-stretch overflow-hidden rounded-xl bg-site-surface-a ring-1 ring-site-border">
-          <MemberPhoto coverUrl={m.coverUrl} />
+        <div className="relative min-h-[11.5rem] w-[8.25rem] shrink-0 self-stretch overflow-hidden rounded-xl bg-site-surface-a ring-1 ring-site-border sm:w-[8.75rem]">
+          <MemberPhoto
+            coverUrl={m.coverUrl}
+            sizes="(min-width: 640px) 148px, 132px"
+          />
         </div>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col py-0.5">
           <p className="font-serif text-lg font-semibold leading-snug text-site-ink transition group-hover:text-site-brand-muted">

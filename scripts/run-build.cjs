@@ -3,6 +3,8 @@
  * Logs Node version and raises heap limit to avoid OOM during `next build`.
  */
 const { spawnSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
 
 const cwd = process.cwd();
 const nodeVersion = process.version;
@@ -40,6 +42,12 @@ const fontCopy = spawnSync(process.execPath, ["scripts/copy-pdf-fonts.cjs"], {
 });
 if (fontCopy.status !== 0) {
   console.warn("[run-build] copy-pdf-fonts nije uspio — PDF UTF-8 može biti neispravan.");
+}
+
+try {
+  fs.mkdirSync(path.join(cwd, "public", "uploads"), { recursive: true });
+} catch {
+  /* ignore */
 }
 
 let nextBin;
