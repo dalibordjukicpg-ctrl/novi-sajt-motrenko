@@ -20,7 +20,35 @@ function resolvePort() {
   return "3000";
 }
 
-const cwd = process.cwd();
+/** Hostinger Git deploy: build u `.builds/source/repository`, start ponekad iz `public_html`. */
+function resolveAppRoot() {
+  const startCwd = process.cwd();
+  const candidates = new Set([
+    startCwd,
+    path.join(startCwd, ".builds", "source", "repository"),
+    path.join(startCwd, "repository"),
+    path.dirname(startCwd),
+  ]);
+
+  for (let dir = startCwd, i = 0; i < 6; i++) {
+    candidates.add(dir);
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+
+  for (const dir of candidates) {
+    const buildId = path.join(dir, ".next", "BUILD_ID");
+    const pkg = path.join(dir, "package.json");
+    if (fs.existsSync(buildId) && fs.existsSync(pkg)) {
+      return dir;
+    }
+  }
+
+  return startCwd;
+}
+
+const cwd = resolveAppRoot();
 const host = process.env.HOST?.trim() || "0.0.0.0";
 const port = resolvePort();
 const buildIdPath = path.join(cwd, ".next", "BUILD_ID");
@@ -30,6 +58,9 @@ process.env.PORT = port;
 process.env.HOST = host;
 
 console.log("[start-prod] cwd:", cwd);
+if (cwd !== process.cwd()) {
+  console.log("[start-prod] started from:", process.cwd(), "→ using app root:", cwd);
+}
 console.log("[start-prod] PORT:", port, "HOST:", host);
 
 if (!fs.existsSync(buildIdPath)) {
