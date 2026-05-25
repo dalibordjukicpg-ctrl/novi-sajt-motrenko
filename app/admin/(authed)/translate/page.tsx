@@ -23,7 +23,7 @@ export default async function AdminTranslateBatchPage() {
     <div className="mx-auto max-w-5xl space-y-8">
       <AdminPageHeader
         title="Prevodi"
-        description="Pre-generisanje prevoda ME/SR → EN/RU. OpenAI se koristi samo iz ovog panela — promjena jezika na sajtu je instant (čita bazu)."
+        description="Mašinski prevod kompletnog sadržaja sa ME/SR na EN i RU. Označi šta želiš i prati progres uživo."
       />
       <AdminPanel>
         <TranslateBatchPanel inventory={inventory} />

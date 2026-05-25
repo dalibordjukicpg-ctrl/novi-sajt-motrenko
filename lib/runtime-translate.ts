@@ -19,9 +19,9 @@ export function isRuntimeTranslateEnabled(): boolean {
   return isMachineTranslateConfigured();
 }
 
-/** Header/footer navigacija — isto kao ostatak sajta kad je AUTO_TRANSLATE_ON_VIEW=0. */
+/** Header/footer navigacija — prevod kad je API podešen (ne ovisi o AUTO_TRANSLATE_ON_VIEW). */
 export function isNavRuntimeTranslateEnabled(): boolean {
-  return isRuntimeTranslateEnabled();
+  return isMachineTranslateConfigured();
 }
 
 export function isMachineTranslateTarget(
@@ -94,8 +94,8 @@ export async function translatePlainForLocale(
 }
 
 /**
- * Prevod kratke oznake za navigaciju — samo kad je runtime prevod uključen
- * (AUTO_TRANSLATE_ON_VIEW ≠ 0). U produkciji se koriste prevodi iz baze.
+ * Prevod kratke oznake za navigaciju — radi i kad je AUTO_TRANSLATE_ON_VIEW=0,
+ * sve dok je provajder podešen. Koristi se za header/footer labele.
  */
 export async function translateNavPlainForLocale(
   text: string,

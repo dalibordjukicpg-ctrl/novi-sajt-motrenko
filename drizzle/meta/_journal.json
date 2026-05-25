@@ -134,13 +134,6 @@
       "when": 1747745400000,
       "tag": "0018_home_team_highlights",
       "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "5",
-      "when": 1747831800000,
-      "tag": "0019_translation_records",
-      "breakpoints": true
     }
   ]
 }
