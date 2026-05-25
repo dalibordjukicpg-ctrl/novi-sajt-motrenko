@@ -106,9 +106,6 @@ export function HomeHeroMotrenko({
 
   useLayoutEffect(() => {
     if (!isVideo || !url) return;
-    if (getHomeHeroVideoReady()) {
-      setVideoVisible(true);
-    }
     const el = videoRef.current;
     if (!el) return;
 
@@ -254,29 +251,21 @@ export function HomeHeroMotrenko({
   return (
     <section
       ref={containerRef}
-      className="relative isolate -mt-[calc(4.25rem+env(safe-area-inset-top,0px))] overflow-hidden rounded-b-3xl bg-[#1a1512] max-md:min-h-[min(78svh,580px)] max-md:h-[min(78svh,580px)] md:-mt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
+      className="relative isolate -mt-[calc(4.25rem+env(safe-area-inset-top,0px))] overflow-hidden rounded-b-3xl bg-zinc-950 max-md:min-h-[min(78svh,580px)] max-md:h-[min(78svh,580px)] md:-mt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:h-[100svh] md:min-h-[560px] md:rounded-b-[2rem] lg:min-h-[640px]"
     >
-      {/* Video — topli gradijent dok se učita, bez statične slike djece */}
+      {/* Slika/video — jedini sloj, bez duplikata */}
       <div
         ref={bgRef}
         className="absolute inset-0 overflow-hidden md:-bottom-[6%] md:-top-[6%]"
         style={{ transform: "translateY(var(--py, 0%))" }}
         aria-hidden
       >
-        {(isVideo || isYoutube) && url ? (
-          <div
-            className={[
-              "absolute inset-0 z-[1] bg-gradient-to-br from-[#3a2618] via-[#2a1810] to-[#16110e] transition-opacity duration-500 ease-out",
-              videoVisible && isVideo ? "opacity-0" : "opacity-100",
-            ].join(" ")}
-            aria-hidden
-          />
-        ) : null}
+        <div className="absolute inset-0 z-0 bg-zinc-950" aria-hidden />
         {isYoutube && url ? (
           <iframe
             title=""
             src={`${url}?autoplay=1&mute=1&controls=0&loop=1&playlist=${url.split("/embed/")[1] ?? ""}&playsinline=1`}
-            className="pointer-events-none absolute left-1/2 top-1/2 z-[2] h-[120%] w-[120%] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 scale-[1.35] object-cover"
+            className="pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[120%] w-[120%] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 scale-[1.35] object-cover"
             allow="autoplay; encrypted-media"
           />
         ) : isVideo && url ? (
@@ -289,9 +278,8 @@ export function HomeHeroMotrenko({
             preload="auto"
             src={url}
             onPlaying={markVideoActive}
-            onLoadedData={markVideoActive}
             className={[
-              "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover transition-opacity duration-500 ease-out max-md:object-[center_38%] md:object-[center_28%]",
+              "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover max-md:object-[center_38%] md:object-[center_28%]",
               videoVisible ? "opacity-100" : "opacity-0",
             ].join(" ")}
           />
@@ -331,7 +319,7 @@ export function HomeHeroMotrenko({
 
       {/* Tekst i CTA */}
       <div className="relative z-10 flex h-full flex-col px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[calc(4.25rem+env(safe-area-inset-top))] max-md:justify-end max-md:pb-12 sm:px-8 md:justify-center md:px-24 md:pb-0 md:pt-[calc(4.5rem+env(safe-area-inset-top))]">
-        <div className="w-full max-w-2xl max-md:text-left md:max-w-2xl">
+        <div className="w-full max-w-2xl max-md:mx-auto max-md:text-center">
           <p
             style={{
               opacity: leaving ? 0 : 1,
@@ -350,9 +338,10 @@ export function HomeHeroMotrenko({
               transition: "opacity 0.6s ease 0.05s, transform 0.6s ease 0.05s",
               fontFamily: "var(--font-playfair), Georgia, serif",
             }}
-            className="whitespace-pre-line text-balance text-[clamp(1.5rem,6.2vw,2.5rem)] font-light leading-[1.18] tracking-tight text-[#fff8f2] [text-shadow:0_2px_10px_rgba(0,0,0,0.7),0_4px_24px_rgba(0,0,0,0.45)] max-md:max-w-[16.5rem] md:text-[clamp(2.65rem,5.8vw,5.5rem)] md:leading-[1.04] md:max-w-none"
+            className="text-balance text-[clamp(1.5rem,6.2vw,2.5rem)] font-light leading-[1.14] tracking-tight text-[#fff8f2] [text-shadow:0_2px_10px_rgba(0,0,0,0.7),0_4px_24px_rgba(0,0,0,0.45)] max-md:mx-auto max-md:max-w-[24ch] md:whitespace-pre-line md:text-[clamp(2.65rem,5.8vw,5.5rem)] md:leading-[1.04]"
           >
-            {slide.heading}
+            <span className="md:hidden">{slide.heading.replace(/\n/g, " ")}</span>
+            <span className="hidden md:inline whitespace-pre-line">{slide.heading}</span>
           </h1>
 
           {/* Podnaslov: sakriven na mobu — beba treba da bude vidljiva */}
@@ -372,7 +361,7 @@ export function HomeHeroMotrenko({
               opacity: leaving ? 0 : 1,
               transition: "opacity 0.5s ease 0.15s",
             }}
-            className="mt-4 flex w-full flex-col gap-2.5 max-md:max-w-[22rem] max-md:flex-row max-md:justify-start max-md:gap-2.5 sm:mt-8 sm:w-auto sm:flex-row sm:gap-4"
+            className="mt-4 flex w-full flex-col gap-2.5 max-md:mx-auto max-md:max-w-[22rem] max-md:flex-row max-md:gap-2.5 sm:mt-8 sm:w-auto sm:flex-row sm:gap-4"
           >
             <Link
               href={primaryCta.href}
