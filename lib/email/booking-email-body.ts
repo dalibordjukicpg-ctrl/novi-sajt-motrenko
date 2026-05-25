@@ -47,6 +47,8 @@ export function buildBookingEmailBody(opts: {
     `${labels.whatBroughtYou}`,
     data.whatBroughtYou,
     `${labels.tryingConceive}: ${ttc}`,
+    "",
+    "Puni pregled je u prilogu (PDF, A4 — spreman za štampu).",
   ];
 
   const subject = `[Prijavnica] ${data.fullName}`;

@@ -3,6 +3,7 @@
  * RESEND_API_KEY + RESEND_FROM u okruženju; primalac: CONTACT_FORM_NOTIFY_EMAIL ili info@humanreproduction.com
  */
 
+import { sendResendEmail } from "@/lib/email/send-resend-email";
 import type { ContactPdfBranding, ContactPdfPayload } from "@/lib/pdf/generate-contact-pdf";
 
 export function buildContactEmailSummary(
@@ -80,57 +81,26 @@ export async function sendContactFormEmail(opts: {
   pdfBuffer: Buffer;
   pdfFilename: string;
 }): Promise<SendContactEmailResult> {
-  const key = process.env.RESEND_API_KEY?.trim();
-  const from =
-    process.env.RESEND_FROM?.trim() ?? "Kontakt <onboarding@resend.dev>";
-
-  if (!key) {
-    console.error(
-      "[contact form email] RESEND_API_KEY nedostaje — poruka nije poslata.",
-    );
-    return { ok: false, code: "missing_api_key" };
-  }
-
-  const body: Record<string, unknown> = {
-    from,
-    to: [opts.to],
+  const sent = await sendResendEmail({
+    to: opts.to,
     subject: opts.subject,
     text: opts.summaryText,
-    attachments: [
-      {
-        filename: opts.pdfFilename,
-        content: opts.pdfBuffer.toString("base64"),
-        content_type: "application/pdf",
-      },
-    ],
-  };
-
-  if (opts.replyTo?.includes("@")) {
-    body.reply_to = opts.replyTo;
-  }
-  if (opts.html) {
-    body.html = opts.html;
-  }
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
+    html: opts.html,
+    replyTo: opts.replyTo,
+    pdfBuffer: opts.pdfBuffer,
+    pdfFilename: opts.pdfFilename,
+    logPrefix: "[contact form email]",
   });
 
-  if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    console.error("[contact form email] Resend error", res.status, t);
-    return {
-      ok: false,
-      code: "resend_http",
-      status: res.status,
-      bodySnippet: t.slice(0, 400),
-    };
+  if (sent.ok && sent.skipped) {
+    return { ok: false, code: "missing_api_key" };
   }
-
-  return { ok: true };
+  if (sent.ok) return { ok: true };
+  if (sent.code === "missing_api_key") return { ok: false, code: "missing_api_key" };
+  return {
+    ok: false,
+    code: "resend_http",
+    status: sent.status,
+    bodySnippet: sent.bodySnippet,
+  };
 }

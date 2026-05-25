@@ -10,10 +10,29 @@ import { buildBookingEmailBody } from "@/lib/email/booking-email-body";
 import { sendBookingNotificationEmail } from "@/lib/email/send-booking-notification";
 import { db } from "@/lib/db";
 import { appointmentRequests, siteLocaleStrings } from "@/lib/db/schema";
+import { generateBookingPdf } from "@/lib/pdf/generate-booking-pdf";
+import { getSiteUrl, PRODUCTION_SITE_URL } from "@/lib/site-url";
 import {
   bookingRequestFormSchema,
   parseBookingLocale,
 } from "@/lib/validations/booking-request";
+
+function bookingPdfBranding() {
+  const siteUrl = getSiteUrl();
+  const addr = process.env.CONTACT_PDF_CLINIC_ADDRESS?.trim();
+  return {
+    clinicName:
+      process.env.CONTACT_PDF_CLINIC_NAME?.trim() ||
+      "Human Reproduction Center",
+    clinicEmail:
+      process.env.CONTACT_PDF_CLINIC_EMAIL?.trim() ||
+      process.env.BOOKING_NOTIFY_EMAIL?.trim() ||
+      process.env.CONTACT_FORM_NOTIFY_EMAIL?.trim() ||
+      "info@humanreproduction.com",
+    clinicWeb: siteUrl || PRODUCTION_SITE_URL,
+    clinicAddress: addr && addr.length > 0 ? addr : undefined,
+  };
+}
 
 async function resolveBookingNotifyEmail(): Promise<string | null> {
   const fromEnv = process.env.BOOKING_NOTIFY_EMAIL?.trim();
@@ -183,15 +202,40 @@ export async function submitBookingRequestAction(
 
   const notifyTo = await resolveBookingNotifyEmail();
   if (notifyTo) {
+    const publicRef = id.slice(0, 8).toUpperCase();
     const emailPayload = buildBookingEmailBody({
       labels,
       data,
-      publicRef: id.slice(0, 8).toUpperCase(),
+      publicRef,
     });
+
+    let pdf: Buffer | undefined;
+    try {
+      pdf = await generateBookingPdf(
+        {
+          submittedAt: now,
+          publicRef,
+          data,
+          labels,
+        },
+        bookingPdfBranding(),
+      );
+    } catch (e) {
+      console.error("[booking] pdf", e);
+    }
+
+    const filename = `prijavnica-${now
+      .toISOString()
+      .slice(0, 19)
+      .replace(/:/g, "-")}.pdf`;
+
     await sendBookingNotificationEmail({
       to: notifyTo,
       subject: emailPayload.subject,
       text: emailPayload.text,
+      replyTo: data.email,
+      pdfBuffer: pdf,
+      pdfFilename: filename,
     });
   }
 
