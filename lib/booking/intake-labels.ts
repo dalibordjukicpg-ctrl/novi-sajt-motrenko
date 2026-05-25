@@ -46,6 +46,7 @@ export type BookingIntakeLabels = {
   attachmentsErrorTooLarge: string;
   attachmentsErrorTotalTooLarge: string;
   attachmentsErrorType: string;
+  attachmentsErrorSave: string;
   pdfAttachmentsNote: string;
   pdfMetaSubmitted: string;
   pdfMetaLanguage: string;
@@ -116,6 +117,8 @@ const ME: BookingIntakeLabels = {
   attachmentsErrorTooLarge: "Jedan fajl je prevelik (maks. 8 MB).",
   attachmentsErrorTotalTooLarge: "Ukupna veličina priloga je prevelika.",
   attachmentsErrorType: "Dozvoljeni formati: JPG, PNG, WEBP, PDF, DOC, DOCX.",
+  attachmentsErrorSave:
+    "Prilog nije sačuvan na serveru. Pokušajte bez fajla ili nas pozovite telefonom.",
   pdfAttachmentsNote: "Prilozi pacijenta su u e-poruci uz PDF prijavnice.",
   pdfMetaSubmitted: "Datum slanja",
   pdfMetaLanguage: "Jezik forme",
@@ -185,6 +188,8 @@ const EN: BookingIntakeLabels = {
   attachmentsErrorTooLarge: "One file is too large (max 8 MB).",
   attachmentsErrorTotalTooLarge: "Total attachment size is too large.",
   attachmentsErrorType: "Allowed formats: JPG, PNG, WEBP, PDF, DOC, DOCX.",
+  attachmentsErrorSave:
+    "Could not save the attachment on the server. Try without a file or call us.",
   pdfAttachmentsNote: "Patient files are attached to the email with the PDF form.",
   pdfMetaSubmitted: "Submitted at",
   pdfMetaLanguage: "Form language",
@@ -255,6 +260,8 @@ const RU: BookingIntakeLabels = {
   attachmentsErrorTooLarge: "Один файл слишком большой (макс. 8 МБ).",
   attachmentsErrorTotalTooLarge: "Общий размер вложений слишком большой.",
   attachmentsErrorType: "Допустимые форматы: JPG, PNG, WEBP, PDF, DOC, DOCX.",
+  attachmentsErrorSave:
+    "Не удалось сохранить вложение на сервере. Попробуйте без файла или позвоните нам.",
   pdfAttachmentsNote: "Файлы пациента приложены к письму вместе с PDF анкеты.",
   pdfMetaSubmitted: "Дата отправки",
   pdfMetaLanguage: "Язык формы",

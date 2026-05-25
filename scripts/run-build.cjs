@@ -51,6 +51,21 @@ if (ensureUploads.status !== 0) {
   console.warn("[run-build] ensure-uploads nije uspio — uploadi možda neće preživjeti deploy.");
 }
 
+const ensureBookingAttachments = spawnSync(
+  process.execPath,
+  ["scripts/ensure-booking-attachments.cjs"],
+  {
+    stdio: "inherit",
+    cwd,
+    env: process.env,
+  },
+);
+if (ensureBookingAttachments.status !== 0) {
+  console.warn(
+    "[run-build] ensure-booking-attachments nije uspio — prilozi u prijavnici možda neće raditi.",
+  );
+}
+
 let nextBin;
 try {
   nextBin = require.resolve("next/dist/bin/next");

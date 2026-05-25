@@ -142,6 +142,10 @@ export function BookingIntakeForm({
 
     try {
       const fd = new FormData(formRef.current);
+      fd.delete("attachments");
+      for (const item of pickedAttachments) {
+        fd.append("attachments", item.file, item.file.name);
+      }
       const res = await fetch("/api/booking", {
         method: "POST",
         body: fd,
@@ -176,7 +180,7 @@ export function BookingIntakeForm({
         </p>
       </header>
 
-      {!state.ok && state.error && !state.fieldErrors ? (
+      {!state.ok && state.error ? (
         <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
           {state.error}
         </p>

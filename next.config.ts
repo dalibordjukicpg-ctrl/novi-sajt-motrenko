@@ -53,6 +53,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "26mb",
     },
+    middlewareClientMaxBodySize: "26mb",
   },
   serverExternalPackages: [
     "mysql2",

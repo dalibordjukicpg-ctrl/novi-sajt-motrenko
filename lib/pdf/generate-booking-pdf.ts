@@ -110,10 +110,9 @@ export async function generateBookingPdf(
         ...(attachments.length > 0
           ? [
               {
-                kind: "block" as const,
+                kind: "pair" as const,
                 label: labels.attachmentsLabel,
-                value: attachments.map((a) => a.filename).join("\n"),
-                flex: 1,
+                value: attachments.map((a) => a.filename).join(", "),
               },
             ]
           : []),

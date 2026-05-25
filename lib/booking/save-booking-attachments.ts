@@ -44,6 +44,10 @@ export async function saveBookingAttachmentFiles(
     });
   }
 
+  if (validated.files.length > 0 && out.length === 0) {
+    throw new Error("attachment save produced no files");
+  }
+
   return out;
 }
 

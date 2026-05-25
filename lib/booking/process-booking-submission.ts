@@ -24,6 +24,7 @@ import {
 import {
   validateBookingAttachmentFiles,
   type BookingAttachmentValidationError,
+  attachmentFilesFromFormData,
 } from "@/lib/validations/booking-attachments";
 
 export type SubmitBookingState = {
@@ -142,9 +143,7 @@ export async function processBookingSubmission(
     };
   }
 
-  const attachmentFiles = formData
-    .getAll("attachments")
-    .filter((v): v is File => v instanceof File && v.size > 0);
+  const attachmentFiles = attachmentFilesFromFormData(formData);
   const attachmentCheck = validateBookingAttachmentFiles(attachmentFiles);
   if (!attachmentCheck.ok) {
     return {
@@ -172,8 +171,8 @@ export async function processBookingSubmission(
   } catch (e) {
     console.error("[booking] attachments", e);
     return {
-      error: labels.errorGeneric,
-      fieldErrors: { attachments: labels.errorGeneric },
+      error: labels.attachmentsErrorSave,
+      fieldErrors: { attachments: labels.attachmentsErrorSave },
     };
   }
 
@@ -236,7 +235,7 @@ export async function processBookingSubmission(
       userAgent,
     });
   } catch (e) {
-    console.error(e);
+    console.error("[booking] db insert", e);
     return { error: labels.errorGeneric };
   }
 

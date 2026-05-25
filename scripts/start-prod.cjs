@@ -7,7 +7,7 @@
  * Panel Start command: npm run start
  * (Hostinger dodaje -p $PORT kao argument ili PORT env.)
  */
-const { spawn } = require("child_process");
+const { spawn, spawnSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -70,6 +70,17 @@ if (!fs.existsSync(buildIdPath)) {
   console.error("[start-prod] Pokreni: npm run build");
   process.exit(1);
 }
+
+spawnSync(process.execPath, ["scripts/ensure-booking-attachments.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
+spawnSync(process.execPath, ["scripts/ensure-uploads-persistent.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
 
 let nextBin;
 try {

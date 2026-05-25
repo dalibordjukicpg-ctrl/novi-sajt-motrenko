@@ -77,3 +77,18 @@ export function sanitizeBookingFilename(name: string): string {
   const base = path.basename(name).replace(/[^\w.\- ()čćžšđČĆŽŠĐ]+/gi, "_");
   return base.slice(0, 120) || "dokument";
 }
+
+/** FormData fajl u Node/browser okruženju (ne oslanjaj se samo na instanceof File). */
+export function isUploadFile(value: FormDataEntryValue): value is File {
+  if (typeof value !== "object" || value === null) return false;
+  const f = value as File;
+  return (
+    typeof f.size === "number" &&
+    f.size > 0 &&
+    typeof f.arrayBuffer === "function"
+  );
+}
+
+export function attachmentFilesFromFormData(formData: FormData): File[] {
+  return formData.getAll("attachments").filter(isUploadFile);
+}

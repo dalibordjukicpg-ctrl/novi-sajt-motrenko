@@ -1,22 +1,46 @@
 import fs from "fs";
 import path from "path";
 
-/** Van deploy foldera — medicinski prilozi ne idu u git/public. */
-export function getBookingAttachmentsRootDir(): string {
+function candidateRoots(): string[] {
   const env = process.env.BOOKING_ATTACHMENTS_DIR?.trim();
   if (env) {
-    return path.isAbsolute(env) ? env : path.join(process.cwd(), env);
+    return [path.isAbsolute(env) ? env : path.join(process.cwd(), env)];
   }
   if (process.env.NODE_ENV === "production") {
-    return path.join(process.cwd(), "..", "private", "booking-attachments");
+    return [
+      path.join(process.cwd(), "..", "private", "booking-attachments"),
+      path.join(process.cwd(), "var", "booking-attachments"),
+    ];
   }
-  return path.join(process.cwd(), "var", "booking-attachments");
+  return [path.join(process.cwd(), "var", "booking-attachments")];
+}
+
+let resolvedRoot: string | null = null;
+
+/** Van deploy foldera — medicinski prilozi ne idu u git/public. */
+export function getBookingAttachmentsRootDir(): string {
+  if (resolvedRoot) return resolvedRoot;
+  return candidateRoots()[0];
 }
 
 export function ensureBookingAttachmentsRootDir(): string {
-  const root = getBookingAttachmentsRootDir();
-  fs.mkdirSync(root, { recursive: true });
-  return root;
+  if (resolvedRoot) return resolvedRoot;
+
+  let lastErr: unknown;
+  for (const root of candidateRoots()) {
+    try {
+      fs.mkdirSync(root, { recursive: true });
+      fs.accessSync(root, fs.constants.W_OK);
+      resolvedRoot = root;
+      return root;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+
+  throw lastErr instanceof Error
+    ? lastErr
+    : new Error("booking-attachments folder is not writable");
 }
 
 export function bookingAttachmentAbsPath(storageKey: string): string | null {
