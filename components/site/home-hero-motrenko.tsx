@@ -8,7 +8,6 @@ import {
   isHeroBackgroundVideoUrl,
   isHeroBackgroundYoutubeUrl,
 } from "@/lib/hero-background-media";
-import { HERO_VIDEO_POSTER } from "@/lib/clinic-assets";
 import {
   getHomeHeroVideoReady,
   getSavedHeroVideoTime,
@@ -100,7 +99,6 @@ export function HomeHeroMotrenko({
   const isVideo =
     !isSplit && url ? !isYoutube && isHeroBackgroundVideoUrl(url) : false;
   const isLocalImg = url.startsWith("/");
-  const posterSrc = (posterUrl?.trim() || HERO_VIDEO_POSTER).trim();
 
   const markVideoActive = () => {
     setVideoVisible(true);
@@ -271,7 +269,10 @@ export function HomeHeroMotrenko({
         style={{ transform: "translateY(var(--py, 0%))" }}
         aria-hidden
       >
-        <div className="absolute inset-0 z-0 bg-zinc-950" aria-hidden />
+        <div
+          className="absolute inset-0 z-0 bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950"
+          aria-hidden
+        />
         {isYoutube && url ? (
           <iframe
             title=""
@@ -280,38 +281,20 @@ export function HomeHeroMotrenko({
             allow="autoplay; encrypted-media"
           />
         ) : isVideo && url ? (
-          <>
-            {posterSrc ? (
-              <Image
-                src={posterSrc}
-                alt=""
-                fill
-                priority
-                sizes="100vw"
-                className={[
-                  "absolute inset-0 z-[1] object-cover transition-opacity duration-500 ease-out max-md:object-[center_38%] md:object-[center_28%]",
-                  showVideo ? "opacity-0" : "opacity-100",
-                ].join(" ")}
-              />
-            ) : null}
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              poster={posterSrc || undefined}
-              src={url}
-              onLoadedData={markVideoActive}
-              onCanPlay={markVideoActive}
-              onPlaying={markVideoActive}
-              className={[
-                "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover transition-opacity duration-500 ease-out max-md:object-[center_38%] md:object-[center_28%]",
-                showVideo ? "opacity-100" : "opacity-0",
-              ].join(" ")}
-            />
-          </>
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            src={url}
+            onPlaying={markVideoActive}
+            className={[
+              "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover transition-opacity duration-700 ease-out max-md:object-[center_38%] md:object-[center_28%]",
+              showVideo ? "opacity-100" : "opacity-0",
+            ].join(" ")}
+          />
         ) : url && isLocalImg ? (
           <Image
             src={url}

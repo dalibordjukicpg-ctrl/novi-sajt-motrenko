@@ -15,7 +15,7 @@ import type { Locale } from "@/lib/i18n";
 import type { PublicNavItem } from "@/lib/queries/site";
 import { resolvePublicHref } from "@/lib/queries/site";
 import type { HomeServiceCard } from "@/lib/queries/home-service-cards";
-import { STAT_BG_IMAGES, TEAM_HOME_PORTRAIT_FALLBACKS, HERO_VIDEO_POSTER } from "@/lib/clinic-assets";
+import { STAT_BG_IMAGES, TEAM_HOME_PORTRAIT_FALLBACKS } from "@/lib/clinic-assets";
 import { isHeroBackgroundVideoUrl } from "@/lib/hero-background-media";
 import type { SiteStringKey } from "@/lib/site-fields";
 
@@ -149,20 +149,15 @@ export function HomePageView({
 
   const heroVideoPreload =
     heroBgUrl && isHeroBackgroundVideoUrl(heroBgUrl) ? heroBgUrl : null;
-  const heroUsesVideo = Boolean(heroVideoPreload);
 
   return (
     <>
       {heroVideoPreload ? (
         <link rel="preload" as="video" href={heroVideoPreload} fetchPriority="high" />
       ) : null}
-      {heroUsesVideo ? (
-        <link rel="preload" as="image" href={HERO_VIDEO_POSTER} fetchPriority="high" />
-      ) : null}
       <HomeHeroMotrenko
         slides={heroSlides}
         mediaUrl={heroBgUrl ?? null}
-        posterUrl={heroUsesVideo ? HERO_VIDEO_POSTER : null}
         primaryCta={{
           label: s["hero.cta_primary"],
           href: resolvePublicHref(locale, s["hero.cta_primary_href"]),
