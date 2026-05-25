@@ -65,6 +65,7 @@ const nextConfig: NextConfig = {
     "tailwind-merge",
     "clsx",
     "pdfkit",
+    "dejavu-fonts-ttf",
   ],
   /** Spriječi Watchpack da dira Windows root sistem fajlove (EINVAL na hiberfil.sys). */
   webpack: (config, { dev }) => {

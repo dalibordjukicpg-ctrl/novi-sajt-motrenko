@@ -3,6 +3,8 @@ import path from "path";
 
 import PDFDocument from "pdfkit";
 
+import { PDF_FONT, pdfFontAvailable, registerPdfFonts } from "./pdf-fonts";
+
 /** Margine prilagođene domaćim štampačima (~18–20 mm). */
 export function mm(n: number): number {
   return (n * 72) / 25.4;
@@ -21,6 +23,18 @@ export type PdfBranding = {
   clinicWeb: string;
   clinicAddress?: string;
 };
+
+export type PdfFieldRow =
+  | { kind: "pair"; label: string; value: string }
+  | { kind: "block"; label: string; value: string };
+
+function fontRegular(doc: InstanceType<typeof PDFDocument>): string {
+  return pdfFontAvailable(doc) ? PDF_FONT.regular : "Helvetica";
+}
+
+function fontBold(doc: InstanceType<typeof PDFDocument>): string {
+  return pdfFontAvailable(doc) ? PDF_FONT.bold : "Helvetica-Bold";
+}
 
 export function formatSubmittedAt(d: Date): string {
   try {
@@ -55,27 +69,40 @@ export function contentWidth(doc: InstanceType<typeof PDFDocument>): number {
   return doc.page.width - doc.page.margins.left - doc.page.margins.right;
 }
 
-export function sectionHeading(
-  doc: InstanceType<typeof PDFDocument>,
-  title: string,
-) {
-  doc.moveDown(0.55);
-  const left = doc.page.margins.left;
-  const right = doc.page.width - doc.page.margins.right;
-  doc.font("Helvetica-Bold").fontSize(11).fillColor("#1a1208").text(title);
-  const lineY = doc.y;
-  doc.moveDown(0.12);
-  doc
-    .moveTo(left, lineY + 2)
-    .lineTo(right, lineY + 2)
-    .strokeColor("#d4c4b4")
-    .lineWidth(0.75)
-    .stroke();
-  doc.moveDown(0.4);
-  doc.font("Helvetica").fontSize(10).fillColor("#2d2d2d");
+export function createA4PdfDocument(info: {
+  title: string;
+  author: string;
+  subject: string;
+  keywords: string;
+  creator: string;
+}): InstanceType<typeof PDFDocument> {
+  const doc = new PDFDocument({
+    size: "A4",
+    margins: PDF_MARGINS,
+    info: {
+      Title: info.title,
+      Author: info.author,
+      Subject: info.subject,
+      Keywords: info.keywords,
+      Creator: info.creator,
+    },
+  });
+  registerPdfFonts(doc);
+  return doc;
 }
 
-export function drawLogo(
+export function bufferFromPdfDoc(
+  doc: InstanceType<typeof PDFDocument>,
+): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    doc.on("data", (c) => chunks.push(c as Buffer));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
+  });
+}
+
+function drawLogo(
   doc: InstanceType<typeof PDFDocument>,
   logoPath: string,
 ): void {
@@ -84,14 +111,182 @@ export function drawLogo(
   const maxH = 52;
   const top = doc.page.margins.top;
   try {
-    doc.image(logoPath, left, top, {
-      fit: [maxW, maxH],
-    });
-    doc.y = top + maxH + 14;
+    doc.image(logoPath, left, top, { fit: [maxW, maxH] });
+    doc.y = top + maxH + 12;
   } catch (e) {
     console.warn("[pdf] Učitavanje loga nije uspjelo.", e);
     doc.y = top;
   }
+}
+
+function drawMetaBox(
+  doc: InstanceType<typeof PDFDocument>,
+  rows: Array<{ label: string; value: string }>,
+): void {
+  const left = doc.page.margins.left;
+  const w = contentWidth(doc);
+  const padX = 10;
+  const padY = 8;
+  const rowH = 16;
+  const boxH = padY * 2 + rows.length * rowH;
+  const y = doc.y;
+
+  doc
+    .roundedRect(left, y, w, boxH, 6)
+    .fillAndStroke("#faf7f4", "#eadfce");
+
+  let rowY = y + padY;
+  for (const row of rows) {
+    doc
+      .font(fontBold(doc))
+      .fontSize(8.5)
+      .fillColor("#7a6a5c")
+      .text(row.label, left + padX, rowY, { width: 118 });
+    doc
+      .font(fontRegular(doc))
+      .fontSize(9.5)
+      .fillColor("#1a1208")
+      .text(row.value, left + padX + 122, rowY, { width: w - padX * 2 - 122 });
+    rowY += rowH;
+  }
+
+  doc.y = y + boxH + 14;
+}
+
+export function drawPdfHeader(
+  doc: InstanceType<typeof PDFDocument>,
+  opts: {
+    title: string;
+    subtitle?: string;
+    submittedAt: Date;
+    locale: string;
+    publicRef?: string;
+  },
+): void {
+  const cw = contentWidth(doc);
+  const logoPath = resolveLogoPath();
+
+  if (logoPath) {
+    drawLogo(doc, logoPath);
+  } else {
+    doc.y = doc.page.margins.top;
+  }
+
+  doc
+    .font(fontBold(doc))
+    .fontSize(18)
+    .fillColor("#1a1208")
+    .text(opts.title, doc.page.margins.left, doc.y, { width: cw });
+  doc.moveDown(0.12);
+
+  if (opts.subtitle) {
+    doc
+      .font(fontRegular(doc))
+      .fontSize(12)
+      .fillColor("#5c4a3a")
+      .text(opts.subtitle, { width: cw });
+    doc.moveDown(0.35);
+  }
+
+  const metaRows = [
+    { label: "Datum slanja", value: formatSubmittedAt(opts.submittedAt) },
+    { label: "Jezik forme", value: opts.locale.toUpperCase() },
+  ];
+  if (opts.publicRef) {
+    metaRows.push({ label: "Referenca / ID", value: opts.publicRef });
+  }
+  drawMetaBox(doc, metaRows);
+}
+
+function measureBlockHeight(
+  doc: InstanceType<typeof PDFDocument>,
+  value: string,
+  width: number,
+): number {
+  doc.font(fontRegular(doc)).fontSize(10);
+  return doc.heightOfString(value.trim() || "—", { width, lineGap: 3 });
+}
+
+/** Kategorija sa naslovnom trakom i poljima label → vrijednost. */
+export function drawCategorySection(
+  doc: InstanceType<typeof PDFDocument>,
+  opts: {
+    index: number;
+    title: string;
+    fields: PdfFieldRow[];
+  },
+): void {
+  const left = doc.page.margins.left;
+  const w = contentWidth(doc);
+  const titleH = 24;
+  const padX = 12;
+  const padY = 10;
+  const labelW = 148;
+  const gap = 8;
+  const valueW = w - padX * 2 - labelW - gap;
+
+  doc.moveDown(0.35);
+  let y = doc.y;
+
+  doc.roundedRect(left, y, w, titleH, 6).fill("#e8682a");
+  doc
+    .font(fontBold(doc))
+    .fontSize(10.5)
+    .fillColor("#ffffff")
+    .text(`${opts.index}. ${opts.title.toUpperCase()}`, left + padX, y + 7, {
+      width: w - padX * 2,
+    });
+
+  y += titleH + 6;
+  let bodyH = padY * 2;
+  for (const field of opts.fields) {
+    if (field.kind === "pair") {
+      bodyH += 18;
+    } else {
+      bodyH += 14 + measureBlockHeight(doc, field.value, w - padX * 2) + 8;
+    }
+  }
+
+  doc.roundedRect(left, y, w, bodyH, 6).fillAndStroke("#ffffff", "#e8ddd2");
+
+  let bodyY = y + padY;
+  for (const field of opts.fields) {
+    if (field.kind === "pair") {
+      doc
+        .font(fontBold(doc))
+        .fontSize(9)
+        .fillColor("#6b5c4f")
+        .text(field.label, left + padX, bodyY, { width: labelW });
+      doc
+        .font(fontRegular(doc))
+        .fontSize(10)
+        .fillColor("#1a1208")
+        .text(field.value || "—", left + padX + labelW + gap, bodyY, {
+          width: valueW,
+          lineGap: 2,
+        });
+      bodyY += 18;
+    } else {
+      doc
+        .font(fontBold(doc))
+        .fontSize(9)
+        .fillColor("#6b5c4f")
+        .text(field.label, left + padX, bodyY, { width: w - padX * 2 });
+      bodyY += 13;
+      doc
+        .font(fontRegular(doc))
+        .fontSize(10)
+        .fillColor("#1a1208")
+        .text(field.value.trim() || "—", left + padX, bodyY, {
+          width: w - padX * 2,
+          lineGap: 3,
+        });
+      bodyY +=
+        measureBlockHeight(doc, field.value, w - padX * 2) + 8;
+    }
+  }
+
+  doc.y = y + bodyH + 4;
 }
 
 export function drawFooters(
@@ -123,7 +318,7 @@ export function drawFooters(
     ].filter((x): x is string => Boolean(x && x.trim()));
 
     doc
-      .font("Helvetica")
+      .font(fontRegular(doc))
       .fontSize(8)
       .fillColor("#555555")
       .text(lines.join("\n"), left, footerBandTop, {
@@ -134,7 +329,7 @@ export function drawFooters(
 
     if (total > 1) {
       doc
-        .font("Helvetica")
+        .font(fontRegular(doc))
         .fontSize(7.5)
         .fillColor("#888888")
         .text(`Stranica ${i + 1} / ${total}`, left, doc.page.height - mm(6), {
@@ -142,102 +337,5 @@ export function drawFooters(
           align: "right",
         });
     }
-  }
-}
-
-export function createA4PdfDocument(info: {
-  title: string;
-  author: string;
-  subject: string;
-  keywords: string;
-  creator: string;
-}): InstanceType<typeof PDFDocument> {
-  return new PDFDocument({
-    size: "A4",
-    margins: PDF_MARGINS,
-    info: {
-      Title: info.title,
-      Author: info.author,
-      Subject: info.subject,
-      Keywords: info.keywords,
-      Creator: info.creator,
-    },
-  });
-}
-
-export function bufferFromPdfDoc(
-  doc: InstanceType<typeof PDFDocument>,
-): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    doc.on("data", (c) => chunks.push(c as Buffer));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-    doc.on("error", reject);
-  });
-}
-
-export function drawPdfHeader(
-  doc: InstanceType<typeof PDFDocument>,
-  opts: {
-    title: string;
-    subtitle?: string;
-    submittedAt: Date;
-    locale: string;
-    publicRef?: string;
-  },
-): void {
-  const cw = contentWidth(doc);
-  const logoPath = resolveLogoPath();
-
-  if (logoPath) {
-    drawLogo(doc, logoPath);
-  } else {
-    doc
-      .font("Helvetica-Oblique")
-      .fontSize(8)
-      .fillColor("#888888")
-      .text(
-        "Logo: postavite public/logo-hrc-budva.png ili CONTACT_PDF_LOGO_PATH.",
-        doc.page.margins.left,
-        doc.page.margins.top,
-        { width: cw },
-      );
-    doc.moveDown(0.8);
-  }
-
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(17)
-    .fillColor("#1a1208")
-    .text(opts.title, { width: cw });
-  if (opts.subtitle) {
-    doc.moveDown(0.15);
-    doc
-      .font("Helvetica")
-      .fontSize(12)
-      .fillColor("#444444")
-      .text(opts.subtitle, { width: cw });
-  }
-  doc.moveDown(0.2);
-  doc
-    .font("Helvetica-Oblique")
-    .fontSize(8.5)
-    .fillColor("#666666")
-    .text(
-      "Format A4, margine prilagođene štampi. Otvorite u Adobe Readeru i odaberite „Štampaj“ (100% stvarna veličina ili „prilagodi stranici“).",
-      { width: cw, lineGap: 2 },
-    );
-  doc.moveDown(0.35);
-  doc
-    .font("Helvetica")
-    .fontSize(10)
-    .fillColor("#444444")
-    .text(`Datum i vrijeme slanja: ${formatSubmittedAt(opts.submittedAt)}`, {
-      width: cw,
-      lineGap: 2,
-    });
-  doc.text(`Jezik forme: ${opts.locale.toUpperCase()}`, { width: cw });
-  if (opts.publicRef) {
-    doc.text(`Referenca / ID: ${opts.publicRef}`, { width: cw });
   }
 }

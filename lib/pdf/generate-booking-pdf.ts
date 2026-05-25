@@ -4,9 +4,9 @@ import type { BookingRequestInput } from "@/lib/validations/booking-request";
 import {
   bufferFromPdfDoc,
   createA4PdfDocument,
+  drawCategorySection,
   drawFooters,
   drawPdfHeader,
-  sectionHeading,
   type PdfBranding,
 } from "./pdf-layout";
 
@@ -31,7 +31,6 @@ export async function generateBookingPdf(
   });
 
   const pdfPromise = bufferFromPdfDoc(doc);
-  const cw = doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
   drawPdfHeader(doc, {
     title: labels.formEyebrow,
@@ -65,30 +64,57 @@ export async function generateBookingPdf(
       ? "—"
       : (data.partnerPhone ?? "").trim() || "—";
 
-  sectionHeading(doc, `1. ${labels.sectionBasic}`);
-  doc.text(`${labels.fullName}: ${data.fullName}`, { width: cw, lineGap: 3 });
-  doc.text(`${labels.email}: ${data.email}`, { width: cw, lineGap: 3 });
-  doc.text(`${labels.phone}: ${data.phone}`, { width: cw, lineGap: 3 });
-  doc.text(`Datum rođenja: ${dob}`, { width: cw, lineGap: 3 });
+  drawCategorySection(doc, {
+    index: 1,
+    title: labels.sectionBasic,
+    fields: [
+      { kind: "pair", label: labels.fullName, value: data.fullName },
+      { kind: "pair", label: labels.email, value: data.email },
+      { kind: "pair", label: labels.phone, value: data.phone },
+      { kind: "pair", label: "Datum rođenja", value: dob },
+    ],
+  });
 
-  sectionHeading(doc, `2. ${labels.whoAttends}`);
-  doc.text(who, { width: cw, lineGap: 3 });
-  doc.text(`${labels.partnerName}: ${partnerName}`, { width: cw, lineGap: 3 });
-  doc.text(`${labels.partnerPhone}: ${partnerPhone}`, { width: cw, lineGap: 3 });
+  drawCategorySection(doc, {
+    index: 2,
+    title: labels.whoAttends.replace(/\?$/, ""),
+    fields: [
+      { kind: "pair", label: labels.whoAttends, value: who },
+      { kind: "pair", label: labels.partnerName, value: partnerName },
+      { kind: "pair", label: labels.partnerPhone, value: partnerPhone },
+    ],
+  });
 
-  sectionHeading(doc, `3. ${labels.sectionReasonVisit}`);
-  doc.text(labels.whatBroughtYou, { width: cw, lineGap: 4 });
-  doc.text(data.whatBroughtYou.trim(), { width: cw, lineGap: 4 });
-  doc.moveDown(0.3);
-  doc.text(`${labels.tryingConceive} ${ttc}`, { width: cw, lineGap: 4 });
+  drawCategorySection(doc, {
+    index: 3,
+    title: labels.sectionReasonVisit,
+    fields: [
+      {
+        kind: "block",
+        label: labels.whatBroughtYou,
+        value: data.whatBroughtYou.trim(),
+      },
+      {
+        kind: "pair",
+        label: labels.tryingConceive.replace(/\?$/, ""),
+        value: ttc,
+      },
+    ],
+  });
 
-  sectionHeading(doc, "4. Saglasnost");
-  doc.text(
-    data.consentAccepted
-      ? "Korisnik je potvrdio saglasnost sa obradom ličnih podataka radi zakazivanja i pripreme pregleda."
-      : "Saglasnost nije zabilježena.",
-    { width: cw, lineGap: 4 },
-  );
+  drawCategorySection(doc, {
+    index: 4,
+    title: "Saglasnost",
+    fields: [
+      {
+        kind: "block",
+        label: "Potvrda",
+        value: data.consentAccepted
+          ? "Korisnik je potvrdio saglasnost sa obradom ličnih podataka radi zakazivanja i pripreme pregleda."
+          : "Saglasnost nije zabilježena.",
+      },
+    ],
+  });
 
   drawFooters(doc, branding);
   doc.end();

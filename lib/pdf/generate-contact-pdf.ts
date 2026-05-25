@@ -1,9 +1,9 @@
 import {
   bufferFromPdfDoc,
   createA4PdfDocument,
+  drawCategorySection,
   drawFooters,
   drawPdfHeader,
-  sectionHeading,
   type PdfBranding,
 } from "./pdf-layout";
 
@@ -33,7 +33,6 @@ export async function generateContactPdf(
   });
 
   const pdfPromise = bufferFromPdfDoc(doc);
-  const cw = doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
   drawPdfHeader(doc, {
     title: "Kontakt upit sa veb prezentacije",
@@ -41,35 +40,52 @@ export async function generateContactPdf(
     locale: data.locale,
   });
 
-  sectionHeading(doc, "1. Podaci korisnika");
-  doc.text(`Ime i prezime: ${data.fullName}`, { width: cw, lineGap: 3 });
-
-  sectionHeading(doc, "2. Kontakt");
-  doc.text(`E-mail: ${data.email}`, { width: cw, lineGap: 3 });
-  doc.text(`Telefon: ${data.phone}`, { width: cw, lineGap: 3 });
-
-  sectionHeading(doc, "3. Razlog javljanja / tip usluge");
-  doc.text(
-    data.inquiryType && data.inquiryType.trim().length > 0
-      ? data.inquiryType.trim()
-      : "— (nije popunjeno)",
-    { width: cw, lineGap: 4 },
-  );
-
-  sectionHeading(doc, "4. Poruka");
-  doc.text(data.message.trim(), {
-    width: cw,
-    lineGap: 4,
-    align: "left",
+  drawCategorySection(doc, {
+    index: 1,
+    title: "Podaci korisnika",
+    fields: [
+      { kind: "pair", label: "Ime i prezime", value: data.fullName },
+    ],
   });
 
-  sectionHeading(doc, "5. Saglasnost");
-  doc.text(
-    data.consentAccepted
-      ? "Korisnik je potvrdio saglasnost sa obradom ličnih podataka radi odgovora na upit."
-      : "Saglasnost nije zabilježena.",
-    { width: cw, lineGap: 4 },
-  );
+  drawCategorySection(doc, {
+    index: 2,
+    title: "Kontakt",
+    fields: [
+      { kind: "pair", label: "E-mail", value: data.email },
+      { kind: "pair", label: "Telefon", value: data.phone },
+    ],
+  });
+
+  drawCategorySection(doc, {
+    index: 3,
+    title: "Razlog javljanja",
+    fields: [
+      {
+        kind: "pair",
+        label: "Tip upita / usluga",
+        value:
+          data.inquiryType && data.inquiryType.trim().length > 0
+            ? data.inquiryType.trim()
+            : "—",
+      },
+      { kind: "block", label: "Poruka", value: data.message.trim() },
+    ],
+  });
+
+  drawCategorySection(doc, {
+    index: 4,
+    title: "Saglasnost",
+    fields: [
+      {
+        kind: "block",
+        label: "Potvrda",
+        value: data.consentAccepted
+          ? "Korisnik je potvrdio saglasnost sa obradom ličnih podataka radi odgovora na upit."
+          : "Saglasnost nije zabilježena.",
+      },
+    ],
+  });
 
   drawFooters(doc, branding);
   doc.end();
