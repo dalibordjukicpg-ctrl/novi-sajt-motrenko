@@ -25,7 +25,7 @@ export async function generateBookingPdf(
   const doc = createA4PdfDocument({
     title: "Prijavnica za pregled — A4",
     author: branding.clinicName,
-    subject: `Prijavnica: ${data.fullName}`,
+    subject: `Prijavnica ref ${publicRef}`,
     keywords: "prijavnica, termin, ordinacija, A4",
     creator: "Website booking form",
   });
@@ -93,6 +93,7 @@ export async function generateBookingPdf(
         kind: "block",
         label: labels.whatBroughtYou,
         value: data.whatBroughtYou.trim(),
+        maxChars: 420,
       },
       {
         kind: "pair",
@@ -110,7 +111,7 @@ export async function generateBookingPdf(
         kind: "block",
         label: "Potvrda",
         value: data.consentAccepted
-          ? "Korisnik je potvrdio saglasnost sa obradom ličnih podataka radi zakazivanja i pripreme pregleda."
+          ? "Potvrđena saglasnost za obradu podataka radi zakazivanja pregleda."
           : "Saglasnost nije zabilježena.",
       },
     ],

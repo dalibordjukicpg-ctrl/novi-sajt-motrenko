@@ -16,6 +16,7 @@ import {
   resolveNotifyInboxFromEnv,
 } from "@/lib/email/resolve-notify-inbox";
 import { generateContactPdf } from "@/lib/pdf/generate-contact-pdf";
+import { contactPdfAttachmentName } from "@/lib/pdf/pdf-filenames";
 import { getSiteUrl, PRODUCTION_SITE_URL } from "@/lib/site-url";
 import { contactFormPayloadSchema } from "@/lib/validations/contact-form";
 
@@ -166,10 +167,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const filename = `kontakt-upit-${submittedAt
-    .toISOString()
-    .slice(0, 19)
-    .replace(/:/g, "-")}.pdf`;
+  const filename = contactPdfAttachmentName(id);
   const summary = buildContactEmailSummary(pdfPayload, branding);
 
   const sent = await sendContactFormEmail({

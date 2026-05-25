@@ -15,6 +15,7 @@ import {
 import { db } from "@/lib/db";
 import { appointmentRequests, siteLocaleStrings } from "@/lib/db/schema";
 import { generateBookingPdf } from "@/lib/pdf/generate-booking-pdf";
+import { bookingPdfAttachmentName } from "@/lib/pdf/pdf-filenames";
 import { getSiteUrl, PRODUCTION_SITE_URL } from "@/lib/site-url";
 import {
   bookingRequestFormSchema,
@@ -233,10 +234,7 @@ export async function submitBookingRequestAction(
       console.error("[booking] pdf", e);
     }
 
-    const filename = `prijavnica-${now
-      .toISOString()
-      .slice(0, 19)
-      .replace(/:/g, "-")}.pdf`;
+    const filename = bookingPdfAttachmentName(publicRef);
 
     const sent = await sendBookingNotificationEmail({
       to: notifyTo,

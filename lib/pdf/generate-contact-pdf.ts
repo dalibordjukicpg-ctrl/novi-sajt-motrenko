@@ -69,7 +69,7 @@ export async function generateContactPdf(
             ? data.inquiryType.trim()
             : "—",
       },
-      { kind: "block", label: "Poruka", value: data.message.trim() },
+      { kind: "block", label: "Poruka", value: data.message.trim(), maxChars: 480 },
     ],
   });
 
@@ -81,7 +81,7 @@ export async function generateContactPdf(
         kind: "block",
         label: "Potvrda",
         value: data.consentAccepted
-          ? "Korisnik je potvrdio saglasnost sa obradom ličnih podataka radi odgovora na upit."
+          ? "Potvrđena saglasnost za obradu podataka radi odgovora na upit."
           : "Saglasnost nije zabilježena.",
       },
     ],
