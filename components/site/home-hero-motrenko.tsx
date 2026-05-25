@@ -8,6 +8,7 @@ import {
   isHeroBackgroundVideoUrl,
   isHeroBackgroundYoutubeUrl,
 } from "@/lib/hero-background-media";
+import { HERO_VIDEO_POSTER } from "@/lib/clinic-assets";
 import {
   getHomeHeroVideoReady,
   getSavedHeroVideoTime,
@@ -58,7 +59,10 @@ export function HomeHeroMotrenko({
 
   const [current, setCurrent] = useState(0);
   const [leaving, setLeaving] = useState(false);
-  const [videoVisible, setVideoVisible] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return getHomeHeroVideoReady();
+  });
   const bgRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -98,6 +102,7 @@ export function HomeHeroMotrenko({
   const isVideo =
     !isSplit && url ? !isYoutube && isHeroBackgroundVideoUrl(url) : false;
   const isLocalImg = url.startsWith("/");
+  const posterSrc = (posterUrl?.trim() || HERO_VIDEO_POSTER).trim();
 
   const markVideoActive = () => {
     setVideoVisible(true);
@@ -269,20 +274,38 @@ export function HomeHeroMotrenko({
             allow="autoplay; encrypted-media"
           />
         ) : isVideo && url ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            src={url}
-            onPlaying={markVideoActive}
-            className={[
-              "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover max-md:object-[center_38%] md:object-[center_28%]",
-              videoVisible ? "opacity-100" : "opacity-0",
-            ].join(" ")}
-          />
+          <>
+            {posterSrc ? (
+              <Image
+                src={posterSrc}
+                alt=""
+                fill
+                priority
+                sizes="100vw"
+                className={[
+                  "absolute inset-0 z-[1] object-cover transition-opacity duration-500 ease-out max-md:object-[center_38%] md:object-[center_28%]",
+                  videoVisible ? "opacity-0" : "opacity-100",
+                ].join(" ")}
+              />
+            ) : null}
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              poster={posterSrc || undefined}
+              src={url}
+              onLoadedData={markVideoActive}
+              onCanPlay={markVideoActive}
+              onPlaying={markVideoActive}
+              className={[
+                "absolute inset-0 z-[2] h-full w-full min-h-full min-w-full object-cover transition-opacity duration-500 ease-out max-md:object-[center_38%] md:object-[center_28%]",
+                videoVisible ? "opacity-100" : "opacity-0",
+              ].join(" ")}
+            />
+          </>
         ) : url && isLocalImg ? (
           <Image
             src={url}
