@@ -42,7 +42,8 @@
     "db:strip-personal-email": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/strip-personal-email.ts",
     "test:openai": "node scripts/test-openai-key.cjs",
     "test:translate": "node scripts/test-translate-once.cjs",
-    "test:nav-translate": "node scripts/test-nav-translate.cjs"
+    "test:nav-translate": "node scripts/test-nav-translate.cjs",
+    "test:contact-pdf": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/test-contact-pdf.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

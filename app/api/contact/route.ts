@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { contactSubmissions } from "@/lib/db/schema";
 import {
   buildContactEmailSummary,
+  buildContactEmailHtml,
   sendContactFormEmail,
 } from "@/lib/email/send-contact-form";
 import { generateContactPdf } from "@/lib/pdf/generate-contact-pdf";
@@ -44,6 +45,8 @@ function contactBranding() {
 }
 
 function notifyEmail(): string {
+  const fromEnv = process.env.CONTACT_FORM_NOTIFY_EMAIL?.trim();
+  if (fromEnv && fromEnv.includes("@")) return fromEnv;
   return CONTACT_FORM_NOTIFY_INBOX;
 }
 
@@ -169,7 +172,10 @@ export async function POST(req: Request) {
 
   const sent = await sendContactFormEmail({
     to,
+    replyTo: data.email,
+    subject: `Novi kontakt upit — ${data.fullName}`,
     summaryText: summary,
+    html: buildContactEmailHtml(pdfPayload, branding),
     pdfBuffer: pdf,
     pdfFilename: filename,
   });
