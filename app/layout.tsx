@@ -39,12 +39,21 @@ export const metadata: Metadata = {
     template: "%s · Human Reproduction Center",
   },
   description:
-    "Centar za humanu reprodukciju — savremena reproduktivna medicina.",
+    "Napredna reproduktivna medicina i IVF u Budvi. Stručan tim, savremena laboratorija i individualna njega.",
   openGraph: {
     type: "website",
     locale: "sr_ME",
     siteName: "Human Reproduction Center",
     url: getSiteUrl(),
+    title: "Human Reproduction Center · Budva",
+    description:
+      "Napredna reproduktivna medicina i IVF. Stručan tim, savremena laboratorija i individualna njega.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Human Reproduction Center · Budva",
+    description:
+      "Napredna reproduktivna medicina i IVF. Stručan tim, savremena laboratorija i individualna njega.",
   },
   appleWebApp: {
     capable: true,

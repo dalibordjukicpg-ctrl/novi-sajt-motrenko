@@ -60,6 +60,61 @@ function sleepMs(ms) {
   }
 }
 
+/** build + dev bez clean → MODULE_NOT_FOUND za ./NNNN.js ili vendor-chunks na Windowsu. */
+function isStaleNextCache() {
+  const nextDir = path.join(process.cwd(), ".next");
+  if (!fs.existsSync(nextDir)) return false;
+
+  if (fs.existsSync(path.join(nextDir, "BUILD_ID"))) return true;
+
+  const vendorLucide = path.join(nextDir, "server", "vendor-chunks", "lucide-react.js");
+  const localePageJs = path.join(nextDir, "server", "app", "[locale]", "page.js");
+  if (fs.existsSync(localePageJs)) {
+    try {
+      const src = fs.readFileSync(localePageJs, "utf8");
+      if (src.includes("vendor-chunks/lucide-react.js") && !fs.existsSync(vendorLucide)) {
+        return true;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const runtimeCandidates = [
+    path.join(nextDir, "server", "webpack-runtime.js"),
+    path.join(nextDir, "server", "pages", "_document.js"),
+  ];
+  for (const runtimePath of runtimeCandidates) {
+    if (!fs.existsSync(runtimePath)) continue;
+    let src = "";
+    try {
+      src = fs.readFileSync(runtimePath, "utf8");
+    } catch {
+      continue;
+    }
+    const dir = path.dirname(runtimePath);
+    for (const m of src.matchAll(/require\("\.\/(\d+\.js)"\)/g)) {
+      const chunk = m[1];
+      if (chunk && !fs.existsSync(path.join(dir, chunk))) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function removeNextCache() {
+  for (const rel of [".next", path.join("node_modules", ".cache")]) {
+    try {
+      fs.rmSync(path.join(process.cwd(), rel), { recursive: true, force: true });
+      console.log("Uklonjeno:", rel);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 if (clean) {
   console.log("Zaustavljam eventualni stari server na portu", port, "…");
   killListenersOnPort(port);
@@ -79,38 +134,13 @@ if (clean) {
 } else {
   killListenersOnPort(port);
   sleepMs(400);
-  const nextDir = path.join(process.cwd(), ".next");
-  const prodBuildMarker = path.join(nextDir, "BUILD_ID");
-  const vendorLucide = path.join(nextDir, "server", "vendor-chunks", "lucide-react.js");
-  const localePageJs = path.join(nextDir, "server", "app", "[locale]", "page.js");
-  let referencesLucideChunk = false;
-  if (fs.existsSync(localePageJs)) {
-    try {
-      referencesLucideChunk = fs
-        .readFileSync(localePageJs, "utf8")
-        .includes("vendor-chunks/lucide-react.js");
-    } catch {
-      /* ignore */
-    }
-  }
-  const staleVendorChunks =
-    fs.existsSync(prodBuildMarker) ||
-    (referencesLucideChunk && !fs.existsSync(vendorLucide));
 
-  /** `npm run build` pa `npm run dev` bez clean — vendor-chunk 500 na Windowsu. */
-  if (staleVendorChunks) {
+  if (isStaleNextCache()) {
     console.log(
-      "Neispravan .next cache (production build ili nedostaje vendor-chunks/lucide-react.js) — brišem prije dev servera.\n" +
-        "  Savjet: nakon builda koristi `npm run dev:fresh` umjesto `npm run dev`.\n",
+      "Neispravan .next cache (production build ili nedostaju webpack chunk fajlovi) — brišem prije dev servera.\n" +
+        "  Savjet: nakon `npm run build` koristi `npm run dev:fresh`.\n",
     );
-    for (const rel of [".next", path.join("node_modules", ".cache")]) {
-      try {
-        fs.rmSync(path.join(process.cwd(), rel), { recursive: true, force: true });
-        console.log("Uklonjeno:", rel);
-      } catch {
-        /* ignore */
-      }
-    }
+    removeNextCache();
   }
 }
 

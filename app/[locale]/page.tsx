@@ -10,6 +10,7 @@ import { getSiteLayoutData } from "@/lib/queries/site";
 import { listVisibleHomeServiceCards } from "@/lib/queries/home-service-cards";
 import { listVisibleHomeTeamHighlights } from "@/lib/queries/home-team-highlights";
 import { resolveHeroBackgroundUrl } from "@/lib/fallback-hero-video";
+import { getShareCopy } from "@/lib/social-share-metadata";
 import { SITE_STRING_DEFAULTS } from "@/lib/site-fields";
 import type { HomeServiceCard } from "@/lib/queries/home-service-cards";
 import type { HomeTeamHighlight } from "@/lib/queries/home-team-highlights";
@@ -21,10 +22,10 @@ type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props) {
   const { locale: raw } = await params;
   if (!isLocale(raw)) return {};
-  const defaults = SITE_STRING_DEFAULTS[raw];
+  const share = getShareCopy(raw);
   return withCanonical(`/${raw}`, {
-    title: defaults["org.brand"],
-    description: defaults["hero.subtitle"].slice(0, 160),
+    title: share.ogTitle,
+    description: share.ogDescription,
   });
 }
 

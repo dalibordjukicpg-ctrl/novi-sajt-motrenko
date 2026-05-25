@@ -3,7 +3,7 @@ export const DEFAULT_HEADER_LOGO = "/logo-hrc-budva.png";
 
 /** Rezolucija logotipa u headeru (za stabilan layout sa `next/image`). */
 export const HEADER_LOGO_PIXEL_WIDTH = 522;
-export const HEADER_LOGO_PIXEL_HEIGHT = 343;
+export const HEADER_LOGO_PIXEL_HEIGHT = 202;
 
 /** Pozadina hero bloka na unutrašnjim stranicama (panorama recepcije). */
 export const CLINIC_PAGE_HERO_BG = "/page-hero-panorama.png";

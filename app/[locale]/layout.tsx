@@ -16,6 +16,7 @@ import {
 } from "@/lib/queries/site-globals";
 import { isLocale } from "@/lib/i18n";
 import { withCanonical } from "@/lib/page-metadata";
+import { getShareCopy } from "@/lib/social-share-metadata";
 import { SITE_STRING_DEFAULTS } from "@/lib/site-fields";
 
 type Props = {
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch {
     /* ignore */
   }
-  const defaults = SITE_STRING_DEFAULTS[raw];
+  const share = getShareCopy(raw);
   let icons: Metadata["icons"] | undefined;
   try {
     const b = await getSiteBranding();
@@ -52,8 +53,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     /* ignore */
   }
   return withCanonical(`/${raw}`, {
-    title: defaults["org.brand"],
-    description: defaults["hero.subtitle"].slice(0, 160),
+    title: share.ogTitle,
+    description: share.ogDescription,
     icons,
   });
 }
