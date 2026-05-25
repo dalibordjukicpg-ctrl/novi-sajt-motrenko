@@ -79,6 +79,22 @@ if (clean) {
 } else {
   killListenersOnPort(port);
   sleepMs(400);
+  /** `npm run build` pa `npm run dev` bez clean — vendor-chunk 500 na Windowsu. */
+  const prodBuildMarker = path.join(process.cwd(), ".next", "BUILD_ID");
+  if (fs.existsSync(prodBuildMarker)) {
+    console.log(
+      "U .next je ostao production build — brišem cache prije dev servera (inače 500 / vendor-chunks).\n" +
+        "  Savjet: nakon builda koristi `npm run dev:fresh` umjesto `npm run dev`.\n",
+    );
+    for (const rel of [".next", path.join("node_modules", ".cache")]) {
+      try {
+        fs.rmSync(path.join(process.cwd(), rel), { recursive: true, force: true });
+        console.log("Uklonjeno:", rel);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
 }
 
 const args = turbo

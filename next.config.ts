@@ -51,17 +51,19 @@ const nextConfig: NextConfig = {
    * često `Cannot find module './vendor-chunks/lucide-react.js'` kad je `.next` „prljava”).
    */
   experimental: {
-    optimizePackageImports: ["lucide-react", "tailwind-merge", "clsx"],
+    optimizePackageImports: ["lucide-react"],
   },
   /**
    * Spriječava webpack vendor chunkove koji u dev na Windowsu često „puknu“
    * (MODULE_NOT_FOUND za ./vendor-chunks/*.js, zatim TypeError u webpack-runtime).
-   * bcryptjs: često nedostaje vendor-chunk nakon par HMR ciklusa.
+   * bcryptjs / tailwind-merge: često nedostaje vendor-chunk nakon HMR ili build+dev miks.
    */
   serverExternalPackages: [
     "mysql2",
     "drizzle-orm",
     "bcryptjs",
+    "tailwind-merge",
+    "clsx",
   ],
   /** Spriječi Watchpack da dira Windows root sistem fajlove (EINVAL na hiberfil.sys). */
   webpack: (config, { dev }) => {
