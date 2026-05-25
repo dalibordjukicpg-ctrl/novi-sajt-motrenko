@@ -31,6 +31,7 @@ export type BookingIntakeLabels = {
   callOr: string;
   submit: string;
   submitting: string;
+  successTitle: string;
   success: string;
   errorGeneric: string;
   errorValidation: string;
@@ -77,8 +78,9 @@ const ME: BookingIntakeLabels = {
   callOr: "Ili pozovite:",
   submit: "Pošalji prijavnicu",
   submitting: "Šaljem…",
+  successTitle: "Uspješno ste zakazali termin",
   success:
-    "Hvala. Primili smo prijavnicu. Javit ćemo vam se uskoro radi potvrde termina.",
+    "Hvala. Primili smo prijavnicu. Javićemo vam se uskoro radi potvrde termina.",
   errorGeneric:
     "Slanje nije uspjelo. Pokušajte ponovo ili nas pozovite telefonom.",
   errorValidation: "Provjerite označena polja.",
@@ -126,6 +128,7 @@ const EN: BookingIntakeLabels = {
   callOr: "Or call:",
   submit: "Submit intake form",
   submitting: "Sending…",
+  successTitle: "Appointment request sent successfully",
   success:
     "Thank you. We received your form and will contact you shortly to confirm.",
   errorGeneric: "Something went wrong. Please try again or call us.",
@@ -173,6 +176,7 @@ const RU: BookingIntakeLabels = {
   callOr: "Или позвоните:",
   submit: "Отправить анкету",
   submitting: "Отправка…",
+  successTitle: "Заявка успешно отправлена",
   success:
     "Спасибо. Мы получили анкету и скоро свяжемся для подтверждения.",
   errorGeneric: "Не удалось отправить. Попробуйте снова или позвоните.",

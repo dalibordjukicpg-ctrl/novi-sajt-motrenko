@@ -242,24 +242,12 @@ export async function submitBookingRequestAction(
       to: notifyTo,
       subject: emailPayload.subject,
       text: emailPayload.text,
-      replyTo: data.email,
       pdfBuffer: pdf,
       pdfFilename: filename,
     });
 
     if (!sent.ok) {
-      console.error("[booking] email failed", {
-        id,
-        to: notifyTo,
-        skipped: sent.skipped ?? false,
-      });
-    } else {
-      console.info("[booking] email sent", {
-        id,
-        to: notifyTo,
-        resendId: sent.resendId,
-        pdfBytes: pdf?.length ?? 0,
-      });
+      console.error("[booking] email failed", { id, to: notifyTo });
     }
   } catch (e) {
     console.error("[booking] email block failed", e);

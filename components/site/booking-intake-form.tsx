@@ -34,6 +34,7 @@ export function BookingIntakeForm({
     [bookingLocale],
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const successRef = useRef<HTMLDivElement>(null);
   const [whoAttends, setWhoAttends] = useState("");
   const [state, formAction, pending] = useActionState(
     submitBookingRequestAction,
@@ -44,6 +45,7 @@ export function BookingIntakeForm({
     if (!state.ok) return;
     formRef.current?.reset();
     setWhoAttends("");
+    successRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [state.ok]);
 
   const err = (name: string) => state.fieldErrors?.[name];
@@ -70,15 +72,6 @@ export function BookingIntakeForm({
           {labels.formLead}
         </p>
       </header>
-
-      {state.ok ? (
-        <p
-          className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
-          role="status"
-        >
-          {labels.success}
-        </p>
-      ) : null}
 
       {!state.ok && state.error && !state.fieldErrors ? (
         <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -331,6 +324,19 @@ export function BookingIntakeForm({
             {pending ? labels.submitting : labels.submit}
           </button>
         </div>
+
+        {state.ok ? (
+          <div
+            ref={successRef}
+            className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-900"
+            role="status"
+          >
+            <p className="text-base font-semibold text-emerald-950">
+              {labels.successTitle}
+            </p>
+            <p className="mt-1.5 leading-relaxed">{labels.success}</p>
+          </div>
+        ) : null}
       </form>
     </div>
   );
