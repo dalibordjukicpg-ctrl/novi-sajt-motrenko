@@ -81,6 +81,11 @@ spawnSync(process.execPath, ["scripts/ensure-uploads-persistent.cjs"], {
   cwd,
   env: process.env,
 });
+spawnSync(process.execPath, ["scripts/ensure-admin-login-otp.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
 
 let nextBin;
 try {

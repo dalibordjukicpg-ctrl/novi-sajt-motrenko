@@ -29,6 +29,15 @@ export type LoginState = { error: string | null };
 
 const GENERIC_LOGIN_ERROR = "Pogrešan email ili lozinka.";
 
+function isMissingOtpSchemaError(e: unknown): boolean {
+  const code = (e as { code?: string })?.code;
+  const msg = String((e as { sqlMessage?: string; message?: string })?.sqlMessage ?? (e as Error)?.message ?? "");
+  if (code === "ER_NO_SUCH_TABLE") {
+    return /admin_login_otp|admin_trusted_devices/i.test(msg);
+  }
+  return false;
+}
+
 async function requestAuditMeta(): Promise<{
   ip: string | null;
   userAgent: string | null;
@@ -229,6 +238,12 @@ export async function loginAction(
   } catch (e) {
     if (e && typeof e === "object" && "digest" in e) throw e;
     console.error(e);
+    if (isMissingOtpSchemaError(e)) {
+      return {
+        error:
+          "Admin OTP tabele nisu u bazi. U phpMyAdmin pokrenite SQL iz drizzle/0021_admin_login_otp.sql, pa pokušajte ponovo.",
+      };
+    }
     return {
       error:
         "Prijava nije uspjela (provjeri konfiguraciju servera / baze).",

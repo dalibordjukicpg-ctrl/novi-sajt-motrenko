@@ -66,6 +66,21 @@ if (ensureBookingAttachments.status !== 0) {
   );
 }
 
+const ensureAdminOtp = spawnSync(
+  process.execPath,
+  ["scripts/ensure-admin-login-otp.cjs"],
+  {
+    stdio: "inherit",
+    cwd,
+    env: process.env,
+  },
+);
+if (ensureAdminOtp.status !== 0) {
+  console.warn(
+    "[run-build] ensure-admin-login-otp nije uspio — admin OTP login možda neće raditi dok se ne pokrene migracija 0021.",
+  );
+}
+
 let nextBin;
 try {
   nextBin = require.resolve("next/dist/bin/next");
