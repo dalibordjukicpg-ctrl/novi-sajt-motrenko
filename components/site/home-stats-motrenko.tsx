@@ -19,14 +19,34 @@ const STAT_ICONS = [
   <Star size={15} strokeWidth={1.5} fill="currentColor" key="star" />,
 ];
 
-function StatPremiumIcon({ children }: { children: ReactNode }) {
+function StatPremiumIcon({
+  children,
+  variant = "dark",
+}: {
+  children: ReactNode;
+  variant?: "dark" | "light";
+}) {
+  if (variant === "light") {
+    return (
+      <div className="relative shrink-0">
+        <div
+          aria-hidden
+          className="absolute -inset-1.5 rounded-full bg-[rgb(var(--site-brand-rgb)/0.22)] blur-[7px]"
+        />
+        <div className="relative flex size-10 items-center justify-center rounded-full border border-[rgb(var(--site-brand-rgb)/0.18)] bg-gradient-to-br from-white via-[#fffaf6] to-[#ffefe3] text-site-brand shadow-[0_4px_16px_rgb(var(--site-brand-rgb)/0.14),inset_0_1px_0_rgba(255,255,255,0.95)]">
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative shrink-0">
       <div
         aria-hidden
         className="absolute -inset-1 rounded-full bg-[rgb(232_104_42/0.45)] blur-[5px]"
       />
-      <div className="relative flex size-8 items-center justify-center rounded-full border border-white/30 bg-gradient-to-br from-white/25 to-[rgb(232_104_42/0.3)] text-[#fff8f2] shadow-[0_4px_14px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.4)] lg:size-10">
+      <div className="relative flex size-8 items-center justify-center rounded-full border border-white/40 bg-gradient-to-br from-white/35 to-[rgb(232_104_42/0.35)] text-[#fff8f2] shadow-[0_4px_14px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.45)] lg:size-10">
         {children}
       </div>
     </div>
@@ -88,17 +108,25 @@ function StatValue({
   displayStatic,
   count,
   suffix,
+  compact,
+  light,
 }: {
   displayStatic: string | null;
   count: number;
   suffix: string;
+  compact?: boolean;
+  light?: boolean;
 }) {
   return (
     <p
-      className="text-[1.45rem] font-semibold leading-none tracking-tight text-white tabular-nums lg:text-[2.35rem]"
+      className={[
+        "font-semibold leading-none tracking-tight tabular-nums",
+        light ? "text-site-ink" : "text-white",
+        compact ? "text-[1.7rem]" : "text-[1.45rem] lg:text-[2.35rem]",
+      ].join(" ")}
       style={{
         fontFamily: "var(--font-playfair), Georgia, serif",
-        textShadow: "0 2px 12px rgba(0,0,0,0.4)",
+        textShadow: light ? "none" : "0 2px 12px rgba(0,0,0,0.35)",
       }}
     >
       {displayStatic !== null ? (
@@ -107,7 +135,12 @@ function StatValue({
         <>
           <span>{count.toLocaleString("sr-Latn-ME")}</span>
           {suffix ? (
-            <span className="ml-0.5 text-[0.58em] font-semibold text-[var(--site-peach)]">
+            <span
+              className={[
+                "ml-0.5 text-[0.58em] font-semibold",
+                light ? "text-site-brand" : "text-[var(--site-peach)]",
+              ].join(" ")}
+            >
               {suffix}
             </span>
           ) : null}
@@ -148,44 +181,92 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
     <div ref={ref} className="h-full">
       <article
         className={[
-          "group relative h-[14rem] overflow-hidden rounded-2xl lg:h-full lg:min-h-[12.5rem] lg:rounded-[1.35rem]",
-          "bg-[#120a06] ring-1 ring-black/10 transition-all duration-500 ease-out",
-          "shadow-[0_12px_32px_-12px_rgba(28,18,10,0.25)]",
-          "hover:-translate-y-1 hover:shadow-[0_20px_44px_-12px_rgba(28,18,10,0.32)]",
+          "group relative overflow-hidden rounded-[1.15rem] md:rounded-2xl lg:rounded-[1.35rem]",
+          "h-[6.25rem] md:h-[14rem] lg:h-full lg:min-h-[12.5rem]",
+          "bg-gradient-to-br from-white via-[#fffaf6] to-[#ffefe3] md:bg-[#3d2a1f]",
+          "ring-1 ring-[rgb(var(--site-brand-rgb)/0.12)] md:ring-white/15",
+          "shadow-[0_2px_0_rgba(255,255,255,0.95)_inset,0_14px_36px_-10px_rgba(28,18,10,0.1),0_4px_14px_rgb(var(--site-brand-rgb)/0.08)]",
+          "md:shadow-[0_10px_28px_-12px_rgba(28,18,10,0.18)]",
+          "transition-all duration-500 ease-out",
+          "hover:-translate-y-0.5 hover:shadow-[0_18px_44px_-12px_rgba(28,18,10,0.14),0_6px_18px_rgb(var(--site-brand-rgb)/0.12)] md:hover:-translate-y-1 md:hover:shadow-[0_20px_44px_-12px_rgba(28,18,10,0.28)]",
           vis ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
         ].join(" ")}
         style={{ transitionDelay: `${delay}ms` }}
       >
         <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]">
+          <div className="absolute inset-0 hidden transition-transform duration-700 ease-out group-hover:scale-[1.04] md:block">
             <StatCardBg src={stat.bgImage} position={stat.bgPosition} />
           </div>
+
+          {/* Mobil: svijetla ivory kartica, foto diskretno desno */}
+          <div className="absolute inset-0 md:hidden">
+            <div className="absolute inset-y-0 right-0 w-[46%] overflow-hidden">
+              <div className="absolute inset-0 scale-[1.08] opacity-90 saturate-[1.08] transition-transform duration-700 ease-out group-hover:scale-[1.12]">
+                <StatCardBg src={stat.bgImage} position={stat.bgPosition} />
+              </div>
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(to left, rgb(255 250 245 / 0.08) 0%, rgb(255 252 248 / 0.72) 52%, rgb(255 252 248 / 0.96) 100%)",
+                }}
+              />
+            </div>
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(105deg, rgb(255 252 248 / 0.98) 0%, rgb(255 249 244 / 0.94) 54%, rgb(255 245 237 / 0.55) 100%)",
+              }}
+            />
+            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[rgb(var(--site-brand-rgb)/0.35)] to-transparent" />
+          </div>
+
           <div
-            className="absolute inset-0 lg:hidden"
+            className="absolute inset-0 hidden md:block lg:hidden"
             style={{
-              background:
-                "linear-gradient(to top, rgb(8 5 3 / 0.97) 0%, rgb(10 6 4 / 0.82) 34%, rgb(12 8 5 / 0.2) 62%, transparent 100%)",
+              background: [
+                "linear-gradient(to top, rgb(52 36 26 / 0.62) 0%, rgb(68 48 34 / 0.38) 38%, rgb(82 58 42 / 0.1) 62%, transparent 100%)",
+                "linear-gradient(135deg, rgba(232,104,42,0.16) 0%, transparent 50%)",
+              ].join(", "),
             }}
           />
           <div
             className="absolute inset-0 hidden lg:block"
             style={{
               background: [
-                "linear-gradient(to top, rgb(10 6 3 / 0.95) 0%, rgb(14 8 4 / 0.55) 40%, transparent 70%)",
-                "linear-gradient(135deg, rgba(232,104,42,0.12) 0%, transparent 50%)",
+                "linear-gradient(to top, rgb(48 32 22 / 0.72) 0%, rgb(62 42 30 / 0.42) 40%, transparent 70%)",
+                "linear-gradient(135deg, rgba(232,104,42,0.14) 0%, transparent 50%)",
               ].join(", "),
             }}
           />
         </div>
 
-        {/* Mobil: fiksna traka na dnu — ista visina na svim karticama */}
-        <div className="absolute inset-x-0 bottom-0 z-10 h-[7.35rem] px-2.5 pb-2.5 pt-4 lg:hidden">
+        {/* Mobil: puna širina, jedna ispod druge */}
+        <div className="relative z-10 flex h-full items-center gap-3.5 px-4 md:hidden">
+          <StatPremiumIcon variant="light">{icon}</StatPremiumIcon>
+          <div className="min-w-0 flex-1 pr-1">
+            <StatValue
+              compact
+              light
+              displayStatic={displayStatic}
+              count={count}
+              suffix={suffix}
+            />
+            <p className="mt-1.5 text-[11px] font-medium leading-snug text-site-muted">
+              {stat.label}
+            </p>
+          </div>
+        </div>
+
+        {/* Tablet: 2 kolone */}
+        <div className="absolute inset-x-0 bottom-0 z-10 hidden h-[7.35rem] px-2.5 pb-2.5 pt-4 md:block lg:hidden">
           <div className="flex h-full flex-col justify-end">
             <div className="flex items-center gap-2">
               <StatPremiumIcon>{icon}</StatPremiumIcon>
               <StatValue displayStatic={displayStatic} count={count} suffix={suffix} />
             </div>
-            <p className="mt-2 line-clamp-3 min-h-[2.85rem] text-[9.5px] font-medium leading-[1.36] text-[#f2e8df]">
+            <p className="mt-2 line-clamp-3 min-h-[2.85rem] text-[9.5px] font-medium leading-[1.36] text-[#faf6f0]">
               {stat.label}
             </p>
           </div>
@@ -218,7 +299,7 @@ export function HomeStatsMotrenko({ items }: Props) {
   return (
     <section className="site-section site-section-scrim relative z-[1] overflow-x-hidden py-section-y">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-16">
-        <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+        <div className="grid grid-cols-1 items-stretch gap-3.5 md:grid-cols-2 md:gap-4 lg:grid-cols-4 lg:gap-6">
           {items.map((stat, i) => (
             <StatItem key={`stat-${i}`} stat={stat} delay={i * 100} index={i} />
           ))}
