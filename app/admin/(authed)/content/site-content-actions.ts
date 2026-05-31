@@ -28,6 +28,7 @@ import {
   type SiteStringKey,
 } from "@/lib/site-fields";
 import { parseSiteStringGroupFromFormData } from "@/lib/validations/site-strings";
+import { cleanWpNNoiseInDatabase } from "@/lib/cms/clean-wp-n-noise-db";
 
 function uuidOrNull(raw: string): string | null {
   const t = raw.trim();
@@ -406,5 +407,22 @@ export async function saveMediaAltTranslationsAction(
   } catch (e) {
     console.error(e);
     return { error: "Čuvanje alt tekstova nije uspjelo." };
+  }
+}
+
+export async function cleanWpNNoiseFormAction(): Promise<void> {
+  const session = await getSession();
+  if (!session || !hasPermission(session.role, PERMISSIONS.SITE_CONTENT_MANAGE)) {
+    redirect(adminPath("settings?nCleanError=1"));
+  }
+
+  try {
+    const { updated } = await cleanWpNNoiseInDatabase();
+    revalidatePublicSite();
+    revalidateAdminContent();
+    redirect(adminPath(`settings?nClean=${updated}`));
+  } catch (e) {
+    console.error("[cleanWpNNoise]", e);
+    redirect(adminPath("settings?nCleanError=1"));
   }
 }

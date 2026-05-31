@@ -26,6 +26,7 @@
     "db:studio": "drizzle-kit studio",
     "seed:admin": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-admin.ts",
     "db:check": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/db-check.ts",
+    "db:clean-n-noise": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/clean-wp-n-noise.ts",
     "db:create": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/db-create.ts",
     "db:dump": "node --env-file=.env scripts/dump-database.mjs",
     "import:wordpress": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/import-wordpress.ts",
