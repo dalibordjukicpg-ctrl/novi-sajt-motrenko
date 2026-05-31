@@ -112,6 +112,77 @@ export const emailVerificationTokens = mysqlTable(
   ],
 );
 
+/** Pending admin login — OTP verification after password success. */
+export const adminLoginOtpChallenges = mysqlTable(
+  "admin_login_otp_challenges",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    userId: varchar("user_id", { length: 36 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    secretHash: varchar("secret_hash", { length: 64 }).notNull(),
+    otpHash: varchar("otp_hash", { length: 64 }).notNull(),
+    otpExpiresAt: datetime("otp_expires_at", { mode: "date", fsp: 3 }).notNull(),
+    wrongAttempts: int("wrong_attempts").notNull().default(0),
+    lockedUntil: datetime("locked_until", { mode: "date", fsp: 3 }),
+    redirectTo: varchar("redirect_to", { length: 512 }).notNull(),
+    consumedAt: datetime("consumed_at", { mode: "date", fsp: 3 }),
+    ipAddress: varchar("ip_address", { length: 45 }),
+    userAgent: varchar("user_agent", { length: 512 }),
+    createdAt: datetime("created_at", { mode: "date", fsp: 3 })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index("admin_login_otp_challenges_user_id_idx").on(table.userId),
+    index("admin_login_otp_challenges_otp_expires_at_idx").on(table.otpExpiresAt),
+  ],
+);
+
+/** OTP email send log — rate limit (max 3 sends / 15 min per user). */
+export const adminLoginOtpSends = mysqlTable(
+  "admin_login_otp_sends",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    userId: varchar("user_id", { length: 36 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: datetime("created_at", { mode: "date", fsp: 3 })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index("admin_login_otp_sends_user_id_created_at_idx").on(
+      table.userId,
+      table.createdAt,
+    ),
+  ],
+);
+
+/** "Remember this device" for admin login (30 days). */
+export const adminTrustedDevices = mysqlTable(
+  "admin_trusted_devices",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    userId: varchar("user_id", { length: 36 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+    expiresAt: datetime("expires_at", { mode: "date", fsp: 3 }).notNull(),
+    revokedAt: datetime("revoked_at", { mode: "date", fsp: 3 }),
+    ipAddress: varchar("ip_address", { length: 45 }),
+    userAgent: varchar("user_agent", { length: 512 }),
+    createdAt: datetime("created_at", { mode: "date", fsp: 3 })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    lastUsedAt: datetime("last_used_at", { mode: "date", fsp: 3 }),
+  },
+  (table) => [
+    index("admin_trusted_devices_user_id_idx").on(table.userId),
+    index("admin_trusted_devices_expires_at_idx").on(table.expiresAt),
+  ],
+);
+
 export const contentResourceTypeEnum = mysqlEnum("content_resource_type", [
   "post",
   "site_page",

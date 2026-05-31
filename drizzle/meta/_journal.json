@@ -148,6 +148,13 @@
       "when": 1747918200000,
       "tag": "0020_appointment_attachments",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1748004600000,
+      "tag": "0021_admin_login_otp",
+      "breakpoints": true
     }
   ]
 }

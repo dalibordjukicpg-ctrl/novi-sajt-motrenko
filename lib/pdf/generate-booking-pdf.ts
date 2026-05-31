@@ -2,6 +2,7 @@ import type { BookingIntakeLabels } from "@/lib/booking/intake-labels";
 import type { BookingRequestInput } from "@/lib/validations/booking-request";
 import type { BookingAttachmentMeta } from "@/lib/validations/booking-attachments";
 
+import { enrichPatientTextForStaff } from "./enrich-patient-text-for-staff";
 import {
   assertSinglePdfPage,
   bufferFromPdfDoc,
@@ -72,6 +73,12 @@ export async function generateBookingPdf(
       ? "—"
       : (data.partnerPhone ?? "").trim() || "—";
 
+  const whatBroughtYouDisplay = await enrichPatientTextForStaff(
+    data.whatBroughtYou,
+    data.locale,
+    labels.pdfPatientTranslation,
+  );
+
   drawSinglePageSections(doc, [
     {
       index: 1,
@@ -99,7 +106,7 @@ export async function generateBookingPdf(
         {
           kind: "block",
           label: labels.whatBroughtYou,
-          value: data.whatBroughtYou.trim(),
+          value: whatBroughtYouDisplay,
           flex: 2,
         },
         {

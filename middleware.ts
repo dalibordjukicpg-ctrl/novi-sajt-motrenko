@@ -8,7 +8,9 @@ import {
   toInternalAdminPath,
 } from "@/lib/admin-base-path";
 import {
+  isLikelyValidOtpPendingCookieShape,
   isLikelyValidSessionCookieShape,
+  OTP_PENDING_COOKIE_NAME,
   SESSION_COOKIE_NAME,
 } from "@/lib/auth/constants";
 import { resolveLegacyWordPressRedirect } from "@/lib/legacy-wordpress-redirects";
@@ -90,6 +92,13 @@ export function middleware(request: NextRequest) {
     // Sve ostalo unutar admin zone zahtijeva validnu sesiju
     const cookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
     if (!isLikelyValidSessionCookieShape(cookie)) {
+      const pendingOtp = request.cookies.get(OTP_PENDING_COOKIE_NAME)?.value;
+      if (isLikelyValidOtpPendingCookieShape(pendingOtp)) {
+        const url = request.nextUrl.clone();
+        url.pathname = `${ADMIN_BASE_PATH}/verify-otp`;
+        return withNoIndex(NextResponse.redirect(url));
+      }
+
       const url = request.nextUrl.clone();
       url.pathname = `${ADMIN_BASE_PATH}/login`;
       // `next` zadržavamo kao javni URL (sa novom bazom), ne interni /admin

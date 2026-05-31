@@ -84,6 +84,7 @@ const PUBLIC_ADMIN_SUBPATHS = [
   "/forgot-password",
   "/reset-password",
   "/verify-email",
+  "/verify-otp",
 ];
 
 export function isPublicAdminSubpath(internalPathname: string): boolean {

@@ -16,8 +16,10 @@ import type { PublicNavItem } from "@/lib/queries/site";
 import { resolvePublicHref } from "@/lib/queries/site";
 import type { HomeServiceCard } from "@/lib/queries/home-service-cards";
 import { STAT_BG_IMAGES, TEAM_HOME_PORTRAIT_FALLBACKS } from "@/lib/clinic-assets";
-import { resolveHeroBackgroundUrl } from "@/lib/fallback-hero-video";
-import { isHeroBackgroundVideoUrl } from "@/lib/hero-background-media";
+import {
+  resolveHeroBackgroundUrl,
+  resolveHeroVideoAssets,
+} from "@/lib/fallback-hero-video";
 import type { SiteStringKey } from "@/lib/site-fields";
 
 type Props = {
@@ -149,17 +151,33 @@ export function HomePageView({
         ];
 
   const heroMediaUrl = resolveHeroBackgroundUrl(heroBgUrl);
-  const heroVideoPreload =
-    heroMediaUrl && isHeroBackgroundVideoUrl(heroMediaUrl) ? heroMediaUrl : null;
+  const heroVideoAssets = resolveHeroVideoAssets(heroMediaUrl);
 
   return (
     <>
-      {heroVideoPreload ? (
-        <link rel="preload" as="video" href={heroVideoPreload} fetchPriority="high" />
+      {heroVideoAssets?.posterSrc ? (
+        <link
+          rel="preload"
+          as="image"
+          href={heroVideoAssets.posterSrc}
+          fetchPriority="high"
+        />
+      ) : null}
+      {heroVideoAssets?.mobileSrc ? (
+        <link
+          rel="preload"
+          as="video"
+          href={heroVideoAssets.mobileSrc}
+          fetchPriority="high"
+          media="(max-width: 767px)"
+        />
+      ) : heroVideoAssets?.src ? (
+        <link rel="preload" as="video" href={heroVideoAssets.src} fetchPriority="high" />
       ) : null}
       <HomeHeroMotrenko
         slides={heroSlides}
         mediaUrl={heroMediaUrl}
+        videoAssets={heroVideoAssets}
         primaryCta={{
           label: s["hero.cta_primary"],
           href: resolvePublicHref(locale, s["hero.cta_primary_href"]),

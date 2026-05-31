@@ -1,25 +1,31 @@
 import fs from "fs";
 import path from "path";
 
-import { getBookingIntakeLabels } from "@/lib/booking/intake-labels";
+import { getBookingStaffDocumentLabels } from "@/lib/booking/intake-labels";
 import { generateBookingPdf } from "@/lib/pdf/generate-booking-pdf";
 
 async function main() {
-  const labels = getBookingIntakeLabels("me");
+  const labels = getBookingStaffDocumentLabels();
   const data = {
     locale: "me" as const,
-    fullName: "Humana Rep",
-    email: "test@test.com",
-    phone: "+38267123456",
+    fullName: "humana",
+    email: "humana.pg@gmail.com",
+    phone: "566565655",
     dateOfBirth: "",
     whoAttends: "patient_only" as const,
-    whatBroughtYou: "Test poruka sa čćžšđ slovima.",
-    tryingConceiveDuration: "6_12m" as const,
+    whatBroughtYou: "hgdhdgdfgdfgdfg",
+    tryingConceiveDuration: "lt_6m" as const,
     consentAccepted: true,
   };
 
   const pdf = await generateBookingPdf(
-    { submittedAt: new Date(), publicRef: "C1314018", data, labels },
+    {
+      submittedAt: new Date(),
+      publicRef: "94CB00CA",
+      data,
+      labels,
+      attachments: [{ id: "a1", filename: "159.pdf", size: 120_000, storageKey: "x" }],
+    },
     {
       clinicName: "Human Reproduction Center",
       clinicEmail: "info@humanreproduction.com",

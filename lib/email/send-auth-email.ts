@@ -19,6 +19,16 @@ export async function sendAuthEmail(payload: {
   return { ok: false };
 }
 
+export function loginOtpEmailBody(opts: { code: string }): {
+  subject: string;
+  text: string;
+} {
+  return {
+    subject: "Kod za prijavu u admin panel",
+    text: `Vaš kod za prijavu je: ${opts.code}\n\nKod važi 10 minuta. Ako niste vi pokušali prijavu, ignorisati ovu poruku.`,
+  };
+}
+
 export function resetPasswordEmailBody(opts: {
   token: string;
 }): { subject: string; text: string } {

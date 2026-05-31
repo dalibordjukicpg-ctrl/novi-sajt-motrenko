@@ -57,6 +57,7 @@ export type BookingIntakeLabels = {
   pdfConsentConfirmed: string;
   pdfConsentMissing: string;
   pdfAttachmentNote: string;
+  pdfPatientTranslation: string;
 };
 
 const ME: BookingIntakeLabels = {
@@ -130,6 +131,7 @@ const ME: BookingIntakeLabels = {
     "Potvrđena saglasnost za obradu podataka radi zakazivanja i pripreme pregleda.",
   pdfConsentMissing: "Saglasnost nije zabilježena.",
   pdfAttachmentNote: "Puni pregled je u prilogu (PDF, A4 — spreman za štampu).",
+  pdfPatientTranslation: "Prevod (crnogorski)",
 };
 
 const EN: BookingIntakeLabels = {
@@ -201,6 +203,7 @@ const EN: BookingIntakeLabels = {
     "Consent confirmed for processing data to schedule and prepare the visit.",
   pdfConsentMissing: "Consent was not recorded.",
   pdfAttachmentNote: "Full details are attached (PDF, A4 — print-ready).",
+  pdfPatientTranslation: "Translation (Montenegrin)",
 };
 
 const RU: BookingIntakeLabels = {
@@ -273,6 +276,7 @@ const RU: BookingIntakeLabels = {
     "Подтверждено согласие на обработку данных для записи и подготовки приёма.",
   pdfConsentMissing: "Согласие не зафиксировано.",
   pdfAttachmentNote: "Полная анкета в приложении (PDF, A4 — готово к печати).",
+  pdfPatientTranslation: "Перевод (черногорский)",
 };
 
 const MAP: Record<Locale, BookingIntakeLabels> = {
@@ -283,4 +287,11 @@ const MAP: Record<Locale, BookingIntakeLabels> = {
 
 export function getBookingIntakeLabels(locale: Locale): BookingIntakeLabels {
   return MAP[locale] ?? ME;
+}
+
+/** PDF + email klinici — uvijek na crnogorskom, bez obzira na jezik forme. */
+export const STAFF_DOCUMENT_LOCALE: Locale = "me";
+
+export function getBookingStaffDocumentLabels(): BookingIntakeLabels {
+  return getBookingIntakeLabels(STAFF_DOCUMENT_LOCALE);
 }

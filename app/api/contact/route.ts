@@ -168,7 +168,7 @@ export async function POST(req: Request) {
   }
 
   const filename = contactPdfAttachmentName(id);
-  const summary = buildContactEmailSummary(pdfPayload, branding);
+  const summary = await buildContactEmailSummary(pdfPayload, branding);
 
   const sent = await sendContactFormEmail({
     to,

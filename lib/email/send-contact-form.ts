@@ -4,12 +4,21 @@
  */
 
 import { sendResendEmailWithFallbacks } from "@/lib/email/send-resend-email";
+import { enrichPatientTextForStaff } from "@/lib/pdf/enrich-patient-text-for-staff";
 import type { ContactPdfBranding, ContactPdfPayload } from "@/lib/pdf/generate-contact-pdf";
+import { getContactStaffPdfLabels } from "@/lib/pdf/contact-pdf-labels";
 
-export function buildContactEmailSummary(
+export async function buildContactEmailSummary(
   p: ContactPdfPayload,
   branding: ContactPdfBranding,
-): string {
+): Promise<string> {
+  const labels = getContactStaffPdfLabels();
+  const messageDisplay = await enrichPatientTextForStaff(
+    p.message,
+    p.locale,
+    labels.patientTranslation,
+  );
+
   const lines = [
     "Nova poruka sa kontakt forme na sajtu.",
     "",
@@ -18,8 +27,8 @@ export function buildContactEmailSummary(
     `Telefon: ${p.phone}`,
     p.inquiryType ? `Tip upita / usluga: ${p.inquiryType}` : null,
     "",
-    "Poruka (skraćeno):",
-    p.message.length > 700 ? `${p.message.slice(0, 700)}…` : p.message,
+    "Poruka:",
+    messageDisplay.length > 900 ? `${messageDisplay.slice(0, 900)}…` : messageDisplay,
     "",
     "Saglasnost za obradu podataka: da",
     "",

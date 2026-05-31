@@ -16,6 +16,7 @@ export type ContactPdfLabels = {
   consentMissing: string;
   metaSubmitted: string;
   metaLanguage: string;
+  patientTranslation: string;
 };
 
 const ME: ContactPdfLabels = {
@@ -34,6 +35,7 @@ const ME: ContactPdfLabels = {
   consentMissing: "Saglasnost nije zabilježena.",
   metaSubmitted: "Datum slanja",
   metaLanguage: "Jezik forme",
+  patientTranslation: "Prevod (crnogorski)",
 };
 
 const EN: ContactPdfLabels = {
@@ -52,6 +54,7 @@ const EN: ContactPdfLabels = {
   consentMissing: "Consent was not recorded.",
   metaSubmitted: "Submitted at",
   metaLanguage: "Form language",
+  patientTranslation: "Translation (Montenegrin)",
 };
 
 const RU: ContactPdfLabels = {
@@ -70,6 +73,7 @@ const RU: ContactPdfLabels = {
   consentMissing: "Согласие не зафиксировано.",
   metaSubmitted: "Дата отправки",
   metaLanguage: "Язык формы",
+  patientTranslation: "Перевод (черногорский)",
 };
 
 const MAP: Record<Locale, ContactPdfLabels> = {
@@ -81,4 +85,9 @@ const MAP: Record<Locale, ContactPdfLabels> = {
 export function getContactPdfLabels(locale: string): ContactPdfLabels {
   const key = locale.toLowerCase() as Locale;
   return MAP[key] ?? ME;
+}
+
+/** PDF klinici — uvijek crnogorski; `formLocale` ostaje u zaglavlju PDF-a. */
+export function getContactStaffPdfLabels(): ContactPdfLabels {
+  return ME;
 }

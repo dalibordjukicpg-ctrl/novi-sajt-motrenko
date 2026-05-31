@@ -8,7 +8,9 @@ import {
   isHeroBackgroundVideoUrl,
   isHeroBackgroundYoutubeUrl,
 } from "@/lib/hero-background-media";
+import type { HeroVideoAssets } from "@/lib/fallback-hero-video";
 import {
+  getHomeHeroVideoReady,
   getSavedHeroVideoTime,
   persistHeroVideoProgress,
   setHomeHeroVideoReady,
@@ -30,6 +32,8 @@ export type HomeHeroPortrait = {
 type Props = {
   slides: HomeHeroSlide[];
   mediaUrl: string | null;
+  /** Poster + mobilna MP4 varijanta (server-side resolve). */
+  videoAssets?: HeroVideoAssets | null;
   primaryCta: Cta;
   secondaryCta: Cta;
   /** Moderan split layout: tekst + portret (npr. dr Motrenko). */
@@ -41,6 +45,7 @@ type Props = {
 export function HomeHeroMotrenko({
   slides,
   mediaUrl,
+  videoAssets,
   primaryCta,
   secondaryCta,
   portrait,
@@ -55,7 +60,9 @@ export function HomeHeroMotrenko({
 
   const [current, setCurrent] = useState(0);
   const [leaving, setLeaving] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
+  const posterSrc = videoAssets?.posterSrc?.trim() ?? "";
+  const mobileVideoSrc = videoAssets?.mobileSrc?.trim() ?? "";
+  const [videoReady, setVideoReady] = useState(() => getHomeHeroVideoReady());
   const bgRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -96,10 +103,12 @@ export function HomeHeroMotrenko({
     !isSplit && url ? !isYoutube && isHeroBackgroundVideoUrl(url) : false;
   const isLocalImg = url.startsWith("/");
 
-  const markVideoPlaying = () => {
+  const markVideoVisible = () => {
     setVideoReady(true);
     setHomeHeroVideoReady();
   };
+
+  const showVideoOverlay = isVideo && !videoReady && !posterSrc;
 
   useLayoutEffect(() => {
     if (!isVideo || !url) return;
@@ -271,17 +280,23 @@ export function HomeHeroMotrenko({
               loop
               playsInline
               preload="auto"
-              src={url}
-              onPlaying={markVideoPlaying}
+              poster={posterSrc || undefined}
+              onLoadedData={markVideoVisible}
+              onCanPlay={markVideoVisible}
+              onPlaying={markVideoVisible}
               className="absolute inset-0 z-[1] h-full w-full min-h-full min-w-full object-cover max-md:object-[center_38%] md:object-[center_28%]"
-            />
-            <div
-              className={[
-                "absolute inset-0 z-[2] bg-zinc-950 transition-opacity duration-700 ease-out",
-                videoReady ? "pointer-events-none opacity-0" : "opacity-100",
-              ].join(" ")}
-              aria-hidden
-            />
+            >
+              {mobileVideoSrc ? (
+                <source src={mobileVideoSrc} media="(max-width: 767px)" type="video/mp4" />
+              ) : null}
+              <source src={url} type="video/mp4" />
+            </video>
+            {showVideoOverlay ? (
+              <div
+                className="absolute inset-0 z-[2] bg-zinc-950 transition-opacity duration-500 ease-out"
+                aria-hidden
+              />
+            ) : null}
           </>
         ) : url && isLocalImg ? (
           <Image

@@ -536,6 +536,353 @@ export async function machineTranslatePlain(
   return out ?? "";
 }
 
+type FormSourceLocale = "en" | "ru";
+
+const MYMEMORY_TO_ME: Record<FormSourceLocale, string> = {
+  en: "en|sr",
+  ru: "ru|sr",
+};
+
+async function azureTranslateTextsToMe(
+  texts: string[],
+  source: FormSourceLocale,
+): Promise<string[]> {
+  const key = process.env.AZURE_TRANSLATOR_KEY?.trim();
+  const region = process.env.AZURE_TRANSLATOR_REGION?.trim();
+  if (!key || !region) {
+    throw new Error(
+      "AZURE_TRANSLATOR_KEY ili AZURE_TRANSLATOR_REGION nije podešen u .env.",
+    );
+  }
+
+  const base = (
+    process.env.AZURE_TRANSLATOR_ENDPOINT?.trim() ||
+    "https://api.cognitive.microsofttranslator.com"
+  ).replace(/\/$/, "");
+
+  const url = new URL(`${base}/translate`);
+  url.searchParams.set("api-version", "3.0");
+  url.searchParams.set("from", source === "en" ? "en" : "ru");
+  url.searchParams.set("to", "sr");
+
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Ocp-Apim-Subscription-Key": key,
+      "Ocp-Apim-Subscription-Region": region,
+    },
+    body: JSON.stringify(texts.map((t) => ({ Text: t }))),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(
+      `Azure Translator greška (${res.status}): ${errText.slice(0, 300) || res.statusText}`,
+    );
+  }
+
+  const data = (await res.json()) as AzureTranslateItem[];
+  if (!Array.isArray(data) || data.length !== texts.length) {
+    throw new Error("Azure Translator je vratio neočekivan odgovor.");
+  }
+
+  return data.map((item, i) => item.translations[0]?.text ?? texts[i] ?? "");
+}
+
+async function openaiTranslateTextsToMe(
+  texts: string[],
+  source: FormSourceLocale,
+): Promise<string[]> {
+  const key = readOpenAIKey();
+  if (!key) throw new Error("OPENAI_API_KEY nije podešen u .env.");
+
+  const model = process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini";
+  const sourceLang = source === "en" ? "English" : "Russian";
+  const out: string[] = [];
+
+  for (let i = 0; i < texts.length; i += OPENAI_BATCH_SIZE) {
+    const chunk = texts.slice(i, i + OPENAI_BATCH_SIZE);
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              `You are a professional medical/clinic translator. Translate each patient-written string from ${sourceLang} to Montenegrin/Serbian (Latin script, natural clinical tone). ` +
+              `Preserve personal names, emails, phone numbers, and dates unchanged. ` +
+              `Return JSON only: {"translations":["..."]} with exactly ${chunk.length} strings in the same order as input.`,
+          },
+          {
+            role: "user",
+            content: JSON.stringify({ texts: chunk }),
+          },
+        ],
+      }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      throw new Error(
+        `OpenAI greška (${res.status}): ${errText.slice(0, 300) || res.statusText}`,
+      );
+    }
+
+    const data = (await res.json()) as OpenAIChatResponse;
+    const content = data.choices?.[0]?.message?.content?.trim();
+    if (!content) {
+      throw new Error(data.error?.message ?? "OpenAI nije vratio prevod.");
+    }
+
+    let parsed: { translations?: unknown[] };
+    try {
+      parsed = JSON.parse(content) as { translations?: unknown[] };
+    } catch {
+      throw new Error("OpenAI je vratio neispravan JSON.");
+    }
+
+    const tr = parsed.translations;
+    if (!Array.isArray(tr)) {
+      throw new Error("OpenAI je vratio neispravan format prevoda.");
+    }
+
+    const padded = chunk.map((orig, idx) => String(tr[idx] ?? orig ?? ""));
+    out.push(...padded);
+  }
+
+  return out;
+}
+
+async function deeplTranslateTextsToMe(
+  texts: string[],
+  source: FormSourceLocale,
+): Promise<string[]> {
+  const key = process.env.DEEPL_API_KEY?.trim();
+  if (!key) throw new Error("DEEPL_API_KEY nije podešen.");
+
+  const body = new URLSearchParams();
+  body.set("auth_key", key);
+  for (const t of texts) body.append("text", t);
+  body.set("target_lang", "SR");
+  body.set("source_lang", source === "en" ? "EN" : "RU");
+
+  const res = await fetch(`${deeplEndpoint()}/translate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(
+      `DeepL greška (${res.status}): ${errText.slice(0, 200) || res.statusText}`,
+    );
+  }
+
+  const data = (await res.json()) as DeeplResponse;
+  const translated = data.translations?.map((x) => x.text) ?? [];
+  if (translated.length !== texts.length) {
+    throw new Error("DeepL je vratio neočekivan broj prevoda.");
+  }
+  return translated;
+}
+
+async function googleTranslateTextsToMe(
+  texts: string[],
+  source: FormSourceLocale,
+): Promise<string[]> {
+  const key = process.env.GOOGLE_TRANSLATE_API_KEY?.trim();
+  if (!key) throw new Error("GOOGLE_TRANSLATE_API_KEY nije podešen.");
+
+  const url = new URL("https://translation.googleapis.com/language/translate/v2");
+  url.searchParams.set("key", key);
+
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      q: texts,
+      target: "sr",
+      source: source === "en" ? "en" : "ru",
+      format: "text",
+    }),
+    cache: "no-store",
+  });
+
+  const data = (await res.json()) as GoogleTranslateResponse;
+  if (!res.ok) {
+    const msg = data.error?.message ?? res.statusText;
+    throw new Error(`Google Translate greška (${res.status}): ${msg}`);
+  }
+
+  const translated =
+    data.data?.translations?.map((x) => x.translatedText) ?? [];
+  if (translated.length !== texts.length) {
+    throw new Error("Google Translate je vratio neočekivan broj prevoda.");
+  }
+  return translated;
+}
+
+async function libreTranslateOneToMe(
+  text: string,
+  source: FormSourceLocale,
+): Promise<string> {
+  const base =
+    process.env.LIBRETRANSLATE_URL?.trim() || "https://libretranslate.com";
+  const url = `${base.replace(/\/$/, "")}/translate`;
+
+  const body: Record<string, string> = {
+    q: text,
+    source: LIBRE_TARGET[source],
+    target: "sr",
+    format: "text",
+  };
+  const apiKey = process.env.LIBRETRANSLATE_API_KEY?.trim();
+  if (apiKey) body.api_key = apiKey;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+
+  const data = (await res.json()) as LibreResponse;
+  if (!res.ok) {
+    throw new Error(
+      `LibreTranslate greška (${res.status}): ${data.error ?? res.statusText}`,
+    );
+  }
+  return data.translatedText ?? text;
+}
+
+async function libreTranslateTextsToMe(
+  texts: string[],
+  source: FormSourceLocale,
+): Promise<string[]> {
+  return Promise.all(
+    texts.map((t) =>
+      withTimeout(libreTranslateOneToMe(t, source), TRANSLATE_TIMEOUT_MS, t),
+    ),
+  );
+}
+
+async function mymemoryTranslateOneToMe(
+  text: string,
+  source: FormSourceLocale,
+): Promise<string> {
+  const url = new URL("https://api.mymemory.translated.net/get");
+  url.searchParams.set("q", text.slice(0, 500));
+  url.searchParams.set("langpair", MYMEMORY_TO_ME[source]);
+  const email = process.env.MYMEMORY_EMAIL?.trim();
+  if (email) url.searchParams.set("de", email);
+
+  const res = await fetch(url.toString(), { cache: "no-store" });
+  const data = (await res.json()) as MyMemoryResponse;
+  if (data.responseStatus !== 200 || !data.responseData?.translatedText) {
+    throw new Error(`MyMemory greška: ${data.responseDetails ?? "nepoznata"}`);
+  }
+  return data.responseData.translatedText;
+}
+
+async function mymemoryTranslateTextsToMe(
+  texts: string[],
+  source: FormSourceLocale,
+): Promise<string[]> {
+  return Promise.all(
+    texts.map((t) =>
+      withTimeout(mymemoryTranslateOneToMe(t, source), TRANSLATE_TIMEOUT_MS, t),
+    ),
+  );
+}
+
+/** EN/RU tekst pacijenta → crnogorski (za PDF/email klinici). */
+export async function machineTranslateTextsToMe(
+  texts: string[],
+  source: FormSourceLocale,
+): Promise<string[]> {
+  const provider = getTranslateProvider();
+  if (!provider) {
+    throw new Error(
+      getTranslateConfigError() ??
+        "Automatski prevod nije podešen u .env (TRANSLATE_PROVIDER + API ključ).",
+    );
+  }
+
+  const out = [...texts];
+  const indices: number[] = [];
+  const payload: string[] = [];
+
+  for (let i = 0; i < texts.length; i++) {
+    const t = texts[i] ?? "";
+    if (t.trim().length === 0 || isNonTranslatableStringValue(t)) continue;
+    indices.push(i);
+    payload.push(t);
+  }
+
+  if (payload.length === 0) return out;
+
+  let translated: string[];
+  switch (provider) {
+    case "openai":
+      translated = await openaiTranslateTextsToMe(payload, source);
+      break;
+    case "azure":
+      translated = await azureTranslateTextsToMe(payload, source);
+      break;
+    case "google":
+      translated = await googleTranslateTextsToMe(payload, source);
+      break;
+    case "libre":
+      translated = await libreTranslateTextsToMe(payload, source);
+      break;
+    case "mymemory":
+      translated = await mymemoryTranslateTextsToMe(payload, source);
+      break;
+    default:
+      translated = await deeplTranslateTextsToMe(payload, source);
+  }
+
+  for (let j = 0; j < indices.length; j++) {
+    out[indices[j]!] = translated[j] ?? "";
+  }
+  return out;
+}
+
+export async function machineTranslatePlainToMe(
+  text: string,
+  source: FormSourceLocale,
+): Promise<string> {
+  const [out] = await machineTranslateTextsToMe([text], source);
+  return out ?? text;
+}
+
+export function isFormPatientTranslationEnabled(): boolean {
+  if (process.env.FORM_PATIENT_TRANSLATE === "0") return false;
+  return isMachineTranslateConfigured();
+}
+
+export function formLocaleToTranslateSource(
+  locale: string,
+): FormSourceLocale | null {
+  const l = locale.trim().toLowerCase();
+  if (l === "en") return "en";
+  if (l === "ru") return "ru";
+  return null;
+}
+
 /** Dijeli dugačak HTML da OpenAI ne skrati odgovor. */
 function splitHtmlForTranslation(html: string, maxChunk = 3500): string[] {
   const source = html.trim();

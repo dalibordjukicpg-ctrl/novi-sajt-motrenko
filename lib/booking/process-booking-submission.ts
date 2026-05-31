@@ -4,7 +4,7 @@ import { and, eq } from "drizzle-orm";
 
 import { writeAuditLog } from "@/lib/auth";
 import { bookingAttachmentAbsPath } from "@/lib/booking-attachment-storage";
-import { getBookingIntakeLabels } from "@/lib/booking/intake-labels";
+import { getBookingIntakeLabels, getBookingStaffDocumentLabels } from "@/lib/booking/intake-labels";
 import { saveBookingAttachmentFiles } from "@/lib/booking/save-booking-attachments";
 import { buildBookingEmailBody } from "@/lib/email/booking-email-body";
 import { sendBookingNotificationEmail } from "@/lib/email/send-booking-notification";
@@ -101,6 +101,7 @@ export async function processBookingSubmission(
     return { error: "Neispravan jezik." };
   }
   const labels = getBookingIntakeLabels(locale);
+  const staffLabels = getBookingStaffDocumentLabels();
 
   const honeypot = String(formData.get("company_website") ?? "").trim();
   if (honeypot.length > 0) {
@@ -256,8 +257,8 @@ export async function processBookingSubmission(
   try {
     const notifyTo = await resolveBookingNotifyEmail();
     const publicRef = id.slice(0, 8).toUpperCase();
-    const emailPayload = buildBookingEmailBody({
-      labels,
+    const emailPayload = await buildBookingEmailBody({
+      labels: staffLabels,
       data,
       publicRef,
       attachments: savedAttachments,
@@ -270,7 +271,7 @@ export async function processBookingSubmission(
           submittedAt: now,
           publicRef,
           data,
-          labels,
+          labels: staffLabels,
           attachments: savedAttachments,
         },
         bookingPdfBranding(),

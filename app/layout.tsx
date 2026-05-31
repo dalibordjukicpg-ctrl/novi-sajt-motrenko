@@ -3,7 +3,6 @@ import { Lora, Outfit, Playfair_Display } from "next/font/google";
 
 import { AnalyticsInjector } from "@/components/site/analytics-injector";
 import { GlobalBackdrop } from "@/components/site/global-backdrop";
-import { HeroVideoWarmup } from "@/components/site/hero-video-warmup";
 import { getSiteBranding } from "@/lib/queries/site-globals";
 import { getMetadataBase, getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
@@ -106,7 +105,6 @@ export default async function RootLayout({
       <body className="relative min-h-dvh font-sans antialiased text-site-ink">
         {/* GlobalBackdrop: fiksirana iza svakog sadržaja na svim stranicama */}
         <GlobalBackdrop />
-        <HeroVideoWarmup />
         <AnalyticsInjector
           headHtml={branding.analyticsHeadHtml}
           bodyHtml={branding.analyticsBodyHtml}

@@ -239,26 +239,34 @@ export function drawPdfHeader(
   drawMetaBox(doc, metaRows, scale);
 }
 
-function sectionMinBodyHeight(
+/** Stvarna visina svakog polja (uključujući prelom labela). */
+function measureFieldHeights(
   doc: InstanceType<typeof PDFDocument>,
   fields: PdfFieldRow[],
   innerW: number,
+  labelW: number,
+  valueW: number,
   scale: number,
-): number {
-  const padY = 5 * scale;
-  const pairH = 11.5 * scale;
+): number[] {
+  const pairRowMin = 11 * scale;
   const blockLabelH = 9 * scale;
-  const blockMinH = 18 * scale;
-  let h = padY * 2;
+  const blockValueMin = 12 * scale;
 
-  for (const field of fields) {
+  return fields.map((field) => {
     if (field.kind === "pair") {
-      h += pairH;
-    } else {
-      h += blockLabelH + blockMinH + 3 * scale;
+      const value = field.value.trim() || "—";
+      doc.font(fontBold(doc)).fontSize(7.5 * scale);
+      const labelH = doc.heightOfString(field.label, { width: labelW, lineGap: 0 });
+      doc.font(fontRegular(doc)).fontSize(8 * scale);
+      const valueH = doc.heightOfString(value, { width: valueW, lineGap: 0 });
+      return Math.max(pairRowMin, labelH, valueH) + 1.5 * scale;
     }
-  }
-  return h;
+
+    const value = field.value.trim() || "—";
+    doc.font(fontRegular(doc)).fontSize(8 * scale);
+    const valueH = doc.heightOfString(value, { width: innerW, lineGap: 1 });
+    return blockLabelH + Math.max(blockValueMin, valueH) + 3 * scale;
+  });
 }
 
 type SectionPlan = {
@@ -266,6 +274,7 @@ type SectionPlan = {
   bodyHeight: number;
   titleHeight: number;
   gap: number;
+  fieldHeights: number[];
 };
 
 function planSinglePageSections(
@@ -275,17 +284,30 @@ function planSinglePageSections(
   endY: number,
   scale: number,
 ): SectionPlan[] | null {
-  const left = doc.page.margins.left;
   const w = contentWidth(doc);
   const padX = 8 * scale;
   const innerW = w - padX * 2;
+  const labelW = 128 * scale;
+  const gap = 5 * scale;
+  const valueW = innerW - labelW - gap;
   const titleH = 16 * scale;
   const sectionGap = 3.5 * scale;
 
-  const mins = sections.map((section) => ({
-    section,
-    minBody: sectionMinBodyHeight(doc, section.fields, innerW, scale),
-  }));
+  const mins = sections.map((section) => {
+    const naturalHeights = measureFieldHeights(
+      doc,
+      section.fields,
+      innerW,
+      labelW,
+      valueW,
+      scale,
+    );
+    return {
+      section,
+      minBody: 10 * scale + naturalHeights.reduce((a, b) => a + b, 0),
+      naturalHeights,
+    };
+  });
 
   let total =
     mins.reduce((sum, m) => sum + titleH + sectionGap + m.minBody, 0) - sectionGap;
@@ -293,25 +315,32 @@ function planSinglePageSections(
   if (total > available) return null;
 
   const extra = available - total;
-  const flexUnits = mins.reduce((sum, m) => {
-    return (
-      sum +
-      m.section.fields.reduce((f, field) => f + (field.kind === "block" ? field.flex ?? 1 : 0), 0)
-    );
-  }, 0);
+  const sectionExtra = mins.length > 0 ? extra / mins.length : 0;
 
   return mins.map((m) => {
-    const flexCount = m.section.fields.reduce(
-      (f, field) => f + (field.kind === "block" ? field.flex ?? 1 : 0),
-      0,
-    );
-    const bonus =
-      flexUnits > 0 ? (extra * flexCount) / flexUnits : 0;
+    const blockIndices = m.section.fields
+      .map((f, i) => (f.kind === "block" ? i : -1))
+      .filter((i) => i >= 0);
+    const flexUnits = blockIndices.reduce((sum, i) => {
+      const f = m.section.fields[i]!;
+      return sum + (f.kind === "block" ? f.flex ?? 1 : 0);
+    }, 0);
+
+    const fieldHeights = [...m.naturalHeights];
+    if (sectionExtra > 0 && flexUnits > 0) {
+      for (const i of blockIndices) {
+        const field = m.section.fields[i]!;
+        const weight = field.kind === "block" ? field.flex ?? 1 : 0;
+        fieldHeights[i]! += (sectionExtra * weight) / flexUnits;
+      }
+    }
+
     return {
       section: m.section,
       titleHeight: titleH,
       gap: sectionGap,
-      bodyHeight: m.minBody + bonus,
+      bodyHeight: fieldHeights.reduce((a, b) => a + b, 0) + 10 * scale,
+      fieldHeights,
     };
   });
 }
@@ -326,10 +355,12 @@ function drawSectionAt(
   const w = contentWidth(doc);
   const padX = 8 * scale;
   const padY = 5 * scale;
+  const innerW = w - padX * 2;
   const labelW = 128 * scale;
   const gap = 5 * scale;
-  const valueW = w - padX * 2 - labelW - gap;
-  const { section, titleHeight, bodyHeight } = plan;
+  const valueW = innerW - labelW - gap;
+  const blockLabelH = 9 * scale;
+  const { section, titleHeight, bodyHeight, fieldHeights } = plan;
 
   doc.roundedRect(left, y, w, titleHeight, 3).fill("#e8682a");
   doc
@@ -344,29 +375,23 @@ function drawSectionAt(
   const bodyY0 = y + titleHeight + 2.5 * scale;
   doc.roundedRect(left, bodyY0, w, bodyHeight, 3).fillAndStroke("#ffffff", "#e8ddd2");
 
-  let blockFields = section.fields.filter((f) => f.kind === "block");
-  let blockExtra = 0;
-  if (blockFields.length > 0) {
-    const usedByPairs =
-      padY * 2 +
-      section.fields.filter((f) => f.kind === "pair").length * 11.5 * scale +
-      blockFields.length * (9 * scale + 3 * scale);
-    blockExtra = Math.max(0, bodyHeight - usedByPairs) / blockFields.length;
-  }
-
   let cursorY = bodyY0 + padY;
-  const bodyBottom = bodyY0 + bodyHeight - padY;
 
-  for (const field of section.fields) {
-    if (cursorY >= bodyBottom - 2) break;
+  section.fields.forEach((field, idx) => {
+    const rowH = fieldHeights[idx] ?? 11.5 * scale;
 
     if (field.kind === "pair") {
       const value = field.value.trim() || "—";
+      const textH = Math.max(rowH - 1.5 * scale, 11 * scale);
       doc
         .font(fontBold(doc))
         .fontSize(7.5 * scale)
         .fillColor("#6b5c4f")
-        .text(field.label, left + padX, cursorY, { width: labelW, lineGap: 0 });
+        .text(field.label, left + padX, cursorY, {
+          width: labelW,
+          lineGap: 0,
+          height: textH,
+        });
       doc
         .font(fontRegular(doc))
         .fontSize(8 * scale)
@@ -374,35 +399,35 @@ function drawSectionAt(
         .text(value, left + padX + labelW + gap, cursorY, {
           width: valueW,
           lineGap: 0,
-          height: 11 * scale,
-          ellipsis: true,
+          height: textH,
         });
-      cursorY += 11.5 * scale;
-    } else {
-      const value = field.value.trim() || "—";
-      const blockH = Math.min(blockExtra, bodyBottom - cursorY - 9 * scale);
-      doc
-        .font(fontBold(doc))
-        .fontSize(7.5 * scale)
-        .fillColor("#6b5c4f")
-        .text(field.label, left + padX, cursorY, {
-          width: w - padX * 2,
-          lineBreak: false,
-        });
-      cursorY += 9 * scale;
-      doc
-        .font(fontRegular(doc))
-        .fontSize(8 * scale)
-        .fillColor("#1a1208")
-        .text(value, left + padX, cursorY, {
-          width: w - padX * 2,
-          lineGap: 1,
-          height: Math.max(12 * scale, blockH),
-          ellipsis: true,
-        });
-      cursorY += Math.max(12 * scale, blockH) + 3 * scale;
+      cursorY += rowH;
+      return;
     }
-  }
+
+    const value = field.value.trim() || "—";
+    doc
+      .font(fontBold(doc))
+      .fontSize(7.5 * scale)
+      .fillColor("#6b5c4f")
+      .text(field.label, left + padX, cursorY, {
+        width: innerW,
+        lineBreak: false,
+      });
+    cursorY += blockLabelH;
+
+    const valueH = Math.max(12 * scale, rowH - blockLabelH - 3 * scale);
+    doc
+      .font(fontRegular(doc))
+      .fontSize(8 * scale)
+      .fillColor("#1a1208")
+      .text(value, left + padX, cursorY, {
+        width: innerW,
+        lineGap: 1,
+        height: valueH,
+      });
+    cursorY += valueH + 3 * scale;
+  });
 
   return bodyY0 + bodyHeight;
 }
@@ -429,19 +454,29 @@ export function drawSinglePageSections(
   }
 
   const scale = SINGLE_PAGE_SCALES[SINGLE_PAGE_SCALES.length - 1]!;
+  const padX = 8 * scale;
+  const innerW = contentWidth(doc) - padX * 2;
+  const labelW = 128 * scale;
+  const valueW = innerW - labelW - 5 * scale;
   const plans =
     planSinglePageSections(doc, sections, startY, endY, scale) ??
-    sections.map((section, i) => ({
-      section,
-      titleHeight: 16 * scale,
-      gap: 3.5 * scale,
-      bodyHeight: sectionMinBodyHeight(
+    sections.map((section) => {
+      const naturalHeights = measureFieldHeights(
         doc,
         section.fields,
-        contentWidth(doc) - 16 * scale,
+        innerW,
+        labelW,
+        valueW,
         scale,
-      ),
-    }));
+      );
+      return {
+        section,
+        titleHeight: 16 * scale,
+        gap: 3.5 * scale,
+        bodyHeight: naturalHeights.reduce((a, b) => a + b, 0) + 10 * scale,
+        fieldHeights: naturalHeights,
+      };
+    });
 
   let y = startY;
   for (const plan of plans) {

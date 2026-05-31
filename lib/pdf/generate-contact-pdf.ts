@@ -1,5 +1,6 @@
-import { getContactPdfLabels } from "@/lib/pdf/contact-pdf-labels";
+import { getContactStaffPdfLabels } from "@/lib/pdf/contact-pdf-labels";
 
+import { enrichPatientTextsForStaff } from "./enrich-patient-text-for-staff";
 import {
   assertSinglePdfPage,
   bufferFromPdfDoc,
@@ -27,7 +28,17 @@ export async function generateContactPdf(
   data: ContactPdfPayload,
   branding: ContactPdfBranding,
 ): Promise<Buffer> {
-  const labels = getContactPdfLabels(data.locale);
+  const labels = getContactStaffPdfLabels();
+
+  const inquiryRaw =
+    data.inquiryType && data.inquiryType.trim().length > 0
+      ? data.inquiryType.trim()
+      : "";
+  const [inquiryDisplay, messageDisplay] = await enrichPatientTextsForStaff(
+    [inquiryRaw, data.message],
+    data.locale,
+    labels.patientTranslation,
+  );
 
   const doc = createA4PdfDocument({
     title: `${labels.title} — A4`,
@@ -71,15 +82,12 @@ export async function generateContactPdf(
         {
           kind: "pair",
           label: labels.inquiryType,
-          value:
-            data.inquiryType && data.inquiryType.trim().length > 0
-              ? data.inquiryType.trim()
-              : "—",
+          value: inquiryRaw ? inquiryDisplay : "—",
         },
         {
           kind: "block",
           label: labels.message,
-          value: data.message.trim(),
+          value: messageDisplay,
           flex: 2,
         },
       ],
