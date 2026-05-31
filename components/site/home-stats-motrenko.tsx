@@ -13,10 +13,10 @@ export type HomeStatItem = {
 };
 
 const STAT_ICONS = [
-  <Heart size={15} strokeWidth={1.5} fill="currentColor" key="heart" />,
-  <Baby size={15} strokeWidth={1.5} key="baby" />,
-  <Users size={15} strokeWidth={1.5} key="users" />,
-  <Star size={15} strokeWidth={1.5} fill="currentColor" key="star" />,
+  <Heart size={16} strokeWidth={2.5} fill="currentColor" key="heart" />,
+  <Baby size={16} strokeWidth={2.5} key="baby" />,
+  <Users size={16} strokeWidth={2.5} key="users" />,
+  <Star size={16} strokeWidth={2.5} fill="currentColor" key="star" />,
 ];
 
 function StatPremiumIcon({
@@ -200,15 +200,15 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
 
           {/* Mobil: svijetla ivory kartica, foto diskretno desno */}
           <div className="absolute inset-0 md:hidden">
-            <div className="absolute inset-y-0 right-0 w-[46%] overflow-hidden">
-              <div className="absolute inset-0 scale-[1.08] opacity-90 saturate-[1.08] transition-transform duration-700 ease-out group-hover:scale-[1.12]">
+            <div className="absolute inset-y-0 right-0 w-[52%] overflow-hidden">
+              <div className="absolute inset-0 scale-[1.06] saturate-[1.12] transition-transform duration-700 ease-out group-hover:scale-[1.1]">
                 <StatCardBg src={stat.bgImage} position={stat.bgPosition} />
               </div>
               <div
                 className="absolute inset-0"
                 style={{
                   background:
-                    "linear-gradient(to left, rgb(255 250 245 / 0.08) 0%, rgb(255 252 248 / 0.72) 52%, rgb(255 252 248 / 0.96) 100%)",
+                    "linear-gradient(to left, rgb(255 250 245 / 0.02) 0%, rgb(255 252 248 / 0.38) 42%, rgb(255 252 248 / 0.72) 100%)",
                 }}
               />
             </div>
@@ -216,7 +216,7 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
               className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(105deg, rgb(255 252 248 / 0.98) 0%, rgb(255 249 244 / 0.94) 54%, rgb(255 245 237 / 0.55) 100%)",
+                  "linear-gradient(102deg, rgb(255 252 248 / 0.9) 0%, rgb(255 249 244 / 0.72) 46%, rgb(255 245 237 / 0.22) 100%)",
               }}
             />
             <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[rgb(var(--site-brand-rgb)/0.35)] to-transparent" />
