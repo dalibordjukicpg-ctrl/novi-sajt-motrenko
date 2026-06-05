@@ -34,7 +34,7 @@ export function withCanonical(path: string, meta: Metadata = {}): Metadata {
   const title = resolveTitle(meta, share);
   const description = resolveDescription(meta, share);
   const ogImagePath = locale ? `/${locale}/opengraph-image` : "/opengraph-image";
-  const ogImageUrl = absoluteSiteUrl(`${ogImagePath}?v=15`);
+  const ogImageUrl = absoluteSiteUrl(`${ogImagePath}?v=16`);
 
   const ogLocale =
     locale != null ? openGraphLocaleTag(locale as Locale) : "sr_ME";
