@@ -1,6 +1,16 @@
 import { sanitizeWordPressContent } from "@/scripts/lib/sanitize-wordpress-content";
 import { stripWordPressShortcodesFromContent } from "@/lib/wordpress-shortcodes";
 import { upgradeImageUrlsInHtml } from "@/lib/media-quality";
+import {
+  buildCmsYoutubeEmbedHtml,
+  ensureYoutubeEmbedsInCmsHtml,
+  normalizeCmsHtmlForEditor,
+} from "@/lib/cms-youtube-html";
+import {
+  extractYoutubeVideoIdFromNoisyText,
+  findYoutubeEmbedInNoisyText,
+  parseYoutubeEmbedUrl,
+} from "@/lib/youtube-hero";
 
 import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
@@ -284,6 +294,16 @@ function isSpuriousNNoise(plain: string): boolean {
   return /^n+(\s+n+)*$/i.test(t);
 }
 
+/** YouTube / iframe embed — ne smije pasti kroz stripNPlaceholderBlocks (nema plain teksta). */
+function blockContainsYoutubeEmbed(inner: string): boolean {
+  return (
+    /<iframe\b/i.test(inner) ||
+    /wp-youtube-embed/i.test(inner) ||
+    /data-youtube-url=/i.test(inner) ||
+    /youtube\.com\/embed/i.test(inner)
+  );
+}
+
 /** Da li HTML ima stvarni sadržaj (ne samo WP „nn“ artefakte). */
 export function isMeaningfulPublicHtml(html: string | null | undefined): boolean {
   if (html == null || html === "") return false;
@@ -341,6 +361,7 @@ export function stripNPlaceholderBlocks(html: string | null | undefined): string
     out = out.replace(
       /<p(\b[^>]*)>([\s\S]*?)<\/p>/gi,
       (_full, attrs: string, inner: string) => {
+        if (blockContainsYoutubeEmbed(inner)) return `<p${attrs}>${inner}</p>`;
         const byBr = stripNoiseSegmentsByBr(inner);
         if (byBr === "") return "";
         const plain = innerPlainOneLine(byBr);
@@ -411,6 +432,9 @@ export function stripNPlaceholderBlocks(html: string | null | undefined): string
       const next = peel.replace(
         /<div\b[^>]*>((?:(?!<div\b)[\s\S])*)<\/div>/gi,
         (full, inner: string) => {
+          if (blockContainsYoutubeEmbed(full) || blockContainsYoutubeEmbed(inner)) {
+            return full;
+          }
           const byBr = stripNoiseSegmentsByBr(inner);
           if (byBr === "") return "";
           const plain = innerPlainOneLine(byBr);
@@ -434,7 +458,7 @@ export function stripNPlaceholderBlocks(html: string | null | undefined): string
 
   out = out
     .replace(/<p[^>]*>\s*<\/p>/gi, "")
-    .replace(/<div\b[^>]*>\s*<\/div>/gi, "")
+    .replace(/<div\b(?![^>]*wp-youtube-embed)(?![^>]*data-youtube-url)[^>]*>\s*<\/div>/gi, "")
     .replace(/<figure\b[^>]*>\s*<\/figure>/gi, "")
     .replace(/<ul\b[^>]*>\s*<\/ul>/gi, "")
     .replace(/<ol\b[^>]*>\s*<\/ol>/gi, "");
@@ -454,15 +478,121 @@ export function stripTimPregledSection(html: string | null | undefined): string 
   return stripped.length > 0 ? stripped : null;
 }
 
+function buildYoutubeEmbedBlock(embedUrl: string, watchUrl?: string): string {
+  if (watchUrl) {
+    const fromWatch = buildCmsYoutubeEmbedHtml(watchUrl);
+    if (fromWatch) return fromWatch;
+  }
+  const id = embedUrl.match(/\/embed\/([a-zA-Z0-9_-]{11})/)?.[1];
+  const watch = id ? `https://www.youtube.com/watch?v=${id}` : null;
+  if (watch) {
+    const fromWatch = buildCmsYoutubeEmbedHtml(watch);
+    if (fromWatch) return fromWatch;
+  }
+  return [
+    '<div class="wp-youtube-embed">',
+    `<iframe src="${embedUrl}" title="YouTube video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`,
+    "</div>",
+  ].join("");
+}
+
+const YOUTUBE_URL_NOISE_RE =
+  /n*(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}n*/gi;
+
+function plainTextFromHtmlFragment(inner: string): string {
+  return inner
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/&#(?:x6e|110);/gi, "n")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Da li je blok praktično samo YouTube link (često sa WP „n“ ispred/iza). */
+function blockIsOnlyYoutubeLink(plain: string): boolean {
+  const embed = findYoutubeEmbedInNoisyText(plain);
+  if (!embed) return false;
+  const remainder = plain
+    .replace(YOUTUBE_URL_NOISE_RE, "")
+    .replace(/&#(?:x6e|110);/gi, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/[^a-zA-Z0-9\u0400-\u04FF]/g, "")
+    .replace(/n+/gi, "")
+    .trim();
+  return remainder.length === 0;
+}
+
+/** Ukloni WP „n“ šum oko YouTube URL-a u tekstu i vrati embed. */
+function replaceInlineNoisyYoutubeUrls(text: string): string {
+  return text.replace(YOUTUBE_URL_NOISE_RE, (match) => {
+    const id = extractYoutubeVideoIdFromNoisyText(match);
+    return id ? buildYoutubeEmbedBlock(`https://www.youtube.com/embed/${id}`) : match;
+  });
+}
+
+/** Zamijeni YouTube linkove u HTML-u ugrađenim pregledom videa. */
+export function embedYoutubeLinksInHtml(html: string): string {
+  if (!html) return html;
+
+  let out = html.replace(
+    /<a\b[^>]*\bhref=(["'])([^"']+)\1[^>]*>[\s\S]*?<\/a>/gi,
+    (full, _quote, href: string) => {
+      const embed = parseYoutubeEmbedUrl(href) ?? findYoutubeEmbedInNoisyText(href);
+      return embed ? buildYoutubeEmbedBlock(embed) : full;
+    },
+  );
+
+  const blockTags = ["p", "li", "div", "span", "td", "th", "figcaption", "h1", "h2", "h3", "h4", "h5", "h6"] as const;
+  for (const tag of blockTags) {
+    out = out.replace(
+      new RegExp(`<${tag}\\b([^>]*)>([\\s\\S]*?)<\\/${tag}>`, "gi"),
+      (full, attrs: string, inner: string) => {
+        if (/wp-youtube-embed|youtube\.com\/embed/i.test(inner)) return full;
+        const plain = plainTextFromHtmlFragment(inner);
+        const embed = findYoutubeEmbedInNoisyText(plain);
+        if (!embed) return full;
+        if (blockIsOnlyYoutubeLink(plain)) {
+          return buildYoutubeEmbedBlock(embed);
+        }
+        const replaced = replaceInlineNoisyYoutubeUrls(inner);
+        return replaced !== inner ? `<${tag}${attrs}>${replaced}</${tag}>` : full;
+      },
+    );
+  }
+
+  out = out.replace(
+    /<p\b[^>]*>\s*(<div class="wp-youtube-embed">[\s\S]*?<\/div>)\s*<\/p>/gi,
+    "$1",
+  );
+
+  out = out.replace(
+    /(<p\b[^>]*>)([\s\S]*?)(<\/p>)/gi,
+    (full, open, inner, close) => {
+      if (/wp-youtube-embed/i.test(inner)) return full;
+      if (!YOUTUBE_URL_NOISE_RE.test(inner)) return full;
+      YOUTUBE_URL_NOISE_RE.lastIndex = 0;
+      const replaced = replaceInlineNoisyYoutubeUrls(inner);
+      if (replaced === inner) return full;
+      return `${open}${replaced}${close}`;
+    },
+  );
+
+  return out;
+}
+
 /** Sanitizacija + ispravni interni linkovi za javni prikaz. */
 export function preparePublicHtml(html: string | null | undefined, locale: Locale): string {
   if (html == null || html === "") return "";
   const sanitized = stripWordPressShortcodesFromContent(
     sanitizePublicCmsHtml(html),
   );
-  const linked = prefixRootRelativeAppLinks(sanitized, locale);
+  const unwrapped = normalizeCmsHtmlForEditor(sanitized);
+  const linked = prefixRootRelativeAppLinks(unwrapped, locale);
   const cleaned = stripNPlaceholderBlocks(linked);
-  return upgradeImageUrlsInHtml(cleaned);
+  const withYoutube = embedYoutubeLinksInHtml(cleaned);
+  const withStoredEmbeds = ensureYoutubeEmbedsInCmsHtml(withYoutube);
+  return upgradeImageUrlsInHtml(withStoredEmbeds);
 }
 
 /** Kratki plain/HTML tekst (excerpt, meta) — uklanja WP „n“ smeće. */

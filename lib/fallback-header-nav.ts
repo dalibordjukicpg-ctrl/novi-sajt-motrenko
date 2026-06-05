@@ -7,7 +7,9 @@ import {
   isNavRuntimeTranslateEnabled,
   translateNavPlainForLocale,
 } from "@/lib/runtime-translate";
+import type { SiteStringKey } from "@/lib/site-fields";
 import {
+  applyMegaMenuPillarLabelsFromSiteStrings,
   applyPublicHeaderNavPolicy,
   consolidateServiceRootsUnderUsluge,
   looksLikeBlogNavRoot,
@@ -57,7 +59,7 @@ export const FALLBACK_HEADER_NAV: PublicNavItem[] = [
       {
         id: "fallback-usluge-iui",
         href: "#usluge-iui",
-        label: "IUI i IVF",
+        label: "IVF",
         children: [],
       },
       {
@@ -159,6 +161,7 @@ function ensureFallbackBlog(roots: PublicNavItem[]): PublicNavItem[] {
 export async function resolveHeaderNav(
   nav: PublicNavItem[],
   locale: Locale = defaultLocale,
+  siteStrings?: Partial<Record<SiteStringKey, string>>,
 ): Promise<PublicNavItem[]> {
   let out = consolidateServiceRootsUnderUsluge(mergeNavWithFallbackSubmenus(nav));
   out = applyPublicHeaderNavPolicy(out);
@@ -166,6 +169,9 @@ export async function resolveHeaderNav(
   out = ensureFallbackONama(out);
   out = ensureFallbackBlog(out);
   sortPublicHeaderRoots(out);
+  if (siteStrings) {
+    applyMegaMenuPillarLabelsFromSiteStrings(out, siteStrings);
+  }
   await localizeFallbackLabelsInPlace(out, locale);
   return out;
 }

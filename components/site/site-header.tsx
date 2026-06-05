@@ -723,7 +723,10 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
             unoptimized={logoIsRemote}
             draggable={false}
             tabIndex={-1}
-            className="pointer-events-none block h-[4.1rem] w-auto max-h-[4.1rem] max-w-full select-none object-contain object-left sm:h-[4.35rem] sm:max-h-[4.35rem] md:h-[5.15rem] md:max-h-[5.15rem] lg:h-[5.5rem] lg:max-h-[5.5rem]"
+            className={[
+              "pointer-events-none block h-[4.1rem] w-auto max-h-[4.1rem] max-w-full select-none object-contain object-left sm:h-[4.35rem] sm:max-h-[4.35rem] md:h-[5.15rem] md:max-h-[5.15rem] lg:h-[5.5rem] lg:max-h-[5.5rem]",
+              isHome && !scrolled && !mobileNavOpen ? "site-header-logo-on-hero" : "",
+            ].join(" ")}
             sizes="(max-width: 768px) 80vw, 580px"
           />
         </HeaderMenuLink>

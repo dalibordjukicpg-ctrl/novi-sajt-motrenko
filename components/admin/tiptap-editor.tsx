@@ -3,6 +3,7 @@
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import type { Editor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
@@ -10,6 +11,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useRef,
   useState,
 } from "react";
 
@@ -17,7 +19,13 @@ import {
   AdminMediaPicker,
   uploadAdminMediaFile,
 } from "@/components/admin/admin-media-picker";
+import {
+  promptYoutubeUrl,
+  YoutubeEmbedExtension,
+} from "@/components/admin/tiptap-youtube-extension";
+import { normalizeCmsHtmlForEditor } from "@/lib/cms-youtube-html";
 import type { MediaOption } from "@/lib/queries/media-admin";
+import { findYoutubeEmbedInNoisyText } from "@/lib/youtube-hero";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -53,6 +61,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
   const [uploading, setUploading] = useState(false);
   const [sourceMode, setSourceMode] = useState(false);
   const [sourceHtml, setSourceHtml] = useState(initialHtml || "");
+  const editorRef = useRef<Editor | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -64,13 +73,29 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
       }),
       Link.configure({ openOnClick: false, autolink: true }),
       Placeholder.configure({ placeholder }),
+      YoutubeEmbedExtension,
     ],
-    content: initialHtml || "",
+    content: normalizeCmsHtmlForEditor(initialHtml),
     immediatelyRender: false,
+    onCreate: ({ editor: ed }) => {
+      editorRef.current = ed;
+    },
+    onDestroy: () => {
+      editorRef.current = null;
+    },
     editorProps: {
       attributes: {
         class:
           "prose-article min-h-[220px] px-3 py-2 text-sm text-neutral-900 focus:outline-none",
+      },
+      handlePaste: (_view, event) => {
+        const text = event.clipboardData?.getData("text/plain")?.trim() ?? "";
+        if (!text || !findYoutubeEmbedInNoisyText(text)) return false;
+        const ed = editorRef.current;
+        if (!ed) return false;
+        event.preventDefault();
+        promptYoutubeUrl(ed, text);
+        return true;
       },
     },
     onUpdate: ({ editor: ed }) => {
@@ -82,7 +107,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
     if (!editor) return;
     if (sourceMode) return;
     const cur = editor.getHTML();
-    const next = initialHtml || "";
+    const next = normalizeCmsHtmlForEditor(initialHtml);
     if (next !== cur && (next !== "<p></p>" || cur === "")) {
       editor.commands.setContent(next, false);
     }
@@ -132,6 +157,14 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
     },
     [editor],
   );
+
+  const insertYoutube = useCallback(() => {
+    if (!editor) return;
+    const existing = editor.isActive("youtubeEmbed")
+      ? (editor.getAttributes("youtubeEmbed").src as string | undefined)
+      : undefined;
+    promptYoutubeUrl(editor, existing);
+  }, [editor]);
 
   const setLink = useCallback(() => {
     if (!editor) return;
@@ -228,6 +261,18 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
           </button>
           <button
             type="button"
+            onClick={insertYoutube}
+            className={cn(
+              "rounded px-2 py-1 text-xs font-medium",
+              editor.isActive("youtubeEmbed")
+                ? "bg-red-600 text-white"
+                : "text-neutral-700 hover:bg-neutral-200",
+            )}
+          >
+            YouTube
+          </button>
+          <button
+            type="button"
             onClick={uploadFromComputer}
             disabled={uploading}
             className="rounded px-2 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-200 disabled:opacity-50"
@@ -253,7 +298,9 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
             placeholder="<p>HTML sadržaj…</p>"
           />
         ) : (
-          <EditorContent editor={editor} />
+          <div className="admin-tiptap-editor">
+            <EditorContent editor={editor} />
+          </div>
         )}
       </div>
 

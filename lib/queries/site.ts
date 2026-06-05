@@ -316,7 +316,7 @@ function applyCanonicalIuiIvfColumnChildren(
   usluge.children.push({
     id: "nav-synthetic-iui-ivf-pillar",
     href: "#usluge-iui_ivf",
-    label: "IUI i IVF",
+    label: "IVF",
     children: leaves,
   });
 }
@@ -917,6 +917,12 @@ export function mergeSiteStrings(
   }
   if (base["footer.crafted"].trim().toLowerCase() === "crafted by") {
     base["footer.crafted"] = defs["footer.crafted"];
+  }
+  if (
+    base["footer.col_iui_ivf_nav"].trim().toLowerCase() === "iui i ivf" ||
+    base["footer.col_iui_ivf_nav"].trim().toLowerCase() === "iui"
+  ) {
+    base["footer.col_iui_ivf_nav"] = defs["footer.col_iui_ivf_nav"];
   }
   return base;
 }

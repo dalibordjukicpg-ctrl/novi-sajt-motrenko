@@ -1,5 +1,23 @@
+/** 11-znakovni ID — hvata i WP šum tipa `nhttps://youtu.be/XXXXXXXXXXXn`. */
+const YOUTUBE_VIDEO_ID_IN_TEXT_RE =
+  /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+
+export function extractYoutubeVideoIdFromNoisyText(raw: string): string | null {
+  const m = raw.match(YOUTUBE_VIDEO_ID_IN_TEXT_RE);
+  return m?.[1] ?? null;
+}
+
+/** Pronađi embed URL čak i kad je link okružen WP „n“ artefaktima. */
+export function findYoutubeEmbedInNoisyText(raw: string): string | null {
+  const id = extractYoutubeVideoIdFromNoisyText(raw);
+  return id ? `https://www.youtube.com/embed/${id}` : null;
+}
+
 /** YouTube / youtu.be → embed URL za hero pozadinu. */
 export function parseYoutubeEmbedUrl(raw: string): string | null {
+  const fromNoise = findYoutubeEmbedInNoisyText(raw);
+  if (fromNoise) return fromNoise;
+
   const u = raw.trim();
   if (!u) return null;
   try {

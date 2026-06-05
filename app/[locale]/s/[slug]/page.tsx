@@ -84,13 +84,14 @@ export default async function SitePage({ params }: Props) {
       ? rawArticleHtml
       : null;
 
-  let navResolved = await resolveHeaderNav(FALLBACK_HEADER_NAV, raw);
+  let navResolved = await resolveHeaderNav(FALLBACK_HEADER_NAV, raw, {});
   let privacyHref = resolvePublicHref(raw, "/s/politika-privatnosti");
   try {
     const layout = await getSiteLayoutData(raw);
     navResolved = await resolveHeaderNav(
       layout.nav.length > 0 ? layout.nav : FALLBACK_HEADER_NAV,
       raw,
+      layout.s,
     );
     privacyHref = resolvePublicHref(
       raw,

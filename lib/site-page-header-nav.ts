@@ -1,4 +1,5 @@
 import type { PublicNavItem } from "@/lib/queries/site";
+import type { SiteStringKey } from "@/lib/site-fields";
 
 /** Vrijednosti u koloni site_pages.header_nav_group (admin padajući meni). */
 export const SITE_PAGE_HEADER_GROUP_OPTIONS: {
@@ -626,6 +627,35 @@ export type CmsNavPageEntry = {
  * Umetne CMS stranice pod postojeće „Usluge“ prema header_nav_group.
  * Ne duplira href-ove iz existingHrefs.
  */
+/** Naslovi stubova u mega meniju „Usluge“ — isti ključevi kao u footer kolonama (admin: Footer i kontakt). */
+const MEGA_MENU_PILLAR_LABEL_KEYS: Partial<Record<string, SiteStringKey>> = {
+  infertilitet: "footer.col_infertility",
+  iui_ivf: "footer.col_iui_ivf_nav",
+  ginekologija: "footer.col_ginekologija_nav",
+  trudnoca: "footer.col_trudnoca_nav",
+};
+
+/**
+ * Pregazi naslove stubova u mega meniju tekstovima iz admina (`footer.col_*`).
+ * Prezervacija zadržava poseban dugi naslov iz kanonskog menija.
+ */
+export function applyMegaMenuPillarLabelsFromSiteStrings(
+  roots: PublicNavItem[],
+  s: Partial<Record<SiteStringKey, string>>,
+): void {
+  const usluge = roots.find((r) => looksLikeUslugeParent(r));
+  if (!usluge) return;
+
+  for (const pillar of usluge.children) {
+    const gk = matchNavNodeToUslugeGroupKey(pillar);
+    if (!gk) continue;
+    const key = MEGA_MENU_PILLAR_LABEL_KEYS[gk];
+    if (!key) continue;
+    const label = (s[key] ?? "").trim();
+    if (label) pillar.label = label;
+  }
+}
+
 export function attachCmsPagesUnderUsluge(
   roots: PublicNavItem[],
   entries: CmsNavPageEntry[],

@@ -40,14 +40,14 @@ export default async function HeaderNavAdminPage() {
         description="Svaka glavna kategorija može imati podstavke (padajući meni). Na javnom sajtu se automatski dodaju i CMS stranice označene za header — ovo su ručne stavke iznad toga."
       >
         <p className="text-sm text-[#6b5f54]">
-          Za tekst u headeru (podnaslov brenda) i kontakt idite na{" "}
+          Naslove kolona u mega meniju (npr. „IVF“, „Infertilitet i sterilitet“) mijenjate u{" "}
           <Link
             href={adminPath("content/header-footer")}
             className="font-medium text-[#c55a15] underline"
           >
             Footer i kontakt
-          </Link>
-          .
+          </Link>{" "}
+          → Tekstovi i kontakt. Za podnaslov brenda i kontakt podatke koristite istu stranicu.
         </p>
       </AdminPanel>
 

@@ -95,6 +95,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const navResolved = await resolveHeaderNav(
     nav.length > 0 ? nav : FALLBACK_HEADER_NAV,
     raw,
+    s,
   );
 
   return (

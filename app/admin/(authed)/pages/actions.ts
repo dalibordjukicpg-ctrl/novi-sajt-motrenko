@@ -12,6 +12,7 @@ import { db } from "@/lib/db";
 import { sitePageTranslations, sitePages } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
 import { defaultLocale, locales } from "@/lib/i18n";
+import { ensureYoutubeEmbedsInCmsHtml } from "@/lib/cms-youtube-html";
 import { revalidatePublicSite } from "@/lib/revalidate-content";
 import { SITE_PAGE_HEADER_GROUP_OPTIONS } from "@/lib/site-page-header-nav";
 import { slugifyTitle } from "@/lib/slugify";
@@ -36,6 +37,12 @@ function pageTitleFromForm(
     return (fromForm || titleMe || slugFallback).slice(0, 500);
   }
   return (fromForm || titleMe || slugFallback).slice(0, 500);
+}
+
+function normalizePageBody(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  return ensureYoutubeEmbedsInCmsHtml(trimmed);
 }
 
 function revalidateSitePage(slug: string): void {
@@ -89,13 +96,13 @@ export async function createSitePageAction(formData: FormData): Promise<void> {
 
   for (const loc of locales) {
     const title = pageTitleFromForm(formData, loc, titleMe, slug);
-    const body = String(formData.get(`body_${loc}`) ?? "");
+    const body = normalizePageBody(String(formData.get(`body_${loc}`) ?? ""));
     await db.insert(sitePageTranslations).values({
       id: randomUUID(),
       pageId,
       locale: loc as Locale,
       title: title.slice(0, 500),
-      body: body.trim() === "" ? null : body,
+      body,
     });
   }
 
@@ -158,8 +165,7 @@ export async function updateSitePageAction(formData: FormData): Promise<void> {
 
   for (const loc of locales) {
     const title = pageTitleFromForm(formData, loc, titleMe, newSlug);
-    const body = String(formData.get(`body_${loc}`) ?? "");
-    const bodyVal = body.trim() === "" ? null : body;
+    const bodyVal = normalizePageBody(String(formData.get(`body_${loc}`) ?? ""));
     const [tr] = await db
       .select({ id: sitePageTranslations.id })
       .from(sitePageTranslations)

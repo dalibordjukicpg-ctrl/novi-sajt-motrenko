@@ -126,6 +126,11 @@ body {
   -webkit-user-drag: none;
 }
 
+/* Hero: blaga sjena ispod slova logotipa — bez okvira i bez promjene boje */
+.site-header-logo-on-hero {
+  filter: drop-shadow(0 3px 5px rgb(0 0 0 / 0.55)) drop-shadow(0 8px 14px rgb(0 0 0 / 0.28));
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -608,6 +613,44 @@ main {
   border: 1px solid rgb(30 20 10 / 0.04);
 }
 
+.wp-content .wp-youtube-embed,
+.wp-content [data-youtube-url] {
+  position: relative;
+  width: 100%;
+  max-width: 48rem;
+  margin: 1.75rem 0;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid rgb(30 20 10 / 0.06);
+  background: #0f0f0f;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.08);
+}
+
+.wp-content .wp-youtube-embed iframe,
+.wp-content [data-youtube-url] iframe,
+.wp-content iframe[title="YouTube video"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Kad sanitizacija skine class, iframe ostaje — omotač mora imati visinu */
+.wp-content iframe[title="YouTube video"] {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 48rem;
+  margin: 1.75rem auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 1rem;
+  border: 0;
+  background: #0f0f0f;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.08);
+}
+
 /* Tim profil: jedan portret lijevo — tijelo bez duplog prvog bloka; čitljiv tekst pored */
 .wp-content.wp-content--team-profile > *:first-child {
   margin-top: 0 !important;
@@ -678,4 +721,24 @@ main {
 .prose-article img {
   max-width: 100%;
   border-radius: 0.5rem;
+}
+
+.admin-tiptap-editor .wp-youtube-embed {
+  position: relative;
+  width: 100%;
+  max-width: 36rem;
+  margin: 0.75rem 0;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e5e5;
+  background: #111;
+}
+
+.admin-tiptap-editor .wp-youtube-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
