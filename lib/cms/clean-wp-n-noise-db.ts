@@ -19,6 +19,7 @@ import { sanitizeWordPressContent } from "@/scripts/lib/sanitize-wordpress-conte
 export type CleanWpNNoiseResult = {
   updated: number;
   byTable: Record<string, number>;
+  errors: string[];
 };
 
 /** Brza provjera prije skupog HTML pipeline-a. */
@@ -45,6 +46,7 @@ function cleanPlain(raw: string | null): string | null {
 
 function cleanShort(raw: string | null, maxLen: number): string | null {
   if (raw == null || raw.trim() === "") return raw;
+  if (!likelyHasNNoise(raw)) return raw;
   const cleaned = preparePublicPlainText(raw).trim();
   if (!cleaned) return null;
   return cleaned.slice(0, maxLen);
@@ -54,13 +56,38 @@ function cleanShort(raw: string | null, maxLen: number): string | null {
 export async function cleanWpNNoiseInDatabase(): Promise<CleanWpNNoiseResult> {
   let updated = 0;
   const byTable: Record<string, number> = {};
+  const errors: string[] = [];
 
   function bump(table: string) {
     byTable[table] = (byTable[table] ?? 0) + 1;
     updated += 1;
   }
 
-  const posts = await db.select().from(postTranslations);
+  async function applyUpdate(
+    table: string,
+    rowId: string,
+    run: () => Promise<void>,
+  ): Promise<void> {
+    try {
+      await run();
+      bump(table);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      errors.push(`${table} (${rowId}): ${msg}`);
+      console.error(`[cleanWpNNoise] ${table} ${rowId}`, e);
+    }
+  }
+
+  const posts = await db
+    .select({
+      id: postTranslations.id,
+      title: postTranslations.title,
+      excerpt: postTranslations.excerpt,
+      body: postTranslations.body,
+      metaTitle: postTranslations.metaTitle,
+      metaDescription: postTranslations.metaDescription,
+    })
+    .from(postTranslations);
   for (const row of posts) {
     if (
       !likelyHasNNoise(row.title) &&
@@ -85,15 +112,22 @@ export async function cleanWpNNoiseInDatabase(): Promise<CleanWpNNoiseResult> {
       patch.metaTitle !== row.metaTitle ||
       patch.metaDescription !== row.metaDescription
     ) {
-      await db
-        .update(postTranslations)
-        .set(patch)
-        .where(eq(postTranslations.id, row.id));
-      bump("post_translations");
+      await applyUpdate("post_translations", row.id, async () => {
+        await db
+          .update(postTranslations)
+          .set(patch)
+          .where(eq(postTranslations.id, row.id));
+      });
     }
   }
 
-  const pages = await db.select().from(sitePageTranslations);
+  const pages = await db
+    .select({
+      id: sitePageTranslations.id,
+      title: sitePageTranslations.title,
+      body: sitePageTranslations.body,
+    })
+    .from(sitePageTranslations);
   for (const row of pages) {
     if (!likelyHasNNoise(row.title) && !likelyHasNNoise(row.body)) continue;
     const patch = {
@@ -101,15 +135,21 @@ export async function cleanWpNNoiseInDatabase(): Promise<CleanWpNNoiseResult> {
       body: cleanBody(row.body),
     };
     if (patch.title !== row.title || patch.body !== row.body) {
-      await db
-        .update(sitePageTranslations)
-        .set(patch)
-        .where(eq(sitePageTranslations.id, row.id));
-      bump("site_page_translations");
+      await applyUpdate("site_page_translations", row.id, async () => {
+        await db
+          .update(sitePageTranslations)
+          .set(patch)
+          .where(eq(sitePageTranslations.id, row.id));
+      });
     }
   }
 
-  const strings = await db.select().from(siteLocaleStrings);
+  const strings = await db
+    .select({
+      id: siteLocaleStrings.id,
+      value: siteLocaleStrings.value,
+    })
+    .from(siteLocaleStrings);
   for (const row of strings) {
     if (!likelyHasNNoise(row.value)) continue;
     const raw = row.value ?? "";
@@ -118,15 +158,22 @@ export async function cleanWpNNoiseInDatabase(): Promise<CleanWpNNoiseResult> {
         ? (cleanPlain(raw) ?? cleanBody(raw))
         : cleanPlain(raw);
     if (next !== row.value) {
-      await db
-        .update(siteLocaleStrings)
-        .set({ value: next ?? "" })
-        .where(eq(siteLocaleStrings.id, row.id));
-      bump("site_locale_strings");
+      await applyUpdate("site_locale_strings", row.id, async () => {
+        await db
+          .update(siteLocaleStrings)
+          .set({ value: next ?? "" })
+          .where(eq(siteLocaleStrings.id, row.id));
+      });
     }
   }
 
-  const cards = await db.select().from(homeServiceCardTranslations);
+  const cards = await db
+    .select({
+      id: homeServiceCardTranslations.id,
+      title: homeServiceCardTranslations.title,
+      description: homeServiceCardTranslations.description,
+    })
+    .from(homeServiceCardTranslations);
   for (const row of cards) {
     if (!likelyHasNNoise(row.title) && !likelyHasNNoise(row.description)) continue;
     const patch = {
@@ -134,15 +181,22 @@ export async function cleanWpNNoiseInDatabase(): Promise<CleanWpNNoiseResult> {
       description: cleanPlain(row.description),
     };
     if (patch.title !== row.title || patch.description !== row.description) {
-      await db
-        .update(homeServiceCardTranslations)
-        .set(patch)
-        .where(eq(homeServiceCardTranslations.id, row.id));
-      bump("home_service_card_translations");
+      await applyUpdate("home_service_card_translations", row.id, async () => {
+        await db
+          .update(homeServiceCardTranslations)
+          .set(patch)
+          .where(eq(homeServiceCardTranslations.id, row.id));
+      });
     }
   }
 
-  const highlights = await db.select().from(homeTeamHighlightTranslations);
+  const highlights = await db
+    .select({
+      id: homeTeamHighlightTranslations.id,
+      title: homeTeamHighlightTranslations.title,
+      teaser: homeTeamHighlightTranslations.teaser,
+    })
+    .from(homeTeamHighlightTranslations);
   for (const row of highlights) {
     if (!likelyHasNNoise(row.title) && !likelyHasNNoise(row.teaser)) continue;
     const patch = {
@@ -150,39 +204,56 @@ export async function cleanWpNNoiseInDatabase(): Promise<CleanWpNNoiseResult> {
       teaser: cleanPlain(row.teaser),
     };
     if (patch.title !== row.title || patch.teaser !== row.teaser) {
-      await db
-        .update(homeTeamHighlightTranslations)
-        .set(patch)
-        .where(eq(homeTeamHighlightTranslations.id, row.id));
-      bump("home_team_highlight_translations");
+      await applyUpdate("home_team_highlight_translations", row.id, async () => {
+        await db
+          .update(homeTeamHighlightTranslations)
+          .set(patch)
+          .where(eq(homeTeamHighlightTranslations.id, row.id));
+      });
     }
   }
 
-  const nav = await db.select().from(navLinkTranslations);
+  const nav = await db
+    .select({
+      id: navLinkTranslations.id,
+      label: navLinkTranslations.label,
+    })
+    .from(navLinkTranslations);
   for (const row of nav) {
     if (!likelyHasNNoise(row.label)) continue;
     const next = cleanShort(row.label, 255);
     if (next !== row.label) {
-      await db
-        .update(navLinkTranslations)
-        .set({ label: next ?? row.label })
-        .where(eq(navLinkTranslations.id, row.id));
-      bump("nav_link_translations");
+      await applyUpdate("nav_link_translations", row.id, async () => {
+        await db
+          .update(navLinkTranslations)
+          .set({ label: next ?? row.label })
+          .where(eq(navLinkTranslations.id, row.id));
+      });
     }
   }
 
-  const alts = await db.select().from(mediaAltTranslations);
+  const alts = await db
+    .select({
+      id: mediaAltTranslations.id,
+      altText: mediaAltTranslations.altText,
+    })
+    .from(mediaAltTranslations);
   for (const row of alts) {
     if (!likelyHasNNoise(row.altText)) continue;
     const next = cleanShort(row.altText, 512) ?? "";
     if (next !== row.altText) {
-      await db
-        .update(mediaAltTranslations)
-        .set({ altText: next })
-        .where(eq(mediaAltTranslations.id, row.id));
-      bump("media_alt_translations");
+      await applyUpdate("media_alt_translations", row.id, async () => {
+        await db
+          .update(mediaAltTranslations)
+          .set({ altText: next })
+          .where(eq(mediaAltTranslations.id, row.id));
+      });
     }
   }
 
-  return { updated, byTable };
+  if (updated === 0 && errors.length > 0) {
+    throw new Error(errors[0] ?? "Čišćenje nije uspjelo.");
+  }
+
+  return { updated, byTable, errors };
 }

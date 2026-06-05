@@ -410,21 +410,38 @@ export async function saveMediaAltTranslationsAction(
   }
 }
 
+function cleanNoiseErrorRedirect(message: string): never {
+  const msg = encodeURIComponent(message.slice(0, 200));
+  redirect(adminPath(`settings?nCleanError=1&nCleanMsg=${msg}`));
+}
+
 export async function cleanWpNNoiseFormAction(): Promise<void> {
   const session = await getSession();
-  if (!session || !hasPermission(session.role, PERMISSIONS.SITE_CONTENT_MANAGE)) {
-    redirect(adminPath("settings?nCleanError=1"));
+  if (!session) {
+    cleanNoiseErrorRedirect("Niste prijavljeni — osvježite stranicu i pokušajte ponovo.");
+  }
+  if (!hasPermission(session.role, PERMISSIONS.SITE_CONTENT_MANAGE)) {
+    cleanNoiseErrorRedirect("Nemate dozvolu za CMS održavanje.");
   }
 
   let updated = 0;
+  let partialErrors = 0;
   try {
-    ({ updated } = await cleanWpNNoiseInDatabase());
+    const result = await cleanWpNNoiseInDatabase();
+    updated = result.updated;
+    partialErrors = result.errors.length;
     revalidatePublicSite();
     revalidateAdminContent();
   } catch (e) {
     console.error("[cleanWpNNoise]", e);
-    redirect(adminPath("settings?nCleanError=1"));
+    const msg =
+      e instanceof Error ? e.message : "Neočekivana greška pri čišćenju baze.";
+    cleanNoiseErrorRedirect(msg);
   }
 
-  redirect(adminPath(`settings?nClean=${updated}`));
+  const params = new URLSearchParams({ nClean: String(updated) });
+  if (partialErrors > 0) {
+    params.set("nCleanWarn", String(partialErrors));
+  }
+  redirect(adminPath(`settings?${params.toString()}`));
 }

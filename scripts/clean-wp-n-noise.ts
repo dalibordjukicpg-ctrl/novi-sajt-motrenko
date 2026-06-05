@@ -10,10 +10,16 @@ async function main() {
     process.exit(1);
   }
 
-  const { updated, byTable } = await cleanWpNNoiseInDatabase();
+  const { updated, byTable, errors } = await cleanWpNNoiseInDatabase();
   console.log(`Gotovo. Ažurirano redova: ${updated}`);
   for (const [table, count] of Object.entries(byTable)) {
     console.log(`  ${table}: ${count}`);
+  }
+  if (errors.length > 0) {
+    console.warn(`Upozorenja (${errors.length}):`);
+    for (const err of errors.slice(0, 10)) {
+      console.warn(`  - ${err}`);
+    }
   }
 }
 

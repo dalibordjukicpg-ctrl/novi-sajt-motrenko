@@ -5,15 +5,27 @@ import { listMediaOptions } from "@/lib/queries/media-admin";
 import { getSiteGlobalsRow } from "@/lib/queries/site-globals";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 type Props = {
-  searchParams: Promise<{ nClean?: string; nCleanError?: string }>;
+  searchParams: Promise<{
+    nClean?: string;
+    nCleanError?: string;
+    nCleanMsg?: string;
+    nCleanWarn?: string;
+  }>;
 };
 
 export default async function AdminSettingsPage({ searchParams }: Props) {
   const sp = await searchParams;
   const nCleanCount = sp.nClean ? Number.parseInt(sp.nClean, 10) : null;
   const nCleanFailed = sp.nCleanError === "1";
+  const nCleanErrorMsg = sp.nCleanMsg
+    ? decodeURIComponent(sp.nCleanMsg).slice(0, 200)
+    : null;
+  const nCleanWarnCount = sp.nCleanWarn
+    ? Number.parseInt(sp.nCleanWarn, 10)
+    : null;
 
   const session = await getSession();
   const canEditAnalytics = session
@@ -65,11 +77,28 @@ export default async function AdminSettingsPage({ searchParams }: Props) {
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           Uklonjeni WP artefakti („n“, „nnn“) iz {nCleanCount}{" "}
           {nCleanCount === 1 ? "reda" : "redova"} u bazi.
+          {nCleanWarnCount != null && Number.isFinite(nCleanWarnCount) && nCleanWarnCount > 0 ? (
+            <span className="mt-1 block text-amber-900">
+              {nCleanWarnCount}{" "}
+              {nCleanWarnCount === 1 ? "red nije" : "redova nije"} ažurirano zbog greške —
+              provjerite log servera.
+            </span>
+          ) : null}
         </div>
       ) : null}
       {nCleanFailed ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
-          Čišćenje n-artefakata nije uspjelo. Provjerite log servera.
+          <p>Čišćenje n-artefakata nije uspjelo.</p>
+          {nCleanErrorMsg ? (
+            <p className="mt-2 font-mono text-xs text-red-800">{nCleanErrorMsg}</p>
+          ) : (
+            <p className="mt-2 text-red-800">Provjerite log servera.</p>
+          )}
+          <p className="mt-2 text-xs text-red-800/90">
+            Alternativa iz terminala (isti{" "}
+            <code className="rounded bg-white/80 px-1">DATABASE_URL</code> kao na serveru):{" "}
+            <code className="rounded bg-white/80 px-1">npm run db:clean-n-noise</code>
+          </p>
         </div>
       ) : null}
 
