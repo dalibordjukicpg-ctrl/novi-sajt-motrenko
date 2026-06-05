@@ -88,7 +88,15 @@ function useCountUp(target: number, duration = 1800, active: boolean) {
   return count;
 }
 
-function StatCardBg({ src, position }: { src: string; position?: string }) {
+function StatCardBg({
+  src,
+  position,
+  fit = "cover",
+}: {
+  src: string;
+  position?: string;
+  fit?: "cover" | "contain";
+}) {
   const [useFallback, setUseFallback] = useState(false);
   const effective = useFallback ? CLINIC_PAGE_HERO_BG : src;
   const pos = useFallback ? "center center" : (position ?? "center");
@@ -97,8 +105,11 @@ function StatCardBg({ src, position }: { src: string; position?: string }) {
     <img
       src={effective}
       alt=""
-      className="absolute inset-0 h-full w-full object-cover"
-      style={{ objectPosition: pos }}
+      className={[
+        "absolute inset-0 h-full w-full",
+        fit === "contain" ? "object-contain object-center" : "object-cover",
+      ].join(" ")}
+      style={fit === "cover" ? { objectPosition: pos } : undefined}
       onError={() => setUseFallback(true)}
     />
   );
@@ -181,9 +192,9 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
     <div ref={ref} className="h-full">
       <article
         className={[
-          "group relative overflow-hidden rounded-[1.15rem] md:rounded-2xl lg:rounded-[1.35rem]",
-          "h-[7.5rem] md:h-[14rem] lg:h-full lg:min-h-[12.5rem]",
-          "bg-gradient-to-br from-white via-[#fffaf6] to-[#ffefe3] md:bg-[#3d2a1f]",
+          "group relative flex overflow-hidden rounded-[1.15rem] md:block md:rounded-2xl lg:rounded-[1.35rem]",
+          "h-[10rem] md:h-[14rem] lg:h-full lg:min-h-[12.5rem]",
+          "bg-[#fffaf6] md:bg-[#3d2a1f]",
           "ring-1 ring-[rgb(var(--site-brand-rgb)/0.12)] md:ring-white/15",
           "shadow-[0_2px_0_rgba(255,255,255,0.95)_inset,0_14px_36px_-10px_rgba(28,18,10,0.1),0_4px_14px_rgb(var(--site-brand-rgb)/0.08)]",
           "md:shadow-[0_10px_28px_-12px_rgba(28,18,10,0.18)]",
@@ -193,37 +204,54 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
         ].join(" ")}
         style={{ transitionDelay: `${delay}ms` }}
       >
-        <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <div className="absolute inset-0 hidden transition-transform duration-700 ease-out group-hover:scale-[1.04] md:block">
+        {/* Mobil: premium panel lijevo */}
+        <div
+          className="relative z-10 flex h-full w-[44%] shrink-0 flex-col justify-center gap-2 border-r border-[rgb(var(--site-brand-rgb)/0.08)] px-3.5 py-3 text-left md:hidden"
+          style={{
+            background:
+              "linear-gradient(145deg, rgb(255 255 255 / 0.98) 0%, rgb(255 252 248 / 0.96) 50%, rgb(255 246 238 / 0.94) 100%)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.98), 6px 0 28px -12px rgba(28,18,10,0.1)",
+          }}
+        >
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[rgb(var(--site-brand-rgb)/0.32)] to-transparent" />
+          <StatPremiumIcon variant="light">{icon}</StatPremiumIcon>
+          <div className="min-w-0">
+            <StatValue
+              compact
+              light
+              displayStatic={displayStatic}
+              count={count}
+              suffix={suffix}
+            />
+            <p className="mt-1.5 text-[10.5px] font-medium leading-snug text-site-muted/90">
+              {stat.label}
+            </p>
+          </div>
+        </div>
+
+        {/* Mobil: cijela slika desno */}
+        <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#f3ebe4] md:hidden">
+          <StatCardBg
+            src={stat.bgImage}
+            position={stat.bgPosition ?? "center center"}
+            fit="contain"
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-[16%]"
+            style={{
+              background:
+                "linear-gradient(to right, rgb(255 252 248 / 0.45) 0%, transparent 100%)",
+            }}
+          />
+        </div>
+
+        <div className="pointer-events-none absolute inset-0 hidden md:block" aria-hidden>
+          <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]">
             <StatCardBg src={stat.bgImage} position={stat.bgPosition} />
           </div>
-
-          {/* Mobil: svijetla ivory kartica, foto diskretno desno */}
-          <div className="absolute inset-0 md:hidden">
-            <div className="absolute inset-y-0 right-0 w-[52%] overflow-hidden">
-              <div className="absolute inset-0 scale-[1.06] saturate-[1.12] transition-transform duration-700 ease-out group-hover:scale-[1.1]">
-                <StatCardBg src={stat.bgImage} position={stat.bgPosition} />
-              </div>
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(to left, rgb(255 250 245 / 0.02) 0%, rgb(255 252 248 / 0.38) 42%, rgb(255 252 248 / 0.72) 100%)",
-                }}
-              />
-            </div>
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(102deg, rgb(255 252 248 / 0.9) 0%, rgb(255 249 244 / 0.72) 46%, rgb(255 245 237 / 0.22) 100%)",
-              }}
-            />
-            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[rgb(var(--site-brand-rgb)/0.35)] to-transparent" />
-          </div>
-
           <div
-            className="absolute inset-0 hidden md:block lg:hidden"
+            className="absolute inset-0 lg:hidden"
             style={{
               background: [
                 "linear-gradient(to top, rgb(52 36 26 / 0.62) 0%, rgb(68 48 34 / 0.38) 38%, rgb(82 58 42 / 0.1) 62%, transparent 100%)",
@@ -240,23 +268,6 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
               ].join(", "),
             }}
           />
-        </div>
-
-        {/* Mobil: centrirano, jedna ispod druge */}
-        <div className="relative z-10 flex h-full flex-col items-center justify-center gap-2.5 px-4 text-center md:hidden">
-          <StatPremiumIcon variant="light">{icon}</StatPremiumIcon>
-          <div className="min-w-0">
-            <StatValue
-              compact
-              light
-              displayStatic={displayStatic}
-              count={count}
-              suffix={suffix}
-            />
-            <p className="mx-auto mt-1.5 max-w-[16rem] text-[11px] font-medium leading-snug text-site-muted">
-              {stat.label}
-            </p>
-          </div>
         </div>
 
         {/* Tablet: 2 kolone */}
