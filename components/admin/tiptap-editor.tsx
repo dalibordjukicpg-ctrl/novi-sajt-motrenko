@@ -19,12 +19,14 @@ import {
   AdminMediaPicker,
   uploadAdminMediaFile,
 } from "@/components/admin/admin-media-picker";
-import {
-  promptYoutubeUrl,
-  YoutubeEmbedExtension,
-} from "@/components/admin/tiptap-youtube-extension";
+import { YoutubeEmbedExtension } from "@/components/admin/tiptap-youtube-extension";
 import { normalizeCmsHtmlForEditor } from "@/lib/cms-youtube-html";
 import type { MediaOption } from "@/lib/queries/media-admin";
+import {
+  countYoutubeEmbeds,
+  insertYoutubeAtCursor,
+  promptYoutubeUrl,
+} from "@/lib/tiptap-youtube-editor-utils";
 import { findYoutubeEmbedInNoisyText } from "@/lib/youtube-hero";
 import { cn } from "@/lib/utils";
 
@@ -61,12 +63,20 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
   const [uploading, setUploading] = useState(false);
   const [sourceMode, setSourceMode] = useState(false);
   const [sourceHtml, setSourceHtml] = useState(initialHtml || "");
+  const [youtubeCount, setYoutubeCount] = useState(0);
+  const [youtubeSelected, setYoutubeSelected] = useState(false);
   const editorRef = useRef<Editor | null>(null);
+
+  const syncYoutubeMeta = useCallback((ed: Editor) => {
+    setYoutubeCount(countYoutubeEmbeds(ed));
+    setYoutubeSelected(ed.isActive("youtubeEmbed"));
+  }, []);
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },
+        dropcursor: { color: "#e8682a", width: 3 },
       }),
       Image.configure({
         HTMLAttributes: { class: "max-w-full rounded-lg" },
@@ -79,6 +89,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
     immediatelyRender: false,
     onCreate: ({ editor: ed }) => {
       editorRef.current = ed;
+      syncYoutubeMeta(ed);
     },
     onDestroy: () => {
       editorRef.current = null;
@@ -100,6 +111,10 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
     },
     onUpdate: ({ editor: ed }) => {
       onHtmlChange(ed.getHTML());
+      syncYoutubeMeta(ed);
+    },
+    onSelectionUpdate: ({ editor: ed }) => {
+      syncYoutubeMeta(ed);
     },
   });
 
@@ -160,10 +175,26 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
 
   const insertYoutube = useCallback(() => {
     if (!editor) return;
-    const existing = editor.isActive("youtubeEmbed")
-      ? (editor.getAttributes("youtubeEmbed").src as string | undefined)
-      : undefined;
-    promptYoutubeUrl(editor, existing);
+    if (editor.isActive("youtubeEmbed")) {
+      const existing = editor.getAttributes("youtubeEmbed").src as string | undefined;
+      promptYoutubeUrl(editor, existing);
+      return;
+    }
+    insertYoutubeAtCursor(editor);
+  }, [editor]);
+
+  const deleteYoutube = useCallback(() => {
+    if (!editor?.isActive("youtubeEmbed")) return;
+    if (!window.confirm("Obrisati odabrani YouTube video?")) return;
+    editor.chain().focus().deleteYoutubeEmbed().run();
+  }, [editor]);
+
+  const moveYoutubeUp = useCallback(() => {
+    editor?.chain().focus().moveYoutubeEmbedUp().run();
+  }, [editor]);
+
+  const moveYoutubeDown = useCallback(() => {
+    editor?.chain().focus().moveYoutubeEmbedDown().run();
   }, [editor]);
 
   const setLink = useCallback(() => {
@@ -262,15 +293,50 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
           <button
             type="button"
             onClick={insertYoutube}
+            title="Kliknite u tekst gdje želite video, pa dodajte link"
             className={cn(
               "rounded px-2 py-1 text-xs font-medium",
-              editor.isActive("youtubeEmbed")
+              youtubeSelected
                 ? "bg-red-600 text-white"
                 : "text-neutral-700 hover:bg-neutral-200",
             )}
           >
-            YouTube
+            YouTube{youtubeCount > 0 ? ` (${youtubeCount})` : ""}
           </button>
+          {youtubeSelected ? (
+            <>
+              <button
+                type="button"
+                onClick={insertYoutube}
+                className="rounded px-2 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-200"
+              >
+                Uredi link
+              </button>
+              <button
+                type="button"
+                onClick={moveYoutubeUp}
+                className="rounded px-2 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-200"
+                title="Pomjeri video gore u tekstu"
+              >
+                ↑ Gore
+              </button>
+              <button
+                type="button"
+                onClick={moveYoutubeDown}
+                className="rounded px-2 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-200"
+                title="Pomjeri video dole u tekstu"
+              >
+                ↓ Dole
+              </button>
+              <button
+                type="button"
+                onClick={deleteYoutube}
+                className="rounded px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+              >
+                Obriši video
+              </button>
+            </>
+          ) : null}
           <button
             type="button"
             onClick={uploadFromComputer}
@@ -289,6 +355,17 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
             </>
           ) : null}
         </div>
+        {!sourceMode && youtubeCount > 0 ? (
+          <p className="border-b border-neutral-100 bg-neutral-50/80 px-3 py-1.5 text-[10px] text-neutral-500">
+            {youtubeCount === 1 ? "1 video" : `${youtubeCount} videa`} na stranici.
+            Kliknite u tekst između pasusa, pa <strong>YouTube</strong> za novi.
+            Uhvatite ⋮⋮ ručku ili koristite ↑ ↓ da pomjerite video u tekstu.
+          </p>
+        ) : !sourceMode ? (
+          <p className="border-b border-neutral-100 bg-neutral-50/80 px-3 py-1.5 text-[10px] text-neutral-500">
+            Kliknite u tekst gdje želite video, pa dugme <strong>YouTube</strong>.
+          </p>
+        ) : null}
         {sourceMode ? (
           <textarea
             value={sourceHtml}

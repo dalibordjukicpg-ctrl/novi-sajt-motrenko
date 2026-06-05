@@ -36,7 +36,7 @@ export function HomeNewsMotrenko({
       className="site-section site-section-scrim-md relative z-10 scroll-mt-24 overflow-x-hidden py-section-y"
     >
       <div className="relative mx-auto max-w-7xl px-6 lg:px-16">
-        <FadeIn className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <FadeIn className="mb-8 flex flex-col items-center gap-4 text-center sm:flex-row sm:items-end sm:justify-between sm:text-left">
           <div>
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-site-brand">
               {eyebrow}
@@ -50,7 +50,7 @@ export function HomeNewsMotrenko({
           </div>
           <Link
             href={archiveHref}
-            className="site-card-glass shrink-0 self-start px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-site-ink transition hover:text-site-brand sm:self-auto sm:text-[11px]"
+            className="site-card-glass shrink-0 px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-site-ink transition hover:text-site-brand sm:text-[11px]"
           >
             Svi članci
           </Link>
@@ -104,7 +104,7 @@ export function HomeNewsMotrenko({
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-1 flex-col gap-3 p-6 pt-5">
+                  <div className="flex flex-1 flex-col items-center gap-3 p-6 pt-5 text-center sm:items-start sm:text-left">
                     <h3
                       style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
                       className="text-[clamp(1.25rem,2vw,1.65rem)] font-light leading-snug tracking-tight text-site-ink"

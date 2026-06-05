@@ -30,7 +30,7 @@ export default async function AdminAuthedLayout({
   } catch (e) {
     console.error("[admin layout] getSession", e);
     return (
-      <div className="min-h-dvh bg-[#fff9f5] px-4 py-12 text-[#2a2118]">
+      <div className="min-h-dvh px-4 py-12 text-[#2a2118]">
         <div className="mx-auto max-w-lg rounded-2xl border border-amber-200 bg-white p-8 shadow-sm">
           <h1 className="font-serif text-xl font-semibold">
             Admin — greška pri učitavanju

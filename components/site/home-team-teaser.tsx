@@ -58,7 +58,7 @@ export function HomeTeamTeaser({
         <div className="grid gap-6 lg:grid-cols-2 lg:items-center lg:gap-8 xl:gap-10">
           <div className="mx-auto w-full max-w-[360px] sm:max-w-sm lg:mx-0">
             <article className="site-card-glass-lg overflow-hidden">
-              <p className="px-5 pb-0 pt-5 text-[10px] font-semibold uppercase tracking-[0.26em] text-site-brand">
+              <p className="px-5 pb-0 pt-5 text-center text-[10px] font-semibold uppercase tracking-[0.26em] text-site-brand sm:text-left">
                 {eyebrow}
               </p>
               <div className="relative mt-3 aspect-[3/4] bg-site-surface-a">
@@ -81,7 +81,7 @@ export function HomeTeamTeaser({
                   />
                 ) : null}
               </div>
-              <div className="px-5 py-4 sm:py-5">
+              <div className="px-5 py-4 text-center sm:py-5 sm:text-left">
                 <h3
                   className="text-lg font-medium leading-snug text-site-ink sm:text-xl"
                   style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
@@ -100,20 +100,20 @@ export function HomeTeamTeaser({
             </article>
           </div>
 
-          <div className="lg:pl-2">
+          <div className="text-center sm:text-left lg:pl-2">
             <h2
               style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
               className="text-[clamp(1.5rem,2.8vw,2.5rem)] font-medium leading-[1.15] tracking-tight text-site-ink"
             >
               {title}
             </h2>
-            <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-site-muted sm:text-base">
+            <p className="mx-auto mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-site-muted sm:mx-0 sm:text-base">
               {lead}
             </p>
             <div className="mt-6 space-y-3">
               {highlights.map((h) => {
                 const cardClass =
-                  "site-card-glass block px-4 py-3.5 transition sm:px-4 sm:py-4 " +
+                  "site-card-glass block px-4 py-3.5 text-center transition sm:px-4 sm:py-4 sm:text-left " +
                   (h.href
                     ? "cursor-pointer hover:border-site-brand/20 hover:shadow-site-card-lg group"
                     : "");
@@ -158,7 +158,7 @@ export function HomeTeamTeaser({
             </div>
             <Link
               href={resolvePublicHref(locale, aboutHref)}
-              className="mt-6 inline-flex items-center gap-2 rounded-full border border-site-brand/25 bg-site-card px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-site-brand shadow-site-card transition hover:border-site-brand/45 hover:bg-site-surface-c hover:shadow-site-card-lg sm:px-5 sm:text-[11px]"
+              className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full border border-site-brand/25 bg-site-card px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-site-brand shadow-site-card transition hover:border-site-brand/45 hover:bg-site-surface-c hover:shadow-site-card-lg sm:mx-0 sm:px-5 sm:text-[11px]"
             >
               {ctaLabel} <span aria-hidden>→</span>
             </Link>

@@ -193,7 +193,7 @@ export function HomeHeroMotrenko({
         />
 
         <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-8 px-4 pb-10 pt-[calc(4rem+1.25rem+env(safe-area-inset-top))] sm:px-8 md:grid-cols-[1.08fr_0.92fr] md:gap-10 md:px-12 md:pb-14 md:pt-[calc(4.5rem+2.25rem+env(safe-area-inset-top))] lg:gap-11 lg:px-16">
-          <div className="order-2 flex max-w-xl flex-col max-md:mx-auto md:order-1 md:max-w-none lg:pr-4">
+          <div className="order-2 flex max-w-xl flex-col text-center max-md:mx-auto md:order-1 md:max-w-none md:text-left lg:pr-4">
             <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-site-brand">
               {slide.eyebrow}
             </p>
@@ -207,10 +207,10 @@ export function HomeHeroMotrenko({
               <span className="md:hidden">{slide.heading.replace(/\n/g, " ")}</span>
               <span className="hidden md:inline whitespace-pre-line">{slide.heading}</span>
             </h1>
-            <p className="mt-4 max-w-xl text-[0.875rem] leading-relaxed text-zinc-600 sm:text-[0.9375rem]">
+            <p className="mx-auto mt-4 max-w-xl text-[0.875rem] leading-relaxed text-zinc-600 md:mx-0 sm:text-[0.9375rem]">
               {slide.sub}
             </p>
-            <div className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
+            <div className="mx-auto mt-8 flex w-full max-w-md flex-col gap-3 md:mx-0 md:max-w-none sm:flex-row sm:flex-wrap sm:gap-4">
               <Link
                 href={primaryCta.href}
                 className="inline-flex h-11 min-h-[44px] items-center justify-center rounded-md bg-site-brand px-5 text-center text-[9px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_10px_32px_-8px_rgba(243,112,33,0.3)] transition-colors hover:bg-site-brand-hover sm:text-[10px]"

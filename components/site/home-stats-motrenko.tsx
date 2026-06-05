@@ -182,7 +182,7 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
       <article
         className={[
           "group relative overflow-hidden rounded-[1.15rem] md:rounded-2xl lg:rounded-[1.35rem]",
-          "h-[6.25rem] md:h-[14rem] lg:h-full lg:min-h-[12.5rem]",
+          "h-[7.5rem] md:h-[14rem] lg:h-full lg:min-h-[12.5rem]",
           "bg-gradient-to-br from-white via-[#fffaf6] to-[#ffefe3] md:bg-[#3d2a1f]",
           "ring-1 ring-[rgb(var(--site-brand-rgb)/0.12)] md:ring-white/15",
           "shadow-[0_2px_0_rgba(255,255,255,0.95)_inset,0_14px_36px_-10px_rgba(28,18,10,0.1),0_4px_14px_rgb(var(--site-brand-rgb)/0.08)]",
@@ -242,10 +242,10 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
           />
         </div>
 
-        {/* Mobil: puna širina, jedna ispod druge */}
-        <div className="relative z-10 flex h-full items-center gap-3.5 px-4 md:hidden">
+        {/* Mobil: centrirano, jedna ispod druge */}
+        <div className="relative z-10 flex h-full flex-col items-center justify-center gap-2.5 px-4 text-center md:hidden">
           <StatPremiumIcon variant="light">{icon}</StatPremiumIcon>
-          <div className="min-w-0 flex-1 pr-1">
+          <div className="min-w-0">
             <StatValue
               compact
               light
@@ -253,7 +253,7 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
               count={count}
               suffix={suffix}
             />
-            <p className="mt-1.5 text-[11px] font-medium leading-snug text-site-muted">
+            <p className="mx-auto mt-1.5 max-w-[16rem] text-[11px] font-medium leading-snug text-site-muted">
               {stat.label}
             </p>
           </div>

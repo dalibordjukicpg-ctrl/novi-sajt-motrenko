@@ -38,7 +38,7 @@ export default async function AdminLoginPage({ searchParams }: Props) {
   const logoRemote = /^https?:\/\//i.test(logoSrc);
 
   return (
-    <main className="relative min-h-dvh bg-site-canvas px-4 py-14 md:py-20">
+    <main className="relative min-h-dvh px-4 py-14 md:py-20">
       <div className="mx-auto max-w-md">
         <div className="text-center">
           <div className="flex justify-center">

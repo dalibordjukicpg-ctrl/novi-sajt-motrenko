@@ -1,25 +1,38 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import type { Editor } from "@tiptap/core";
+import { ReactNodeViewRenderer } from "@tiptap/react";
 
+import { YoutubeEmbedNodeView } from "@/components/admin/tiptap-youtube-node-view";
 import { canonicalYoutubeWatchUrl } from "@/lib/cms-youtube-html";
-import { findYoutubeEmbedInNoisyText, parseYoutubeEmbedUrl } from "@/lib/youtube-hero";
+import { moveYoutubeEmbed } from "@/lib/tiptap-youtube-move";
+import { parseYoutubeEmbedUrl } from "@/lib/youtube-hero";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     youtubeEmbed: {
       insertYoutubeEmbed: (options: { src: string }) => ReturnType;
       updateYoutubeEmbed: (options: { src: string }) => ReturnType;
+      deleteYoutubeEmbed: () => ReturnType;
+      moveYoutubeEmbedUp: () => ReturnType;
+      moveYoutubeEmbedDown: () => ReturnType;
     };
   }
 }
 
 function watchUrlFromElement(element: HTMLElement): string | null {
   const data = element.getAttribute("data-youtube-url");
-  if (data) return canonicalYoutubeWatchUrl(data) ?? data.trim();
+  if (data?.trim()) {
+    return canonicalYoutubeWatchUrl(data) ?? null;
+  }
   const iframeSrc = element.querySelector("iframe")?.getAttribute("src");
   if (iframeSrc) return canonicalYoutubeWatchUrl(iframeSrc);
   const text = element.textContent ?? "";
   return canonicalYoutubeWatchUrl(text);
+}
+
+function deleteActiveYoutubeEmbed(editor: Editor): boolean {
+  if (!editor.isActive("youtubeEmbed")) return false;
+  return editor.chain().focus().deleteSelection().run();
 }
 
 export const YoutubeEmbedExtension = Node.create({
@@ -45,25 +58,25 @@ export const YoutubeEmbedExtension = Node.create({
   parseHTML() {
     return [
       {
-        tag: 'div[data-youtube-url]',
+        tag: "div[data-youtube-url]",
         getAttrs: (element) => ({
           src: watchUrlFromElement(element as HTMLElement),
         }),
       },
       {
-        tag: 'div.wp-youtube-embed',
+        tag: "div.wp-youtube-embed",
         getAttrs: (element) => ({
           src: watchUrlFromElement(element as HTMLElement),
         }),
       },
       {
-        tag: 'figure.is-provider-youtube',
+        tag: "figure.is-provider-youtube",
         getAttrs: (element) => ({
           src: watchUrlFromElement(element as HTMLElement),
         }),
       },
       {
-        tag: 'figure.is-type-video',
+        tag: "figure.is-type-video",
         getAttrs: (element) => ({
           src: watchUrlFromElement(element as HTMLElement),
         }),
@@ -78,10 +91,9 @@ export const YoutubeEmbedExtension = Node.create({
       return [
         "div",
         mergeAttributes(HTMLAttributes, {
-          class: "wp-youtube-embed",
-          "data-youtube-url": src,
+          class: "wp-youtube-embed wp-youtube-embed--invalid",
+          "data-youtube-invalid": "1",
         }),
-        ["span", { class: "text-xs text-neutral-500" }, "Neispravan YouTube link"],
       ];
     }
     return [
@@ -104,17 +116,32 @@ export const YoutubeEmbedExtension = Node.create({
     ];
   },
 
+  addNodeView() {
+    return ReactNodeViewRenderer(YoutubeEmbedNodeView, {
+      stopEvent: ({ event }) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return false;
+        if (target.closest("button")) return true;
+        if (target.closest("[data-drag-handle]")) return false;
+        return false;
+      },
+    });
+  },
+
   addCommands() {
     return {
       insertYoutubeEmbed:
         (options: { src: string }) =>
-        ({ commands }) => {
+        ({ chain }) => {
           const watch = canonicalYoutubeWatchUrl(options.src);
           if (!watch) return false;
-          return commands.insertContent({
-            type: this.name,
-            attrs: { src: watch },
-          });
+          return chain()
+            .focus()
+            .insertContent({
+              type: this.name,
+              attrs: { src: watch },
+            })
+            .run();
         },
       updateYoutubeEmbed:
         (options: { src: string }) =>
@@ -123,29 +150,27 @@ export const YoutubeEmbedExtension = Node.create({
           if (!watch) return false;
           return commands.updateAttributes(this.name, { src: watch });
         },
+      deleteYoutubeEmbed:
+        () =>
+        ({ editor }) =>
+          deleteActiveYoutubeEmbed(editor),
+      moveYoutubeEmbedUp:
+        () =>
+        ({ editor }) =>
+          moveYoutubeEmbed(editor, "up"),
+      moveYoutubeEmbedDown:
+        () =>
+        ({ editor }) =>
+          moveYoutubeEmbed(editor, "down"),
+    };
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      Backspace: () => deleteActiveYoutubeEmbed(this.editor),
+      Delete: () => deleteActiveYoutubeEmbed(this.editor),
+      "Alt-ArrowUp": () => moveYoutubeEmbed(this.editor, "up"),
+      "Alt-ArrowDown": () => moveYoutubeEmbed(this.editor, "down"),
     };
   },
 });
-
-export function promptYoutubeUrl(editor: Editor, existing?: string): void {
-  const prev = existing ?? "";
-  const raw = window.prompt(
-    "YouTube link (watch, youtu.be ili embed)",
-    prev || "https://www.youtube.com/watch?v=",
-  );
-  if (raw === null) return;
-  const trimmed = raw.trim();
-  if (!trimmed) {
-    editor.chain().focus().deleteSelection().run();
-    return;
-  }
-  if (!findYoutubeEmbedInNoisyText(trimmed)) {
-    window.alert("Unesite ispravan YouTube link.");
-    return;
-  }
-  if (editor.isActive("youtubeEmbed")) {
-    editor.chain().focus().updateYoutubeEmbed({ src: trimmed }).run();
-    return;
-  }
-  editor.chain().focus().insertYoutubeEmbed({ src: trimmed }).run();
-}

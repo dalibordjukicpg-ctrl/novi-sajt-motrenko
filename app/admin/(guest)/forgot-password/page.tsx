@@ -6,7 +6,7 @@ import { ForgotPasswordForm } from "./forgot-form";
 
 export default function ForgotPasswordPage() {
   return (
-    <main className="min-h-dvh bg-neutral-100 px-4 py-16">
+    <main className="min-h-dvh px-4 py-16">
       <div className="mx-auto max-w-md text-center">
         <h1 className="text-2xl font-semibold text-neutral-900">
           Reset lozinke

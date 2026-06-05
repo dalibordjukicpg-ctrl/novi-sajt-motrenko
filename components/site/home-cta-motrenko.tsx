@@ -49,7 +49,7 @@ export function HomeCtaMotrenko({
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-16">
         <FadeIn className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-12 xl:gap-14">
-          <div className="min-w-0 flex-1 space-y-7">
+          <div className="min-w-0 flex-1 space-y-7 text-center sm:text-left">
             <div>
               <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.3em] text-site-brand">
                 {eyebrow}
@@ -64,7 +64,7 @@ export function HomeCtaMotrenko({
               </h2>
             </div>
 
-            <div className="flex w-full max-w-lg flex-wrap gap-3">
+            <div className="mx-auto flex w-full max-w-lg flex-wrap justify-center gap-3 sm:mx-0 sm:justify-start">
               <Link
                 href={resolvePublicHref(locale, s["header.cta_book_href"])}
                 className="site-btn-primary h-12 min-h-[48px] flex-1 px-6 text-[11px] tracking-[0.22em] min-[380px]:flex-none min-[380px]:px-8"
@@ -79,7 +79,7 @@ export function HomeCtaMotrenko({
               </a>
             </div>
 
-            <div className="flex max-w-lg flex-wrap gap-x-8 gap-y-3 text-[11px] font-medium uppercase tracking-[0.18em] text-site-subtle">
+            <div className="mx-auto flex max-w-lg flex-wrap justify-center gap-x-8 gap-y-3 text-[11px] font-medium uppercase tracking-[0.18em] text-site-subtle sm:mx-0 sm:justify-start">
               <span>
                 {s["home.hours_mon_fri_label"]}{" "}
                 {formatHoursDisplay(s["hours.mon_fri"])}

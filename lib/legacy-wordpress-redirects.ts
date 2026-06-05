@@ -118,6 +118,11 @@ export function resolveLegacyWordPressRedirect(pathname: string): string | null 
   const path = pathname.replace(/\/+$/, "") || "/";
   const home = `/${LOCALE}`;
 
+  if (path === "/tr") return home;
+  if (path.startsWith("/tr/")) {
+    return `/${LOCALE}${path.slice(3)}`;
+  }
+
   if (LEGACY_BLOG_INDEX_PATHS.has(path)) return `${home}#novosti`;
 
   if (path === "/category/osoblje") return `/${LOCALE}/s/tim`;
@@ -165,6 +170,11 @@ export function resolveLegacyWordPressRedirect(pathname: string): string | null 
 export function buildLegacyWordPressRedirects(): Redirect[] {
   const redirects: Redirect[] = [];
   const home = `/${LOCALE}`;
+
+  redirects.push(
+    permanent301("/tr", home),
+    permanent301("/tr/:path*", `/${LOCALE}/:path*`),
+  );
 
   // Blog / novosti (WP kategorija) → sekcija na početnoj
   for (const src of ["/blog", "/novosti", "/category/novosti", "/./novosti"]) {

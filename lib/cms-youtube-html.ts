@@ -117,22 +117,58 @@ export function normalizeCmsHtmlForEditor(html: string | null | undefined): stri
   return out;
 }
 
+const INVALID_YOUTUBE_PLACEHOLDER_RE =
+  /<div\b[^>]*class=["'][^"']*wp-youtube-embed[^"']*["'][^>]*>[\s\S]*?Neispravan YouTube link[\s\S]*?<\/div>/gi;
+
+/** Ukloni prazne / neispravne embed blokove iz TipTap-a ili ručnog uređivanja. */
+function removeInvalidYoutubeEmbedBlocks(html: string): string {
+  let out = html.replace(INVALID_YOUTUBE_PLACEHOLDER_RE, "");
+  out = out.replace(
+    /<div\b[^>]*\bdata-youtube-invalid=["']1["'][^>]*>[\s\S]*?<\/div>/gi,
+    "",
+  );
+  out = out.replace(
+    /<div\b[^>]*class=["'][^"']*wp-youtube-embed--invalid[^"']*["'][^>]*>[\s\S]*?<\/div>/gi,
+    "",
+  );
+  out = out.replace(
+    /<div\b[^>]*class=["'][^"']*wp-youtube-embed[^"']*["'][^>]*>\s*<\/div>/gi,
+    "",
+  );
+  out = out.replace(
+    /<div\b[^>]*\bdata-youtube-url=(["'])\s*\1[^>]*>[\s\S]*?<\/div>/gi,
+    "",
+  );
+  out = out.replace(
+    /<div\b[^>]*class=["'][^"']*wp-youtube-embed[^"']*["'][^>]*>(?![\s\S]*<iframe\b)[\s\S]*?<\/div>/gi,
+    "",
+  );
+  out = out.replace(
+    /<p\b[^>]*>\s*Neispravan YouTube link\s*<\/p>/gi,
+    "",
+  );
+  return out;
+}
+
 /** Prije snimanja / na javnom sajtu: osiguraj iframe u embed blokovima. */
 export function ensureYoutubeEmbedsInCmsHtml(html: string): string {
   if (!html) return html;
 
   let out = html.replace(
-    /<div\b([^>]*)\bdata-youtube-url=(["'])([^"']+)\2([^>]*)>([\s\S]*?)<\/div>/gi,
+    /<div\b([^>]*)\bdata-youtube-url=(["'])([^"']*)\2([^>]*)>[\s\S]*?<\/div>/gi,
     (_full, _a1: string, _q: string, watchUrl: string) => {
       const decoded = watchUrl
         .replace(/&quot;/g, '"')
         .replace(/&lt;/g, "<")
-        .replace(/&amp;/g, "&");
-      return buildCmsYoutubeEmbedHtml(decoded);
+        .replace(/&amp;/g, "&")
+        .trim();
+      const block = buildCmsYoutubeEmbedHtml(decoded);
+      return block || "";
     },
   );
 
   out = ensureDataUrlOnExistingEmbeds(out);
+  out = removeInvalidYoutubeEmbedBlocks(out);
   return out;
 }
 

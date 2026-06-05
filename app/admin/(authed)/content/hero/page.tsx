@@ -17,7 +17,7 @@ export default async function HeroContentPage() {
     <div className="mx-auto max-w-6xl space-y-8">
       <AdminPageHeader
         title="Hero baner"
-        description="Pozadina (slika, video, YouTube), naslovi i tekstovi dugmadi na četiri jezika. Desno uživo pregled dok uređujete tekst."
+        description="Pozadina (slika, video, YouTube), naslovi i tekstovi dugmadi na tri jezika. Desno uživo pregled dok uređujete tekst."
       />
       <HeroPageClient matrix={matrix} globals={globals} media={media} />
     </div>

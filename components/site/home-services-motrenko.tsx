@@ -68,8 +68,8 @@ export function HomeServicesMotrenko({
     >
       <div className="relative mx-auto max-w-7xl px-4 pb-2 sm:px-6 lg:px-16">
         <FadeIn className="mb-8 lg:mb-10">
-          <div className="mx-auto flex max-w-3xl flex-col gap-3 text-left sm:mx-0">
-            <div className="flex items-center gap-3">
+          <div className="mx-auto flex max-w-3xl flex-col gap-3 text-center sm:mx-0 sm:text-left">
+            <div className="flex items-center justify-center gap-3 sm:justify-start">
               <span className="size-1.5 shrink-0 rounded-full bg-site-brand" aria-hidden />
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-site-brand sm:text-[11px] sm:tracking-[0.28em]">
                 {eyebrow}
@@ -82,7 +82,7 @@ export function HomeServicesMotrenko({
               {heading}
             </h2>
             {lead ? (
-              <p className="max-w-2xl text-pretty text-sm leading-relaxed text-site-muted max-md:pr-14 sm:text-base">
+              <p className="mx-auto max-w-2xl text-pretty text-sm leading-relaxed text-site-muted sm:mx-0 sm:text-base">
                 {lead}
               </p>
             ) : null}
@@ -96,7 +96,7 @@ export function HomeServicesMotrenko({
                 href={card.href.startsWith("/s/") || card.href.startsWith("#")
                   ? `/${locale}${card.href.startsWith("/s/") ? card.href : card.href}`
                   : card.href}
-                className="group site-card-glass relative flex h-full flex-col gap-5 p-6 sm:p-7"
+                className="group site-card-glass relative flex h-full flex-col items-center gap-5 p-6 text-center sm:items-start sm:p-7 sm:text-left"
               >
                 {/* Gornji brand accent na hover */}
                 <div className="absolute inset-x-0 top-0 h-[2px] rounded-t-[1.25rem] bg-gradient-to-r from-transparent via-site-brand/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -121,7 +121,7 @@ export function HomeServicesMotrenko({
                   ) : null}
                 </div>
 
-                <span className="mt-auto inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-site-muted/70 transition-colors duration-300 group-hover:text-site-brand">
+                <span className="mt-auto inline-flex items-center justify-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-site-muted/70 transition-colors duration-300 group-hover:text-site-brand sm:justify-start">
                   {moreLabel}
                   <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                 </span>

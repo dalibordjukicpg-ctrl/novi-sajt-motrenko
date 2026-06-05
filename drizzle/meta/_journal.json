@@ -155,6 +155,13 @@
       "when": 1748004600000,
       "tag": "0021_admin_login_otp",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "5",
+      "when": 1748091000000,
+      "tag": "0022_remove_turkish_locale",
+      "breakpoints": true
     }
   ]
 }

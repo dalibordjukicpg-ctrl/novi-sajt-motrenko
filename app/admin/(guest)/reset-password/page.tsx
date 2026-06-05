@@ -20,7 +20,7 @@ export default async function ResetPasswordPage({ searchParams }: Props) {
   const token = parseCompoundToken(raw) ? raw : null;
 
   return (
-    <main className="min-h-dvh bg-neutral-100 px-4 py-16">
+    <main className="min-h-dvh px-4 py-16">
       <div className="mx-auto max-w-md text-center">
         <h1 className="text-2xl font-semibold text-neutral-900">Nova lozinka</h1>
         {!token ? (
