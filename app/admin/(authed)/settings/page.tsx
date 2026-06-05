@@ -1,38 +1,15 @@
-import { cleanWpNNoiseFormAction, saveSiteGlobalsFormAction } from "@/app/admin/(authed)/content/site-content-actions";
+import { saveSiteGlobalsFormAction } from "@/app/admin/(authed)/content/site-content-actions";
 import { SettingsLogoBrandingFields } from "@/components/admin/settings-logo-branding";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { listMediaOptions } from "@/lib/queries/media-admin";
 import { getSiteGlobalsRow } from "@/lib/queries/site-globals";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
 
-type Props = {
-  searchParams: Promise<{
-    nClean?: string;
-    nCleanError?: string;
-    nCleanMsg?: string;
-    nCleanWarn?: string;
-  }>;
-};
-
-export default async function AdminSettingsPage({ searchParams }: Props) {
-  const sp = await searchParams;
-  const nCleanCount = sp.nClean ? Number.parseInt(sp.nClean, 10) : null;
-  const nCleanFailed = sp.nCleanError === "1";
-  const nCleanErrorMsg = sp.nCleanMsg
-    ? decodeURIComponent(sp.nCleanMsg).slice(0, 200)
-    : null;
-  const nCleanWarnCount = sp.nCleanWarn
-    ? Number.parseInt(sp.nCleanWarn, 10)
-    : null;
-
+export default async function AdminSettingsPage() {
   const session = await getSession();
   const canEditAnalytics = session
     ? hasPermission(session.role, PERMISSIONS.INTEGRATIONS_MANAGE)
-    : false;
-  const canCleanContent = session
-    ? hasPermission(session.role, PERMISSIONS.SITE_CONTENT_MANAGE)
     : false;
 
   const [globals, media] = await Promise.all([
@@ -72,57 +49,6 @@ export default async function AdminSettingsPage({ searchParams }: Props) {
           povežeš slanje pošte.
         </p>
       </section>
-
-      {nCleanCount != null && Number.isFinite(nCleanCount) ? (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          Uklonjeni WP artefakti („n“, „nnn“) iz {nCleanCount}{" "}
-          {nCleanCount === 1 ? "reda" : "redova"} u bazi.
-          {nCleanWarnCount != null && Number.isFinite(nCleanWarnCount) && nCleanWarnCount > 0 ? (
-            <span className="mt-1 block text-amber-900">
-              {nCleanWarnCount}{" "}
-              {nCleanWarnCount === 1 ? "red nije" : "redova nije"} ažurirano zbog greške —
-              provjerite log servera.
-            </span>
-          ) : null}
-        </div>
-      ) : null}
-      {nCleanFailed ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
-          <p>Čišćenje n-artefakata nije uspjelo.</p>
-          {nCleanErrorMsg ? (
-            <p className="mt-2 font-mono text-xs text-red-800">{nCleanErrorMsg}</p>
-          ) : (
-            <p className="mt-2 text-red-800">Provjerite log servera.</p>
-          )}
-          <p className="mt-2 text-xs text-red-800/90">
-            Alternativa iz terminala (isti{" "}
-            <code className="rounded bg-white/80 px-1">DATABASE_URL</code> kao na serveru):{" "}
-            <code className="rounded bg-white/80 px-1">npm run db:clean-n-noise</code>
-          </p>
-        </div>
-      ) : null}
-
-      {canCleanContent ? (
-        <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-            CMS održavanje
-          </h2>
-          <p className="mt-2 text-sm text-neutral-700">
-            Uklanja WordPress uvoz artefakte — usamljena slova{" "}
-            <code className="rounded bg-neutral-100 px-1">n</code>,{" "}
-            <code className="rounded bg-neutral-100 px-1">nnn</code> i slično — iz
-            objava, stranica, tekstova sajta, kartica i meta polja u bazi.
-          </p>
-          <form action={cleanWpNNoiseFormAction} className="mt-4">
-            <button
-              type="submit"
-              className="rounded-lg border border-neutral-300 bg-white px-5 py-2.5 text-sm font-medium text-neutral-800 hover:bg-neutral-50"
-            >
-              Očisti „nnn“ artefakte u bazi
-            </button>
-          </form>
-        </section>
-      ) : null}
 
       <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
         <form action={saveSiteGlobalsFormAction} className="space-y-8">

@@ -28,8 +28,6 @@ import {
   type SiteStringKey,
 } from "@/lib/site-fields";
 import { parseSiteStringGroupFromFormData } from "@/lib/validations/site-strings";
-import { cleanWpNNoiseInDatabase } from "@/lib/cms/clean-wp-n-noise-db";
-
 function uuidOrNull(raw: string): string | null {
   const t = raw.trim();
   if (!t) return null;
@@ -408,40 +406,4 @@ export async function saveMediaAltTranslationsAction(
     console.error(e);
     return { error: "Čuvanje alt tekstova nije uspjelo." };
   }
-}
-
-function cleanNoiseErrorRedirect(message: string): never {
-  const msg = encodeURIComponent(message.slice(0, 200));
-  redirect(adminPath(`settings?nCleanError=1&nCleanMsg=${msg}`));
-}
-
-export async function cleanWpNNoiseFormAction(): Promise<void> {
-  const session = await getSession();
-  if (!session) {
-    cleanNoiseErrorRedirect("Niste prijavljeni — osvježite stranicu i pokušajte ponovo.");
-  }
-  if (!hasPermission(session.role, PERMISSIONS.SITE_CONTENT_MANAGE)) {
-    cleanNoiseErrorRedirect("Nemate dozvolu za CMS održavanje.");
-  }
-
-  let updated = 0;
-  let partialErrors = 0;
-  try {
-    const result = await cleanWpNNoiseInDatabase();
-    updated = result.updated;
-    partialErrors = result.errors.length;
-    revalidatePublicSite();
-    revalidateAdminContent();
-  } catch (e) {
-    console.error("[cleanWpNNoise]", e);
-    const msg =
-      e instanceof Error ? e.message : "Neočekivana greška pri čišćenju baze.";
-    cleanNoiseErrorRedirect(msg);
-  }
-
-  const params = new URLSearchParams({ nClean: String(updated) });
-  if (partialErrors > 0) {
-    params.set("nCleanWarn", String(partialErrors));
-  }
-  redirect(adminPath(`settings?${params.toString()}`));
 }
