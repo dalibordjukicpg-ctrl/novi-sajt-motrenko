@@ -128,6 +128,7 @@ export async function cleanWpNNoiseInDatabase(): Promise<CleanWpNNoiseResult> {
 
   const cards = await db.select().from(homeServiceCardTranslations);
   for (const row of cards) {
+    if (!likelyHasNNoise(row.title) && !likelyHasNNoise(row.description)) continue;
     const patch = {
       title: cleanShort(row.title, 500) ?? "",
       description: cleanPlain(row.description),
@@ -143,6 +144,7 @@ export async function cleanWpNNoiseInDatabase(): Promise<CleanWpNNoiseResult> {
 
   const highlights = await db.select().from(homeTeamHighlightTranslations);
   for (const row of highlights) {
+    if (!likelyHasNNoise(row.title) && !likelyHasNNoise(row.teaser)) continue;
     const patch = {
       title: cleanShort(row.title, 500) ?? "",
       teaser: cleanPlain(row.teaser),
@@ -158,6 +160,7 @@ export async function cleanWpNNoiseInDatabase(): Promise<CleanWpNNoiseResult> {
 
   const nav = await db.select().from(navLinkTranslations);
   for (const row of nav) {
+    if (!likelyHasNNoise(row.label)) continue;
     const next = cleanShort(row.label, 255);
     if (next !== row.label) {
       await db
@@ -170,6 +173,7 @@ export async function cleanWpNNoiseInDatabase(): Promise<CleanWpNNoiseResult> {
 
   const alts = await db.select().from(mediaAltTranslations);
   for (const row of alts) {
+    if (!likelyHasNNoise(row.altText)) continue;
     const next = cleanShort(row.altText, 512) ?? "";
     if (next !== row.altText) {
       await db

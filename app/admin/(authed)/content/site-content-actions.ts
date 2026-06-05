@@ -416,13 +416,15 @@ export async function cleanWpNNoiseFormAction(): Promise<void> {
     redirect(adminPath("settings?nCleanError=1"));
   }
 
+  let updated = 0;
   try {
-    const { updated } = await cleanWpNNoiseInDatabase();
+    ({ updated } = await cleanWpNNoiseInDatabase());
     revalidatePublicSite();
     revalidateAdminContent();
-    redirect(adminPath(`settings?nClean=${updated}`));
   } catch (e) {
     console.error("[cleanWpNNoise]", e);
     redirect(adminPath("settings?nCleanError=1"));
   }
+
+  redirect(adminPath(`settings?nClean=${updated}`));
 }
