@@ -1,5 +1,6 @@
 /** Mora biti isto kao lib/content-sync-secret.ts */
 export const CONTENT_SYNC_SECRET = "hrc-motrenko-content-sync-2026";
+export const CONTENT_SYNC_API = "/api/sync/content";
 
 /** Produkcijski URL — isto kao lib/site-url.ts */
 export const PRODUCTION_SITE_URL = "https://humanreproduction.com";

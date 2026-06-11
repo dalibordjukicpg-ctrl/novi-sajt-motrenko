@@ -16,7 +16,7 @@ const UPLOADS = join(ROOT, "public", "uploads");
 
 async function fetchProdSql() {
   const { url, secret } = prodConfig();
-  const endpoint = `${url}/api/admin/db-pull?secret=${encodeURIComponent(secret)}`;
+  const endpoint = `${url}/api/sync/content?secret=${encodeURIComponent(secret)}`;
   console.log(`Sync: preuzimam sadržaj sa ${url} ...`);
   const res = await fetch(endpoint);
   if (!res.ok) {

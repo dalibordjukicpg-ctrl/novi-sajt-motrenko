@@ -1,6 +1,6 @@
 /**
  * Idempotentna migracija + seed za početnu stranicu (kartice usluga, tim highlight).
- * Pokreće se pri Vercel build-u ako je DATABASE_URL postavljen.
+ * Pokreće se pri Hostinger build-u ako je DATABASE_URL postavljen.
  *
  * npm run db:setup-home
  */

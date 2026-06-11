@@ -1,5 +1,5 @@
 /**
- * Jedan od dva načina u .env / environment (Hostinger hPanel, Vercel…):
+ * Jedan od dva načina u .env / environment (Hostinger hPanel):
  * 1) DATABASE_URL=mysql://user:pass@host:3306/db  (posebni znakovi u lozinki → URL-encode)
  * 2) MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE (+ opciono MYSQL_HOST, MYSQL_PORT)
  *

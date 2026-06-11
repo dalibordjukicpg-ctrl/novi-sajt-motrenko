@@ -1,5 +1,5 @@
 /**
- * Javni URL ka lokalnom `npm run dev` (bez Vercel-a / cloud MySQL-a).
+ * Javni URL ka lokalnom `npm run dev`.
  *
  * 1) U jednom terminalu: npm run dev
  * 2) U drugom: npm run share:dev

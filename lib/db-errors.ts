@@ -44,14 +44,14 @@ export function getDbConnectionUserMessage(e: unknown): string {
   }
 
   if (err.code === "ER_NO_SUCH_TABLE") {
-    return "U bazi nedostaju tabele. Na serveru pokreni migracije: npm run db:migrate (sa istim DATABASE_URL kao na Vercelu).";
+    return "U bazi nedostaju tabele. Na Hostingeru pokreni migracije: npm run db:migrate (sa istim DATABASE_URL kao u hPanel env-u).";
   }
 
   if (
     err.code === "ECONNRESET" ||
     err.code === "PROTOCOL_CONNECTION_LOST"
   ) {
-    return "Veza sa bazom je prekinuta. Provjeri DATABASE_URL, SSL i da MySQL na cloudu dopušta konekcije sa Vercela.";
+    return "Veza sa bazom je prekinuta. Provjeri DATABASE_URL i MySQL host iz Hostinger hPanel-a.";
   }
 
   if (err.code === "ENOTFOUND" || err.code === "ETIMEDOUT") {

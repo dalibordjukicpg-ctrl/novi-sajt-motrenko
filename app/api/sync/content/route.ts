@@ -1,14 +1,19 @@
 /**
- * Import sadržajnih tabela sa lokala na produkciju.
- * POST /api/admin/db-push?secret=XXX  (body = SQL iz exportContentSql)
+ * Sync CMS sadržaja između lokala i produkcije.
+ * GET  ?secret=…  → export SQL (produkcija → lokal)
+ * POST ?secret=…  → import SQL (lokal → produkcija)
  */
 import { createConnection } from "mysql2/promise";
 
-import { CONTENT_TABLE_NAMES } from "@/lib/content-db-sync";
+import { CONTENT_TABLE_NAMES, exportContentSql } from "@/lib/content-db-sync";
 import { CONTENT_SYNC_SECRET } from "@/lib/content-sync-secret";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function checkSecret(req: Request): boolean {
+  return new URL(req.url).searchParams.get("secret") === CONTENT_SYNC_SECRET;
+}
 
 function parseDbUrl() {
   const url = process.env.DATABASE_URL?.trim();
@@ -23,7 +28,6 @@ function parseDbUrl() {
   };
 }
 
-/** Dozvoli samo DELETE/INSERT/SET na poznatim sadržajnim tabelama. */
 function assertSafeSql(sql: string) {
   const forbidden =
     /\b(DROP|TRUNCATE|ALTER|CREATE|GRANT|REVOKE|users|auth_sessions|password)\b/i;
@@ -40,9 +44,22 @@ function assertSafeSql(sql: string) {
   }
 }
 
+export async function GET(req: Request) {
+  if (!checkSecret(req)) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const sql = await exportContentSql();
+  return new Response(sql, {
+    headers: {
+      "Content-Type": "application/sql",
+      "Content-Disposition": `attachment; filename="hrc-content-${new Date().toISOString().slice(0, 10)}.sql"`,
+    },
+  });
+}
+
 export async function POST(req: Request) {
-  const url = new URL(req.url);
-  if (url.searchParams.get("secret") !== CONTENT_SYNC_SECRET) {
+  if (!checkSecret(req)) {
     return new Response("Unauthorized", { status: 401 });
   }
 

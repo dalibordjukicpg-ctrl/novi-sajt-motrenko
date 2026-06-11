@@ -25,7 +25,7 @@ async function pushContentToProd() {
   }
 
   console.log(`Deploy: šaljem sadržaj na ${url} ...`);
-  const endpoint = `${url}/api/admin/db-push?secret=${encodeURIComponent(secret)}`;
+  const endpoint = `${url}/api/sync/content?secret=${encodeURIComponent(secret)}`;
   const res = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/sql" },
