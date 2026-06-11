@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "echo Deploy ide na Hostinger, ne na Vercel; exit 0"
+}
