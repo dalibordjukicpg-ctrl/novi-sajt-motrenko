@@ -34,7 +34,7 @@ export const CONTENT_TABLES = [
   { name: "home_team_highlight_translations", table: homeTeamHighlightTranslations },
 ] as const;
 
-export const CONTENT_TABLE_NAMES = CONTENT_TABLES.map((t) => t.name);
+export const CONTENT_TABLE_NAMES: string[] = CONTENT_TABLES.map((t) => t.name);
 
 function escapeValue(v: unknown): string {
   if (v === null || v === undefined) return "NULL";
@@ -66,7 +66,6 @@ export async function exportContentSql(): Promise<string> {
   ];
 
   for (const { name, table } of CONTENT_TABLES) {
-    // @ts-expect-error drizzle dinamički select
     const rows = (await db.select().from(table)) as Record<string, unknown>[];
     lines.push(`-- ${name} (${rows.length})`);
     lines.push(`DELETE FROM \`${name}\`;`);
