@@ -42,6 +42,7 @@ import {
   buildTrudnocaHeaderLinkRows,
   resolveFooterContactPageHref,
   type FooterColumnData,
+  type FooterPageRow,
 } from "@/lib/footer-structured-nav";
 
 export type PublicNavItem = {
@@ -181,11 +182,12 @@ async function loadPublishedSlugToHeaderGroup(): Promise<Map<string, string>> {
 
 async function loadPublishedPagesForFooterLocale(
   locale: Locale,
-): Promise<{ slug: string; title: string }[]> {
+): Promise<FooterPageRow[]> {
   const rows = await db
     .select({
       slug: sitePages.slug,
       title: sitePageTranslations.title,
+      headerNavGroup: sitePages.headerNavGroup,
     })
     .from(sitePages)
     .innerJoin(
@@ -197,11 +199,15 @@ async function loadPublishedPagesForFooterLocale(
     )
     .where(eq(sitePages.published, true));
 
-  const out: { slug: string; title: string }[] = [];
+  const out: FooterPageRow[] = [];
   for (const r of rows) {
     const slug = (r.slug ?? "").trim();
     if (!slug || slug === "naslovna") continue;
-    out.push({ slug, title: (r.title ?? "").trim() });
+    out.push({
+      slug,
+      title: (r.title ?? "").trim(),
+      headerNavGroup: r.headerNavGroup,
+    });
   }
   return out;
 }
@@ -209,7 +215,7 @@ async function loadPublishedPagesForFooterLocale(
 /** Liste stranica za footer i kanonske linkove u meniju — EN/RU bez prevoda dobija runtime prevod ME naslova. */
 async function loadPublishedPagesForFooter(
   locale: Locale,
-): Promise<{ slug: string; title: string }[]> {
+): Promise<FooterPageRow[]> {
   const fb = await loadPublishedPagesForFooterLocale(defaultLocale);
   if (locale === defaultLocale) return fb;
   const loc = await loadPublishedPagesForFooterLocale(locale);
@@ -219,11 +225,20 @@ async function loadPublishedPagesForFooter(
     const fbTitle = (r.title ?? "").trim();
     const lt = titleBySlug.get(r.slug)?.trim();
     const localized = lt && lt.length > 0 ? lt : fbTitle;
-    return { slug: r.slug, localized, me: fbTitle };
+    return {
+      slug: r.slug,
+      localized,
+      me: fbTitle,
+      headerNavGroup: r.headerNavGroup,
+    };
   });
 
   if (!isMachineTranslateTarget(locale) || !isRuntimeTranslateEnabled()) {
-    return pairs.map((p) => ({ slug: p.slug, title: p.localized }));
+    return pairs.map((p) => ({
+      slug: p.slug,
+      title: p.localized,
+      headerNavGroup: p.headerNavGroup,
+    }));
   }
 
   const translated = await translateTextPairsForLocale(
@@ -234,6 +249,7 @@ async function loadPublishedPagesForFooter(
   return pairs.map((p, i) => ({
     slug: p.slug,
     title: translated[i] ?? p.localized,
+    headerNavGroup: p.headerNavGroup,
   }));
 }
 

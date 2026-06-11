@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { MaintenanceScreen } from "@/components/site/maintenance-screen";
 import { PublicAnalyticsCollector } from "@/components/site/public-analytics-collector";
 import { FALLBACK_HEADER_NAV, resolveHeaderNav } from "@/lib/fallback-header-nav";
+import type { FooterColumnData } from "@/lib/footer-structured-nav";
 import { getSiteLayoutData, mergeSiteStrings } from "@/lib/queries/site";
 import { getRequestClientIp } from "@/lib/request-client-ip";
 import {
@@ -80,12 +81,14 @@ export default async function LocaleLayout({ children, params }: Props) {
   let footerContactHref: Awaited<
     ReturnType<typeof getSiteLayoutData>
   >["footerContactHref"] = null;
+  let footerStructured: FooterColumnData[] = [];
   let logoUrl: string | null = null;
   try {
     const data = await getSiteLayoutData(raw);
     s = data.s;
     nav = data.nav;
     footerContactHref = data.footerContactHref;
+    footerStructured = data.footerStructured;
     logoUrl = data.logoUrl;
   } catch (e) {
     console.error("[LocaleLayout getSiteLayoutData]", e);
@@ -111,6 +114,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         locale={raw}
         s={s}
         footerContactHref={footerContactHref}
+        footerStructured={footerStructured}
         logoUrl={logoUrl}
       />
       <Suspense fallback={null}>

@@ -15,6 +15,7 @@ import {
   persistHeroVideoProgress,
   setHomeHeroVideoReady,
 } from "@/lib/hero-video-session";
+import { TypewriterText } from "@/components/site/typewriter-text";
 
 export type HomeHeroSlide = {
   eyebrow: string;
@@ -201,11 +202,11 @@ export function HomeHeroMotrenko({
               <p className="mb-3 text-[0.95rem] font-medium leading-snug text-zinc-800">{credit}</p>
             ) : null}
             <h1
+              aria-label={slide.heading.replace(/\n/g, " ")}
               style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
               className="text-[clamp(1.85rem,4.5vw,3.35rem)] font-light leading-[1.08] tracking-tight text-zinc-950"
             >
-              <span className="md:hidden">{slide.heading.replace(/\n/g, " ")}</span>
-              <span className="hidden md:inline whitespace-pre-line">{slide.heading}</span>
+              <TypewriterText key={`split-${current}-${slide.heading}`} text={slide.heading} />
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-[0.875rem] leading-relaxed text-zinc-600 md:mx-0 sm:text-[0.9375rem]">
               {slide.sub}
@@ -344,16 +345,16 @@ export function HomeHeroMotrenko({
           </p>
 
           <h1
+            aria-label={slide.heading.replace(/\n/g, " ")}
             style={{
               opacity: leaving ? 0 : 1,
               transform: leaving ? "translateY(16px)" : "translateY(0)",
               transition: "opacity 0.6s ease 0.05s, transform 0.6s ease 0.05s",
               fontFamily: "var(--font-playfair), Georgia, serif",
             }}
-            className="text-balance text-[clamp(1.5rem,6.2vw,2.5rem)] font-light leading-[1.14] tracking-tight text-[#fff8f2] [text-shadow:0_2px_10px_rgba(0,0,0,0.7),0_4px_24px_rgba(0,0,0,0.45)] max-md:mx-auto max-md:max-w-[24ch] md:whitespace-pre-line md:text-[clamp(2.65rem,5.8vw,5.5rem)] md:leading-[1.04]"
+            className="text-balance text-[clamp(1.5rem,6.2vw,2.5rem)] font-light leading-[1.14] tracking-tight text-[#fff8f2] [text-shadow:0_2px_10px_rgba(0,0,0,0.7),0_4px_24px_rgba(0,0,0,0.45)] max-md:mx-auto max-md:max-w-[24ch] md:text-[clamp(2.65rem,5.8vw,5.5rem)] md:leading-[1.04]"
           >
-            <span className="md:hidden">{slide.heading.replace(/\n/g, " ")}</span>
-            <span className="hidden md:inline whitespace-pre-line">{slide.heading}</span>
+            <TypewriterText key={`hero-${current}-${slide.heading}`} text={slide.heading} />
           </h1>
 
           <p

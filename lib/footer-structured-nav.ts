@@ -2,7 +2,11 @@ import type { Locale } from "@/lib/i18n";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
 import type { SiteStringKey } from "@/lib/site-fields";
 
-export type FooterPageRow = { slug: string; title: string };
+export type FooterPageRow = {
+  slug: string;
+  title: string;
+  headerNavGroup?: string | null;
+};
 
 export type FooterColumnData = {
   title: string;
@@ -77,6 +81,52 @@ function resolveLabels(
   });
 }
 
+function slugsFromLinks(links: { href: string | null }[]): Set<string> {
+  const used = new Set<string>();
+  for (const l of links) {
+    const h = l.href?.trim() ?? "";
+    const m = h.match(/\/s\/([^/?#]+)/i);
+    if (m?.[1]) used.add(normMatch(m[1]));
+  }
+  return used;
+}
+
+/** Objavljene CMS stranice iz iste grupe (npr. Histeroskopija) koje nisu već u kanonskoj listi. */
+function mergeExtraCmsPages(
+  links: { label: string; href: string | null }[],
+  pages: FooterPageRow[],
+  groupKey: string,
+  locale: Locale,
+): { label: string; href: string | null }[] {
+  const g = groupKey.trim();
+  if (!g) return links.filter((l) => l.href);
+
+  const used = slugsFromLinks(links);
+  const resolved = links.filter((l) => l.href);
+  const extras = pages
+    .filter((p) => (p.headerNavGroup ?? "").trim() === g)
+    .filter((p) => !used.has(normMatch(p.slug)))
+    .sort((a, b) =>
+      (a.title ?? a.slug).localeCompare(b.title ?? b.slug, "sr"),
+    )
+    .map((p) => ({
+      label: (p.title ?? "").trim() || p.slug,
+      href: resolvePublicHref(locale, `/s/${p.slug}`),
+    }));
+
+  return [...resolved, ...extras];
+}
+
+function buildColumnLinks(
+  locale: Locale,
+  defs: LinkDef[],
+  pages: FooterPageRow[],
+  groupKey: string,
+): { label: string; href: string | null }[] {
+  const resolved = resolveLabels(locale, defs, pages);
+  return mergeExtraCmsPages(resolved, pages, groupKey, locale);
+}
+
 /** Redoslijed i tekst linkova — slugHints pomažu kad se slug razlikuje od naslova (WP import). */
 const COL_INFERTILITY: LinkDef[] = [
   { label: "Fertilnost ljudske rase", slugHints: ["fertilnost", "ljudske-rase"] },
@@ -111,35 +161,49 @@ const COL_IUI_IVF: LinkDef[] = [
     label: "Kultivacija embriona – gajenje embriona",
     slugHints: ["kultivacija", "embriona", "gajenje-embriona", "gajenje"],
   },
+  {
+    label: "Krioprezervacija embriona – Zamrzavanje embriona (vitrifikacija embriona)",
+    slugHints: [
+      "krioprezervacija",
+      "vitrifikacija",
+      "zamrzavanje-embriona",
+      "zamrzavanje",
+    ],
+  },
   { label: "Donacija oocita", slugHints: ["donacija-oocita", "oocita"] },
-  { label: "Donacija sperme", slugHints: ["donacija-sperme", "sperme"] },
-  { label: "Donacija embriona", slugHints: ["donacija-embriona"] },
+  {
+    label: "Donacije sperme",
+    slugHints: ["donacije-sperme", "donacija-sperme", "sperme"],
+  },
+  {
+    label: "Donacije embriona",
+    slugHints: ["donacije-embriona", "donacija-embriona"],
+  },
   { label: "Dodatne tehnike", slugHints: ["dodatne-tehnike", "tehnike"] },
 ];
 
-/** Tipične stavke reference menija „Ginekologija“ (slugHints za CMS / WP). */
+/** WP meni „Ginekologija“ + nove CMS stranice iz grupe ginekologija. */
 const COL_GINEKOLOGIJA: LinkDef[] = [
+  { label: "Pregledi", slugHints: ["pregledi"] },
   {
-    label: "Redovni ginekološki pregled",
-    slugHints: ["ginekoloski-pregled", "redovni-pregled", "ginekologija-pregled"],
+    label: "Ginekološke intervencije i operacije",
+    slugHints: ["ginekoloske-intervencije", "intervencije-i-operacije"],
+  },
+  { label: "Histeroskopija", slugHints: ["histeroskopija", "histeroskop"] },
+];
+
+/** WP meni „O nama“. */
+const COL_ABOUT: LinkDef[] = [
+  { label: "Opšti podaci", slugHints: ["opsti-podaci"] },
+  { label: "Tim", slugHints: ["tim", "nas-tim"] },
+  { label: "Aktivnosti centra", slugHints: ["aktivnosti-centra"] },
+  {
+    label: "Ustanove sa kojima sarađujemo",
+    slugHints: ["ustanove-sa-kojima-saradujemo", "ustanove", "saradujemo"],
   },
   {
-    label: "Ultrazvuk",
-    slugHints: ["ultrazvuk", "uzv", "ultrasound"],
-  },
-  {
-    label: "Kolposkopija i PAPA test",
-    slugHints: ["kolposkopija", "papa", "papanicolau", "citoloski"],
-  },
-  {
-    label: "Menstrualni i hormonski poremećaji",
-    slugHints: [
-      "menstrualni",
-      "hormonski",
-      "poremecaji",
-      "menstruacija",
-      "policisticni",
-    ],
+    label: "Edukacija i naučno-istraživački rad",
+    slugHints: ["edukacija-i-naucno-istrazivacki-rad", "edukacija", "istrazivacki"],
   },
 ];
 
@@ -186,6 +250,7 @@ const COL_TRUDNOCA: LinkDef[] = [
 ];
 
 const COL_TITLE_KEYS: SiteStringKey[] = [
+  "footer.col_about_nav",
   "footer.col_infertility",
   "footer.col_iui_ivf_nav",
   "footer.col_ginekologija_nav",
@@ -194,6 +259,7 @@ const COL_TITLE_KEYS: SiteStringKey[] = [
 ];
 
 const COL_DEFS: LinkDef[][] = [
+  COL_ABOUT,
   COL_INFERTILITY,
   COL_IUI_IVF,
   COL_GINEKOLOGIJA,
@@ -201,8 +267,18 @@ const COL_DEFS: LinkDef[][] = [
   COL_PRESERVACIJA,
 ];
 
+/** Grupa u adminu (`header_nav_group`) za automatsko dodavanje novih stranica. */
+const COL_GROUP_KEYS = [
+  "",
+  "infertilitet",
+  "iui_ivf",
+  "ginekologija",
+  "trudnoca",
+  "prezervacija",
+] as const;
+
 /**
- * Pet navigacionih kolona (Infertilitet, IUI/IVF, Ginekologija, Trudnoća, Prezervacija).
+ * Navigacione kolone u footeru — usklađeno sa WP menijem + CMS stranice po grupi.
  */
 export function buildFooterStructuredColumns(
   s: Record<SiteStringKey, string>,
@@ -211,8 +287,8 @@ export function buildFooterStructuredColumns(
 ): FooterColumnData[] {
   return COL_DEFS.map((defs, i) => ({
     title: s[COL_TITLE_KEYS[i]!] ?? "",
-    links: resolveLabels(locale, defs, pages),
-  }));
+    links: buildColumnLinks(locale, defs, pages, COL_GROUP_KEYS[i] ?? ""),
+  })).filter((col) => col.title.trim().length > 0 && col.links.length > 0);
 }
 
 export function resolveFooterContactPageHref(
@@ -230,7 +306,7 @@ export function buildIuiIvfHeaderLinkRows(
   locale: Locale,
   pages: FooterPageRow[],
 ): { label: string; href: string }[] {
-  return resolveLabels(locale, COL_IUI_IVF, pages).map((x) => ({
+  return buildColumnLinks(locale, COL_IUI_IVF, pages, "iui_ivf").map((x) => ({
     label: x.label,
     href: x.href ?? "#",
   }));
@@ -243,10 +319,12 @@ export function buildPrezervacijaHeaderLinkRows(
   locale: Locale,
   pages: FooterPageRow[],
 ): { label: string; href: string }[] {
-  return resolveLabels(locale, COL_PRESERVACIJA, pages).map((x) => ({
-    label: x.label,
-    href: x.href ?? "#",
-  }));
+  return buildColumnLinks(locale, COL_PRESERVACIJA, pages, "prezervacija").map(
+    (x) => ({
+      label: x.label,
+      href: x.href ?? "#",
+    }),
+  );
 }
 
 /**
@@ -256,7 +334,7 @@ export function buildTrudnocaHeaderLinkRows(
   locale: Locale,
   pages: FooterPageRow[],
 ): { label: string; href: string }[] {
-  return resolveLabels(locale, COL_TRUDNOCA, pages).map((x) => ({
+  return buildColumnLinks(locale, COL_TRUDNOCA, pages, "trudnoca").map((x) => ({
     label: x.label,
     href: x.href ?? "#",
   }));
@@ -269,8 +347,10 @@ export function buildGinekologijaHeaderLinkRows(
   locale: Locale,
   pages: FooterPageRow[],
 ): { label: string; href: string }[] {
-  return resolveLabels(locale, COL_GINEKOLOGIJA, pages).map((x) => ({
-    label: x.label,
-    href: x.href ?? "#",
-  }));
+  return buildColumnLinks(locale, COL_GINEKOLOGIJA, pages, "ginekologija").map(
+    (x) => ({
+      label: x.label,
+      href: x.href ?? "#",
+    }),
+  );
 }
