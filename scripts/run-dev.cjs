@@ -144,6 +144,22 @@ if (clean) {
   }
 }
 
+// Prije dev servera: povuci sadržaj sa produkcije (blog, stranice, footer tekstovi).
+// Isključi: SYNC_ON_DEV=0 u .env
+if (process.env.SYNC_ON_DEV !== "0") {
+  try {
+    execFileSync(
+      "node",
+      ["--env-file=.env", "scripts/sync-from-prod.mjs"],
+      { cwd: process.cwd(), stdio: "inherit" },
+    );
+  } catch {
+    console.warn(
+      "\n[dev] Sync sa produkcijom nije uspio (Hostinger env DB_PULL_SECRET?). Nastavljam...\n",
+    );
+  }
+}
+
 const args = turbo
   ? ["next", "dev", "--turbopack", "-H", host, "-p", port]
   : ["next", "dev", "-H", host, "-p", port];

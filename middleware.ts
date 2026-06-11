@@ -68,6 +68,13 @@ export function middleware(request: NextRequest) {
 
   // ── 2) /api/admin/* — zahtijeva validnu sesiju (cookie shape) ──────────────
   if (pathname.startsWith("/api/admin/")) {
+    // Sync rute imaju vlastitu tajnu (DB_PULL_SECRET), ne admin cookie
+    if (
+      pathname === "/api/admin/db-pull" ||
+      pathname === "/api/admin/db-push"
+    ) {
+      return NextResponse.next();
+    }
     const cookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
     if (!isLikelyValidSessionCookieShape(cookie)) {
       return NextResponse.json(
