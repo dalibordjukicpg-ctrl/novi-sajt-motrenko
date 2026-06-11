@@ -1,37 +1,23 @@
-import { db } from "@/lib/db";
-import {
-  homeServiceCardTranslations,
-  homeServiceCards,
-  homeTeamHighlightTranslations,
-  homeTeamHighlights,
-  media,
-  mediaAltTranslations,
-  navLinkTranslations,
-  navLinks,
-  postTranslations,
-  posts,
-  siteGlobals,
-  siteLocaleStrings,
-  sitePageTranslations,
-  sitePages,
-} from "@/lib/db/schema";
+import { createConnection } from "mysql2/promise";
+
+import { getDatabaseUrl } from "@/lib/database-url";
 
 /** Sadržajne tabele — blog, stranice, meni, media. Bez korisnika i sesija. */
 export const CONTENT_TABLES = [
-  { name: "site_globals", table: siteGlobals },
-  { name: "site_locale_strings", table: siteLocaleStrings },
-  { name: "nav_links", table: navLinks },
-  { name: "nav_link_translations", table: navLinkTranslations },
-  { name: "site_pages", table: sitePages },
-  { name: "site_page_translations", table: sitePageTranslations },
-  { name: "media", table: media },
-  { name: "media_alt_translations", table: mediaAltTranslations },
-  { name: "posts", table: posts },
-  { name: "post_translations", table: postTranslations },
-  { name: "home_service_cards", table: homeServiceCards },
-  { name: "home_service_card_translations", table: homeServiceCardTranslations },
-  { name: "home_team_highlights", table: homeTeamHighlights },
-  { name: "home_team_highlight_translations", table: homeTeamHighlightTranslations },
+  { name: "site_globals" },
+  { name: "site_locale_strings" },
+  { name: "nav_links" },
+  { name: "nav_link_translations" },
+  { name: "site_pages" },
+  { name: "site_page_translations" },
+  { name: "media" },
+  { name: "media_alt_translations" },
+  { name: "posts" },
+  { name: "post_translations" },
+  { name: "home_service_cards" },
+  { name: "home_service_card_translations" },
+  { name: "home_team_highlights" },
+  { name: "home_team_highlight_translations" },
 ] as const;
 
 export const CONTENT_TABLE_NAMES: string[] = CONTENT_TABLES.map((t) => t.name);
@@ -56,8 +42,18 @@ function rowsToSql(tableName: string, rows: Record<string, unknown>[]): string {
   return `INSERT INTO \`${tableName}\` (${cols}) VALUES\n  ${values};\n`;
 }
 
-/** Export svih sadržajnih tabela u SQL string. */
+/** Export svih sadržajnih tabela u SQL string (prava MySQL imena kolona). */
 export async function exportContentSql(): Promise<string> {
+  const url = getDatabaseUrl();
+  const u = new URL(url);
+  const conn = await createConnection({
+    host: u.hostname,
+    port: parseInt(u.port || "3306", 10),
+    user: decodeURIComponent(u.username),
+    password: decodeURIComponent(u.password),
+    database: u.pathname.replace(/^\//, ""),
+  });
+
   const lines: string[] = [
     "-- HRC — sadržajne tabele",
     `-- ${new Date().toISOString()}`,
@@ -65,11 +61,16 @@ export async function exportContentSql(): Promise<string> {
     "SET FOREIGN_KEY_CHECKS=0;\n",
   ];
 
-  for (const { name, table } of CONTENT_TABLES) {
-    const rows = (await db.select().from(table)) as Record<string, unknown>[];
-    lines.push(`-- ${name} (${rows.length})`);
-    lines.push(`DELETE FROM \`${name}\`;`);
-    lines.push(rowsToSql(name, rows));
+  try {
+    for (const { name } of CONTENT_TABLES) {
+      const [rows] = await conn.query(`SELECT * FROM \`${name}\``);
+      const list = rows as Record<string, unknown>[];
+      lines.push(`-- ${name} (${list.length})`);
+      lines.push(`DELETE FROM \`${name}\`;`);
+      lines.push(rowsToSql(name, list));
+    }
+  } finally {
+    await conn.end();
   }
 
   lines.push("SET FOREIGN_KEY_CHECKS=1;");
