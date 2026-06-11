@@ -3,18 +3,14 @@
  * GET /api/admin/db-pull?secret=XXX
  */
 import { exportContentSql } from "@/lib/content-db-sync";
+import { CONTENT_SYNC_SECRET } from "@/lib/content-sync-secret";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  const secret = process.env.DB_PULL_SECRET?.trim();
-  if (!secret || secret.length < 16) {
-    return new Response("DB_PULL_SECRET nije podešen (min 16 znakova).", { status: 503 });
-  }
-
   const url = new URL(req.url);
-  if (url.searchParams.get("secret") !== secret) {
+  if (url.searchParams.get("secret") !== CONTENT_SYNC_SECRET) {
     return new Response("Unauthorized", { status: 401 });
   }
 

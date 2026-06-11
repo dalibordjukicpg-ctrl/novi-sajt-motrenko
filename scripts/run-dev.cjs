@@ -155,7 +155,7 @@ if (process.env.SYNC_ON_DEV !== "0") {
     );
   } catch {
     console.warn(
-      "\n[dev] Sync sa produkcijom nije uspio (Hostinger env DB_PULL_SECRET?). Nastavljam...\n",
+      "\n[dev] Sync sa produkcijom nije uspio (deploy još nije završen?). Nastavljam...\n",
     );
   }
 }

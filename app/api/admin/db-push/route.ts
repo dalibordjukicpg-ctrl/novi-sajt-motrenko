@@ -5,6 +5,7 @@
 import { createConnection } from "mysql2/promise";
 
 import { CONTENT_TABLE_NAMES } from "@/lib/content-db-sync";
+import { CONTENT_SYNC_SECRET } from "@/lib/content-sync-secret";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,13 +41,8 @@ function assertSafeSql(sql: string) {
 }
 
 export async function POST(req: Request) {
-  const secret = process.env.DB_PULL_SECRET?.trim();
-  if (!secret || secret.length < 16) {
-    return new Response("DB_PULL_SECRET nije podešen.", { status: 503 });
-  }
-
   const url = new URL(req.url);
-  if (url.searchParams.get("secret") !== secret) {
+  if (url.searchParams.get("secret") !== CONTENT_SYNC_SECRET) {
     return new Response("Unauthorized", { status: 401 });
   }
 

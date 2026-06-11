@@ -1,3 +1,9 @@
+/** Mora biti isto kao lib/content-sync-secret.ts */
+export const CONTENT_SYNC_SECRET = "hrc-motrenko-content-sync-2026";
+
+/** Produkcijski URL — isto kao lib/site-url.ts */
+export const PRODUCTION_SITE_URL = "https://humanreproduction.com";
+
 /** Imena sadržajnih tabela — isti redoslijed kao lib/content-db-sync.ts */
 export const CONTENT_TABLES = [
   "site_globals",
@@ -77,9 +83,6 @@ export function parseDbFromEnv() {
 }
 
 export function prodConfig() {
-  const url = (process.env.PROD_SITE_URL || "").replace(/\/$/, "");
-  const secret = process.env.DB_PULL_SECRET || "";
-  if (!url) throw new Error("PROD_SITE_URL nije u .env");
-  if (!secret || secret.length < 16) throw new Error("DB_PULL_SECRET nije u .env (min 16 znakova)");
-  return { url, secret };
+  const url = (process.env.PROD_SITE_URL || PRODUCTION_SITE_URL).replace(/\/$/, "");
+  return { url, secret: CONTENT_SYNC_SECRET };
 }
