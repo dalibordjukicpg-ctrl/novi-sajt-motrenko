@@ -9,7 +9,6 @@ import { DEFAULT_HEADER_LOGO } from "@/lib/clinic-assets";
 import type { Locale } from "@/lib/i18n";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
 import { formatHoursDisplay } from "@/lib/format-hours-display";
-import type { FooterColumnData } from "@/lib/footer-structured-nav";
 import type { SiteStringKey } from "@/lib/site-fields";
 
 const CRAFTED_BY_HREF = "https://www.computer-doctor.me";
@@ -18,7 +17,6 @@ type Props = {
   locale: Locale;
   s: Record<SiteStringKey, string>;
   footerContactHref?: string | null;
-  footerStructured?: FooterColumnData[];
   logoUrl?: string | null;
 };
 
@@ -89,14 +87,10 @@ function FooterAccordionSection({
   );
 }
 
-const FOOTER_LINK =
-  "text-[13px] leading-snug text-zinc-800 transition-colors hover:text-site-brand";
-
 export function SiteFooter({
   locale,
   s,
   footerContactHref,
-  footerStructured = [],
   logoUrl,
 }: Props) {
   const resolvedLogo = logoUrl?.trim() || DEFAULT_HEADER_LOGO;
@@ -146,34 +140,6 @@ export function SiteFooter({
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-transparent to-transparent" />
 
       <div className="mx-auto max-w-7xl px-6 lg:px-14">
-        {footerStructured.length > 0 ? (
-          <FadeIn>
-            <div className="border-b border-site-line py-12 lg:py-14">
-              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                {footerStructured.map((col) => (
-                  <FooterAccordionSection
-                    key={col.title}
-                    title={col.title}
-                    className="min-w-0"
-                  >
-                    <ul className="space-y-2.5">
-                      {col.links.map((link) =>
-                        link.href ? (
-                          <li key={`${col.title}-${link.href}`}>
-                            <Link href={link.href} className={FOOTER_LINK}>
-                              {link.label}
-                            </Link>
-                          </li>
-                        ) : null,
-                      )}
-                    </ul>
-                  </FooterAccordionSection>
-                ))}
-              </div>
-            </div>
-          </FadeIn>
-        ) : null}
-
         <FadeIn>
           <div className="border-b border-site-line py-14 lg:py-16">
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-10 md:gap-y-12 lg:grid-cols-12 lg:items-start lg:gap-x-8 xl:gap-x-10">
