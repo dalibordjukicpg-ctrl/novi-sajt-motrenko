@@ -5,14 +5,25 @@ import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
-import {
-  exportContentFromConnection,
-  parseDbFromEnv,
-  prodConfig,
-} from "./lib/content-sync.mjs";
+import { parseDbFromEnv, prodConfig } from "./lib/content-sync.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const UPLOADS = join(ROOT, "public", "uploads");
+
+function localAbsPathForKey(storageKey) {
+  const k = storageKey.trim().replace(/^\/+/, "").replace(/\\/g, "/");
+  if (!k || k.includes("..")) return null;
+  if (k.startsWith("uploads/")) {
+    return join(ROOT, "public", "uploads", k.slice("uploads/".length));
+  }
+  if (k.startsWith("wp-media/")) {
+    return join(ROOT, "public", ...k.split("/"));
+  }
+  return null;
+}
+
+function prodMediaUrl(baseUrl, storageKey) {
+  return `${baseUrl}/${storageKey.trim().replace(/^\/+/, "")}`;
+}
 
 async function fetchProdSql() {
   const { url, secret } = prodConfig();
@@ -50,8 +61,10 @@ async function syncMediaFromDb() {
     await conn.end();
   }
 
-  mkdirSync(UPLOADS, { recursive: true });
-  const missing = keys.filter((k) => !existsSync(join(UPLOADS, k)));
+  const missing = keys
+    .map((k) => ({ key: k, abs: localAbsPathForKey(k) }))
+    .filter((x) => x.abs && !existsSync(x.abs));
+
   if (missing.length === 0) {
     console.log("Sync: slike su već lokalno.");
     return;
@@ -59,11 +72,12 @@ async function syncMediaFromDb() {
 
   console.log(`Sync: preuzimam ${missing.length} slika...`);
   let ok = 0;
-  for (const key of missing) {
+  for (const { key, abs } of missing) {
     try {
-      const r = await fetch(`${url}/uploads/${key}`);
+      const r = await fetch(prodMediaUrl(url, key));
       if (!r.ok) continue;
-      writeFileSync(join(UPLOADS, key), Buffer.from(await r.arrayBuffer()));
+      mkdirSync(dirname(abs), { recursive: true });
+      writeFileSync(abs, Buffer.from(await r.arrayBuffer()));
       ok++;
     } catch {
       /* preskoči */
