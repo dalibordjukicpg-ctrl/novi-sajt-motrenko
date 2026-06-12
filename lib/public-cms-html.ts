@@ -5,6 +5,7 @@ import {
   buildCmsYoutubeEmbedHtml,
   ensureYoutubeEmbedsInCmsHtml,
   normalizeCmsHtmlForEditor,
+  unwrapYoutubeFigureWrappers,
 } from "@/lib/cms-youtube-html";
 import {
   extractYoutubeVideoIdFromNoisyText,
@@ -592,7 +593,8 @@ export function preparePublicHtml(html: string | null | undefined, locale: Local
   const cleaned = stripNPlaceholderBlocks(linked);
   const withYoutube = embedYoutubeLinksInHtml(cleaned);
   const withStoredEmbeds = ensureYoutubeEmbedsInCmsHtml(withYoutube);
-  return upgradeImageUrlsInHtml(withStoredEmbeds);
+  const layoutEmbeds = unwrapYoutubeFigureWrappers(withStoredEmbeds);
+  return upgradeImageUrlsInHtml(layoutEmbeds);
 }
 
 /** Kratki plain/HTML tekst (excerpt, meta) — uklanja WP „n“ smeće. */

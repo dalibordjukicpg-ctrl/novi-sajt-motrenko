@@ -150,6 +150,11 @@ function removeInvalidYoutubeEmbedBlocks(html: string): string {
   return out;
 }
 
+/** Javni prikaz: skini WP figure omotač oko embeda (dupli okvir / pomak). */
+export function unwrapYoutubeFigureWrappers(html: string): string {
+  return unwrapYoutubeFigures(html);
+}
+
 /** Prije snimanja / na javnom sajtu: osiguraj iframe u embed blokovima. */
 export function ensureYoutubeEmbedsInCmsHtml(html: string): string {
   if (!html) return html;
@@ -169,7 +174,11 @@ export function ensureYoutubeEmbedsInCmsHtml(html: string): string {
 
   out = ensureDataUrlOnExistingEmbeds(out);
   out = removeInvalidYoutubeEmbedBlocks(out);
-  return out;
+  out = out.replace(
+    /<p\b[^>]*>\s*(<div class="wp-youtube-embed"[\s\S]*?<\/div>)\s*<\/p>/gi,
+    "$1",
+  );
+  return unwrapYoutubeFigures(out);
 }
 
 /** Zamijeni postojeći YouTube link u HTML-u novim kanonskim embedom. */

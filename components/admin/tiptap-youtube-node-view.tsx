@@ -54,7 +54,7 @@ export function YoutubeEmbedNodeView({
     <NodeViewWrapper
       as="div"
       className={[
-        "youtube-embed-node my-3",
+        "youtube-embed-node",
         selected ? "youtube-embed-node--selected" : "",
       ]
         .filter(Boolean)

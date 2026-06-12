@@ -121,6 +121,8 @@ function rewriteInternalAnchorsToRelative(
 function shouldDropWpClassToken(token: string): boolean {
   const c = token.trim();
   if (!c) return true;
+  /* CMS YouTube blok — mora ostati za stil i pipeline */
+  if (c === "wp-youtube-embed" || c.startsWith("wp-youtube-embed--")) return false;
   if (c.startsWith("wp-")) return true;
   if (c === "alignleft" || c === "alignright" || c === "aligncenter" || c === "alignnone") {
     return true;
