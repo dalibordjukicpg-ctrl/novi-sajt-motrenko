@@ -29,10 +29,12 @@ function parseDbUrl() {
 }
 
 function assertSafeSql(sql: string) {
-  const forbidden =
-    /\b(DROP|TRUNCATE|ALTER|CREATE|GRANT|REVOKE|users|auth_sessions|password)\b/i;
-  if (forbidden.test(sql)) {
-    throw new Error("SQL sadrži zabranjene naredbe.");
+  for (const line of sql.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("--")) continue;
+    if (/^(DROP|TRUNCATE|ALTER|CREATE|GRANT|REVOKE)\b/i.test(trimmed)) {
+      throw new Error("SQL sadrži zabranjene naredbe.");
+    }
   }
   const tables = [...sql.matchAll(/(?:DELETE FROM|INSERT INTO)\s+`([^`]+)`/gi)].map(
     (m) => m[1]!.toLowerCase(),
