@@ -1,31 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, Loader2, Send } from "lucide-react";
 
 type Props = {
   notifyTo: string;
-  resendConfigured: boolean;
+};
+
+type HealthEmail = {
+  resendApiKeyConfigured?: boolean;
+  resendApiKeyPrefix?: string | null;
+  resendFromDomain?: string | null;
 };
 
 type Feedback =
   | { kind: "ok"; to: string; resendId?: string | null }
-  | { kind: "err"; message: string; detail?: string };
+  | { kind: "err"; message: string; hint?: string };
 
-export function UpitnikTestEmailPanel({ notifyTo, resendConfigured }: Props) {
+export function UpitnikTestEmailPanel({ notifyTo }: Props) {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [health, setHealth] = useState<HealthEmail | null>(null);
+  const [healthLoading, setHealthLoading] = useState(true);
+  const host =
+    typeof window !== "undefined" ? window.location.hostname : "";
+
+  const isLocal =
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host.startsWith("192.168.");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/health/email", { cache: "no-store" });
+        const data = (await res.json()) as { email?: HealthEmail };
+        if (!cancelled) setHealth(data.email ?? null);
+      } catch {
+        if (!cancelled) setHealth(null);
+      } finally {
+        if (!cancelled) setHealthLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const resendOk = health?.resendApiKeyConfigured === true;
 
   async function sendTest() {
     setBusy(true);
     setFeedback(null);
     try {
-      const res = await fetch("/api/admin/upitnik/test-email", { method: "POST" });
+      const res = await fetch("/api/admin/upitnik/test-email", {
+        method: "POST",
+        cache: "no-store",
+      });
       const data = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         to?: string;
         resendId?: string | null;
         error?: string;
+        hint?: string;
         detail?: string;
         status?: number;
       };
@@ -45,7 +83,7 @@ export function UpitnikTestEmailPanel({ notifyTo, resendConfigured }: Props) {
       setFeedback({
         kind: "err",
         message: parts.join(" — "),
-        detail: data.detail,
+        hint: data.hint,
       });
     } catch (e) {
       setFeedback({
@@ -59,6 +97,15 @@ export function UpitnikTestEmailPanel({ notifyTo, resendConfigured }: Props) {
 
   return (
     <div>
+      <p className="mb-3 text-xs text-[#8a7b6e]">
+        Server: <strong className="text-[#2a2118]">{host || "—"}</strong>
+        {isLocal ? (
+          <span className="ml-2 text-amber-700">
+            (lokalno — Resend ključ mora biti u .env fajlu)
+          </span>
+        ) : null}
+      </p>
+
       {feedback?.kind === "ok" ? (
         <div className="mb-4 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           <CheckCircle2 size={18} className="shrink-0 mt-0.5" />
@@ -82,18 +129,32 @@ export function UpitnikTestEmailPanel({ notifyTo, resendConfigured }: Props) {
           <div>
             <p className="font-semibold">Slanje nije uspjelo.</p>
             <p className="mt-1 text-red-700">{feedback.message}</p>
+            {feedback.hint ? (
+              <p className="mt-2 text-xs text-red-600">{feedback.hint}</p>
+            ) : null}
+            {isLocal ? (
+              <p className="mt-2 text-xs text-red-600">
+                Kontakt forma radi na produkciji jer tamo postoji RESEND_API_KEY.
+                Lokalno dodajte isti ključ u <code className="px-1 rounded bg-red-100">.env</code> i restartujte <code className="px-1 rounded bg-red-100">npm run dev</code>.
+              </p>
+            ) : null}
           </div>
         </div>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
-        {resendConfigured ? (
+        {healthLoading ? (
+          <span className="text-xs text-[#8a7b6e]">Provjeravam Resend…</span>
+        ) : resendOk ? (
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-            <span className="size-1.5 rounded-full bg-emerald-500" /> RESEND_API_KEY postavljen
+            <span className="size-1.5 rounded-full bg-emerald-500" />
+            Resend aktivan ({health?.resendApiKeyPrefix ?? "re_…"})
+            {health?.resendFromDomain ? ` · ${health.resendFromDomain}` : ""}
           </span>
         ) : (
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700">
-            <span className="size-1.5 rounded-full bg-amber-500" /> RESEND_API_KEY nije postavljen — mailovi neće biti poslati
+            <span className="size-1.5 rounded-full bg-amber-500" />
+            Resend nije podešen na ovom serveru
           </span>
         )}
         <button

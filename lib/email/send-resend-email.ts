@@ -2,6 +2,8 @@
  * Resend slanje e-pošte sa opcionalnim PDF prilogom.
  */
 
+import { getResendApiKey, getResendFrom } from "@/lib/email/resend-env";
+
 export type SendResendEmailResult =
   | { ok: true; skipped?: boolean; resendId?: string }
   | { ok: false; code: "missing_api_key" }
@@ -18,9 +20,8 @@ export async function sendResendEmail(opts: {
   extraAttachments?: { filename: string; content: Buffer }[];
   logPrefix?: string;
 }): Promise<SendResendEmailResult> {
-  const key = process.env.RESEND_API_KEY?.trim();
-  const from =
-    process.env.RESEND_FROM?.trim() ?? "Auth <onboarding@resend.dev>";
+  const key = getResendApiKey();
+  const from = getResendFrom();
   const prefix = opts.logPrefix ?? "[email]";
 
   if (!key) {

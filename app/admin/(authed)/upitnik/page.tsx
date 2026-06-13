@@ -38,7 +38,6 @@ export default async function UpitnikAdminPage({
   const sp = await searchParams;
   const siteUrl = (getSiteUrl() || "").replace(/\/$/, "");
   const notifyTo = process.env.UPITNIK_NOTIFY_EMAIL?.trim() || DEFAULT_NOTIFY_INBOX;
-  const resendConfigured = Boolean(process.env.RESEND_API_KEY?.trim());
   const translateConfigured = isMachineTranslateConfigured();
   const [hasOverrideEn, hasOverrideRu] = await Promise.all([
     hasQuestionnaireOverride("en"),
@@ -140,7 +139,7 @@ export default async function UpitnikAdminPage({
         </p>
 
         <div className="mt-5">
-          <UpitnikTestEmailPanel notifyTo={notifyTo} resendConfigured={resendConfigured} />
+          <UpitnikTestEmailPanel notifyTo={notifyTo} />
         </div>
       </section>
 
