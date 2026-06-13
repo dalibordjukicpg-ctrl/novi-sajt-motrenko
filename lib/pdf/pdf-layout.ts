@@ -98,24 +98,24 @@ export const COMPACT_FLOW: FlowLayoutConfig = {
   },
 };
 
-/** Čitljiv layout — upitnik (veća slova, brand boja za odgovore, bez prevelikih razmaka). */
+/** Čitljiv layout — upitnik (kompaktan ali jasan, brand boja za odgovore). */
 export const QUESTIONNAIRE_FLOW: FlowLayoutConfig = {
   scale: 1,
-  fonts: { sectionTitle: 10, label: 9, value: 9.5, groupHeading: 8.5 },
+  fonts: { sectionTitle: 9.5, label: 8.5, value: 9, groupHeading: 8 },
   colors: { label: "#5c4f44", value: PDF_BRAND_ORANGE, groupHeading: "#c45418" },
   valueBold: true,
   spacing: {
-    sectionGap: 6,
-    rowMin: 14,
-    rowExtra: 2,
-    titleHeight: 20,
-    padX: 10,
-    padY: 7,
+    sectionGap: 4,
+    rowMin: 12,
+    rowExtra: 1.5,
+    titleHeight: 17,
+    padX: 8,
+    padY: 4,
     labelW: 150,
-    titleBodyGap: 3,
-    bodyPadTop: 7,
-    blockLabelH: 11,
-    pairGap: 8,
+    titleBodyGap: 2,
+    bodyPadTop: 2,
+    blockLabelH: 10,
+    pairGap: 6,
   },
   zebraRows: true,
   rowDividers: false,
@@ -334,8 +334,8 @@ function measureFieldHeights(
 
   return fields.map((field) => {
     if (isGroupHeading(field)) {
-      // label font + linija ispod + margina gore/dole
-      return (cfg.fonts.groupHeading * scale) + 10 * scale;
+      // label font + linija ispod + mala margina
+      return (cfg.fonts.groupHeading * scale) + 6 * scale;
     }
 
     if (field.kind === "pair") {
@@ -350,7 +350,7 @@ function measureFieldHeights(
     const value = field.value.trim() || "—";
     doc.font(valueFont).fontSize(cfg.fonts.value * scale);
     const valueH = doc.heightOfString(value, { width: innerW, lineGap: 1 });
-    return blockLabelH + Math.max(blockValueMin, valueH) + 4 * scale;
+    return blockLabelH + Math.max(blockValueMin, valueH) + 2 * scale;
   });
 }
 
@@ -474,7 +474,6 @@ function drawSectionAt(
     const rowH = fieldHeights[idx] ?? cfg.spacing.rowMin * scale;
 
     if (isGroupHeading(field)) {
-      if (idx > 0) cursorY += 2 * scale;
       doc
         .font(fontBold(doc))
         .fontSize(cfg.fonts.groupHeading * scale)
@@ -484,14 +483,14 @@ function drawSectionAt(
           lineBreak: false,
         });
       const textH = cfg.fonts.groupHeading * scale;
-      const lineY = cursorY + textH + 2 * scale;
+      const lineY = cursorY + textH + 1 * scale;
       doc
         .moveTo(left + padX, lineY)
         .lineTo(left + w - padX, lineY)
         .strokeColor("#f0d8c4")
         .lineWidth(0.5)
         .stroke();
-      cursorY += textH + 10 * scale;
+      cursorY += textH + 6 * scale;
       return;
     }
 
@@ -547,17 +546,17 @@ function drawSectionAt(
       });
     cursorY += blockLabelH;
 
-    const valueH = Math.max(14 * scale, rowH - blockLabelH - 4 * scale);
+    const valueH = Math.max(12 * scale, rowH - blockLabelH - 2 * scale);
     doc
       .font(valueFont)
       .fontSize(cfg.fonts.value * scale)
       .fillColor(cfg.colors.value)
       .text(value, left + padX, cursorY, {
         width: innerW,
-        lineGap: 2,
+        lineGap: 1,
         height: valueH,
       });
-    cursorY += valueH + 6 * scale;
+    cursorY += valueH + 2 * scale;
   });
 
   return bodyY0 + bodyHeight;
@@ -638,6 +637,7 @@ export function drawCategorySection(
 export function drawFooterOnCurrentPage(
   doc: InstanceType<typeof PDFDocument>,
   branding: PdfBranding,
+  pageInfo?: { current: number; total: number },
 ): void {
   const left = doc.page.margins.left;
   const right = doc.page.width - doc.page.margins.right;
@@ -680,6 +680,19 @@ export function drawFooterOnCurrentPage(
       .fillColor("#666666")
       .text(subLines, left, footerTop + 20, { width: w, align: "center", lineBreak: false });
   }
+
+  if (pageInfo) {
+    doc
+      .font(fontBold(doc))
+      .fontSize(7.5)
+      .fillColor("#8a7b6e")
+      .text(
+        `Stranica ${pageInfo.current} / ${pageInfo.total}`,
+        right - 100,
+        footerTop,
+        { width: 100, align: "right", lineBreak: false },
+      );
+  }
 }
 
 /** Fiksni footer u donjoj margini — uvijek na prvoj stranici. */
@@ -691,52 +704,66 @@ export function drawFooters(
   drawFooterOnCurrentPage(doc, branding);
 }
 
-/** Footer na svim stranicama (višestranični PDF). */
+/** Footer na svim stranicama (višestranični PDF) — sa brojem stranice. */
 export function drawFootersAllPages(
   doc: InstanceType<typeof PDFDocument>,
   branding: PdfBranding,
 ): void {
   const range = doc.bufferedPageRange();
-  for (let i = 0; i < range.count; i++) {
+  const total = range.count;
+  for (let i = 0; i < total; i++) {
     doc.switchToPage(range.start + i);
-    drawFooterOnCurrentPage(doc, branding);
+    drawFooterOnCurrentPage(doc, branding, { current: i + 1, total });
   }
 }
 
-function sectionBlockHeight(plan: SectionPlan, cfg: FlowLayoutConfig): number {
-  return plan.titleHeight + cfg.spacing.titleBodyGap * cfg.scale + plan.bodyHeight;
-}
-
-/** Dijeli sekciju ako ne stane na jednu A4 stranicu. */
-function splitSectionForPages(
+/** Dijeli sekciju tako da prvi dio popuni preostali prostor [y..bottom]. */
+function splitToFitRemaining(
   doc: InstanceType<typeof PDFDocument>,
   section: PdfSection,
+  y: number,
+  bottom: number,
   cfg: FlowLayoutConfig,
-): PdfSection[] {
-  const top = doc.page.margins.top;
-  const bottom = contentBottomLimit(doc);
-  if (planSinglePageSections(doc, [section], top, bottom, cfg)) {
-    return [section];
+): { head: PdfSection | null; tail: PdfSection | null } {
+  // 1) Cijela sekcija staje?
+  if (planSinglePageSections(doc, [section], y, bottom, cfg)) {
+    return { head: section, tail: null };
   }
-  if (section.fields.length <= 1) return [section];
-  const mid = Math.ceil(section.fields.length / 2);
+  // 2) Naći najveće n polja koje staje
+  let lo = 1;
+  let hi = section.fields.length - 1;
+  let bestN = 0;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    const head: PdfSection = {
+      index: section.index,
+      title: section.title,
+      fields: section.fields.slice(0, mid),
+    };
+    if (planSinglePageSections(doc, [head], y, bottom, cfg)) {
+      bestN = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  if (bestN === 0) {
+    return { head: null, tail: section };
+  }
   const head: PdfSection = {
     index: section.index,
     title: section.title,
-    fields: section.fields.slice(0, mid),
+    fields: section.fields.slice(0, bestN),
   };
   const tail: PdfSection = {
     index: section.index,
     title: `${section.title} — nastavak`,
-    fields: section.fields.slice(mid),
+    fields: section.fields.slice(bestN),
   };
-  return [
-    ...splitSectionForPages(doc, head, cfg),
-    ...splitSectionForPages(doc, tail, cfg),
-  ];
+  return { head, tail };
 }
 
-/** Višestranični A4 layout — sekcije prelaze na sljedeću stranicu po potrebi. */
+/** Višestranični A4 layout — sekcije popunjavaju stranice bez praznog prostora. */
 export function drawFlowSections(
   doc: InstanceType<typeof PDFDocument>,
   sections: PdfSection[],
@@ -747,30 +774,28 @@ export function drawFlowSections(
   const bottom = contentBottomLimit(doc);
   let y = doc.y;
 
-  const fallbackCfg: FlowLayoutConfig = { ...cfg, scale: cfg.scale * 0.88 };
+  // Red sekcija za obradu (mogu se umetati nastavci na početak)
+  const queue: PdfSection[] = [...sections];
 
-  for (const section of sections) {
-    for (const part of splitSectionForPages(doc, section, cfg)) {
-      let activeCfg = cfg;
-      let plan =
-        planSinglePageSections(doc, [part], top, bottom, activeCfg)?.[0] ??
-        planSinglePageSections(doc, [part], top, bottom, fallbackCfg)?.[0];
-      if (!plan) continue;
-      if (!planSinglePageSections(doc, [part], top, bottom, cfg)) {
-        activeCfg = fallbackCfg;
+  while (queue.length > 0) {
+    const section = queue.shift()!;
+    const { head, tail } = splitToFitRemaining(doc, section, y, bottom, cfg);
+
+    if (head) {
+      const plan = planSinglePageSections(doc, [head], y, bottom, cfg)?.[0];
+      if (plan) {
+        y = drawSectionAt(doc, plan, y, cfg) + gap;
       }
-
-      const blockH = sectionBlockHeight(plan, activeCfg) + gap;
-      if (y + blockH > bottom && y > top + 2) {
+      if (tail) {
+        queue.unshift(tail);
         doc.addPage();
         y = top;
-        plan =
-          planSinglePageSections(doc, [part], top, bottom, activeCfg)?.[0] ??
-          planSinglePageSections(doc, [part], top, bottom, fallbackCfg)?.[0];
-        if (!plan) continue;
       }
-
-      y = drawSectionAt(doc, plan, y, activeCfg) + gap;
+    } else {
+      // Ništa ne staje — nova stranica
+      doc.addPage();
+      y = top;
+      queue.unshift(section);
     }
   }
 
