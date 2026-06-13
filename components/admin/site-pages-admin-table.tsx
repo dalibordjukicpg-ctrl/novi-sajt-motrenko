@@ -155,15 +155,22 @@ export function SitePagesAdminTable({ pages }: Props) {
                       {p.slug}
                     </td>
                     <td className="px-4 py-3">
-                      {p.published ? (
-                        <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
-                          Objavljeno
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-[#f0e6dc] px-2.5 py-0.5 text-xs text-[#6b5f54]">
-                          Skica
-                        </span>
-                      )}
+                      <div className="flex flex-wrap gap-1.5">
+                        {p.unlisted ? (
+                          <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-900">
+                            Skrivena
+                          </span>
+                        ) : null}
+                        {p.published ? (
+                          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
+                            Objavljeno
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-[#f0e6dc] px-2.5 py-0.5 text-xs text-[#6b5f54]">
+                            Skica
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-col items-end gap-1">

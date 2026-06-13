@@ -52,6 +52,15 @@ function revalidateSitePage(slug: string): void {
   }
 }
 
+function parseQuestionnaireEmbedUrl(formData: FormData): string | null {
+  const raw = String(formData.get("questionnaire_embed_url") ?? "").trim();
+  return raw ? raw.slice(0, 2048) : null;
+}
+
+function parseUnlisted(formData: FormData): boolean {
+  return formData.get("unlisted") === "on";
+}
+
 export async function createSitePageAction(formData: FormData): Promise<void> {
   const session = await getSession();
   if (!session) return;
@@ -81,6 +90,8 @@ export async function createSitePageAction(formData: FormData): Promise<void> {
   }
 
   const published = formData.get("published") === "on";
+  const unlisted = parseUnlisted(formData);
+  const questionnaireEmbedUrl = parseQuestionnaireEmbedUrl(formData);
   const headerNavGroup = parseHeaderNavGroup(formData);
   const pageId = randomUUID();
   const now = new Date();
@@ -88,8 +99,10 @@ export async function createSitePageAction(formData: FormData): Promise<void> {
   await db.insert(sitePages).values({
     id: pageId,
     slug,
-    headerNavGroup,
+    headerNavGroup: unlisted ? null : headerNavGroup,
     published,
+    unlisted,
+    questionnaireEmbedUrl,
     createdAt: now,
     updatedAt: now,
   });
@@ -150,6 +163,8 @@ export async function updateSitePageAction(formData: FormData): Promise<void> {
   }
 
   const published = formData.get("published") === "on";
+  const unlisted = parseUnlisted(formData);
+  const questionnaireEmbedUrl = parseQuestionnaireEmbedUrl(formData);
   const titleMe = String(formData.get("title_me") ?? "").trim();
   const headerNavGroup = parseHeaderNavGroup(formData);
 
@@ -158,7 +173,9 @@ export async function updateSitePageAction(formData: FormData): Promise<void> {
     .set({
       slug: newSlug,
       published,
-      headerNavGroup,
+      unlisted,
+      questionnaireEmbedUrl,
+      headerNavGroup: unlisted ? null : headerNavGroup,
       updatedAt: new Date(),
     })
     .where(eq(sitePages.id, pageId));

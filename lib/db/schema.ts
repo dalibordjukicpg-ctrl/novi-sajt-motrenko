@@ -554,6 +554,10 @@ export const sitePages = mysqlTable(
      */
     headerNavGroup: varchar("header_nav_group", { length: 64 }),
     published: boolean("published").notNull().default(true),
+    /** Javna po direktnom URL-u, ali izvan menija, footera i sitemapa. */
+    unlisted: boolean("unlisted").notNull().default(false),
+    /** Google Forms / Office Forms embed URL za skrivenu stranicu upitnika. */
+    questionnaireEmbedUrl: varchar("questionnaire_embed_url", { length: 2048 }),
     createdAt: datetime("created_at", { mode: "date", fsp: 3 })
       .notNull()
       .$defaultFn(() => new Date()),

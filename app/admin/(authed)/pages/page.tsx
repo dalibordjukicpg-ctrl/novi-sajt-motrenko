@@ -14,7 +14,7 @@ export default async function AdminSitePagesList() {
     <div className="mx-auto max-w-5xl space-y-8">
       <AdminPageHeader
         title="Stranice (CMS)"
-        description="Statičke stranice sajta. Javni URL: /me/s/slug (i ostali jezici)."
+        description="Statičke stranice sajta. Javni URL: /me/s/slug. Skrivene stranice (upitnik) — samo direktan link."
       >
         <Link
           href={adminPath("pages/new")}

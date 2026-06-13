@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BookOpen,
+  ClipboardList,
   ImageIcon,
   Languages,
   LayoutDashboard,
@@ -254,6 +255,17 @@ function SidebarNav({
             onNavigate={onNavigate}
           />
         </NavSection>
+
+        {navFlags.showGlobalSiteContent ? (
+          <NavSection title="Upitnik" icon={<ClipboardList size={15} strokeWidth={2} />} tone="warm">
+            <NavItem
+              href={adminPath("upitnik")}
+              label="Upitnik za pacijente"
+              active={pathname.startsWith(adminPath("upitnik"))}
+              onNavigate={onNavigate}
+            />
+          </NavSection>
+        ) : null}
 
         {navFlags.showGlobalSiteContent ? (
           <NavSection title="Prevodi" icon={<Languages size={15} strokeWidth={2} />} tone="cool">

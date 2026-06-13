@@ -1182,3 +1182,16 @@ main {
   color: #2a2118;
   text-decoration: none;
 }
+
+.questionnaire-embed iframe {
+  display: block;
+  width: 100%;
+  min-height: 720px;
+  border: 0;
+}
+
+@media (min-width: 640px) {
+  .questionnaire-embed iframe {
+    min-height: 800px;
+  }
+}

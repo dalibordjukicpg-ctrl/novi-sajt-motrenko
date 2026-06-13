@@ -101,7 +101,7 @@ async function loadCmsNavPageEntriesForLocale(
         eq(sitePageTranslations.locale, locale),
       ),
     )
-    .where(eq(sitePages.published, true))
+    .where(and(eq(sitePages.published, true), eq(sitePages.unlisted, false)))
     .orderBy(asc(sitePageTranslations.title));
 
   const out: CmsNavPageEntry[] = [];
@@ -168,7 +168,7 @@ async function loadPublishedSlugToHeaderGroup(): Promise<Map<string, string>> {
       headerNavGroup: sitePages.headerNavGroup,
     })
     .from(sitePages)
-    .where(eq(sitePages.published, true));
+    .where(and(eq(sitePages.published, true), eq(sitePages.unlisted, false)));
 
   const m = new Map<string, string>();
   for (const r of rows) {
@@ -197,7 +197,7 @@ async function loadPublishedPagesForFooterLocale(
         eq(sitePageTranslations.locale, locale),
       ),
     )
-    .where(eq(sitePages.published, true));
+    .where(and(eq(sitePages.published, true), eq(sitePages.unlisted, false)));
 
   const out: FooterPageRow[] = [];
   for (const r of rows) {

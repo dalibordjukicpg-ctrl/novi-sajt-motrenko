@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { sitePageTranslations, sitePages } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
 import { defaultLocale } from "@/lib/i18n";
+import { normalizeQuestionnaireEmbedUrl } from "@/lib/questionnaire-embed";
 import { preparePublicHtml } from "@/lib/public-cms-html";
 import { containsStaffPostGridShortcode } from "@/lib/wordpress-shortcodes";
 import {
@@ -18,19 +19,31 @@ export type PublicSitePage = {
   slug: string;
   title: string;
   body: string | null;
+  unlisted: boolean;
+  questionnaireEmbedUrl: string | null;
   /** Stranica je imala WP shortcode za osoblje — prikaži React roster. */
   showTeamRoster?: boolean;
+};
+
+type SitePageRow = {
+  slug: string;
+  title: string;
+  body: string | null;
+  unlisted: boolean;
+  questionnaireEmbedUrl: string | null;
 };
 
 async function fetchSitePageRow(
   locale: Locale,
   slug: string,
-): Promise<{ slug: string; title: string; body: string | null } | null> {
-  const rows = await db
+): Promise<SitePageRow | null> {
+  const [row] = await db
     .select({
       slug: sitePages.slug,
       title: sitePageTranslations.title,
       body: sitePageTranslations.body,
+      unlisted: sitePages.unlisted,
+      questionnaireEmbedUrl: sitePages.questionnaireEmbedUrl,
     })
     .from(sitePages)
     .innerJoin(
@@ -46,21 +59,39 @@ async function fetchSitePageRow(
     )
     .limit(1);
 
-  const [row] = rows;
   if (!row) return null;
   return {
     slug: row.slug,
     title: row.title,
     body: row.body,
+    unlisted: row.unlisted,
+    questionnaireEmbedUrl: normalizeQuestionnaireEmbedUrl(row.questionnaireEmbedUrl),
   };
 }
 
-/** Svi slugovi objavljenih CMS stranica (za sitemap). */
+function toPublicSitePage(
+  row: SitePageRow,
+  locale: Locale,
+  bodyRaw: string | null,
+  title: string,
+): PublicSitePage {
+  return {
+    slug: row.slug,
+    title,
+    body: bodyRaw ? preparePublicHtml(bodyRaw, locale) : null,
+    unlisted: row.unlisted,
+    questionnaireEmbedUrl: row.questionnaireEmbedUrl,
+    showTeamRoster:
+      row.slug === "tim" || containsStaffPostGridShortcode(bodyRaw),
+  };
+}
+
+/** Objavljene, javno indeksirane CMS stranice (bez skrivenih / upitnika). */
 export async function listPublishedSitePageSlugs(): Promise<string[]> {
   const rows = await db
     .select({ slug: sitePages.slug })
     .from(sitePages)
-    .where(eq(sitePages.published, true));
+    .where(and(eq(sitePages.published, true), eq(sitePages.unlisted, false)));
   return rows.map((r) => r.slug);
 }
 
@@ -72,14 +103,7 @@ export async function getPublishedSitePage(
   if (!meRow) return null;
 
   if (locale === defaultLocale) {
-    const rawBody = meRow.body;
-    return {
-      slug: meRow.slug,
-      title: meRow.title,
-      body: rawBody ? preparePublicHtml(rawBody, locale) : null,
-      showTeamRoster:
-        meRow.slug === "tim" || containsStaffPostGridShortcode(rawBody),
-    };
+    return toPublicSitePage(meRow, locale, meRow.body, meRow.title);
   }
 
   const locRow = await fetchSitePageRow(locale, slug);
@@ -96,11 +120,5 @@ export async function getPublishedSitePage(
     }
   }
 
-  return {
-    slug: meRow.slug,
-    title,
-    body: bodyRaw ? preparePublicHtml(bodyRaw, locale) : null,
-    showTeamRoster:
-      meRow.slug === "tim" || containsStaffPostGridShortcode(meRow.body),
-  };
+  return toPublicSitePage(meRow, locale, bodyRaw, title);
 }

@@ -9,6 +9,7 @@ export type SitePageListItem = {
   id: string;
   slug: string;
   published: boolean;
+  unlisted: boolean;
   /** Naslov na „me” za listu / select */
   titleMe: string;
 };
@@ -19,6 +20,7 @@ export async function listSitePagesForAdmin(): Promise<SitePageListItem[]> {
       id: sitePages.id,
       slug: sitePages.slug,
       published: sitePages.published,
+      unlisted: sitePages.unlisted,
       title: sitePageTranslations.title,
     })
     .from(sitePages)
@@ -35,6 +37,7 @@ export async function listSitePagesForAdmin(): Promise<SitePageListItem[]> {
     id: r.id,
     slug: r.slug,
     published: r.published,
+    unlisted: r.unlisted,
     titleMe: r.title,
   }));
 }
@@ -43,6 +46,8 @@ export type SitePageAdminDetail = {
   id: string;
   slug: string;
   published: boolean;
+  unlisted: boolean;
+  questionnaireEmbedUrl: string | null;
   /** Ključ grupe u headeru pod „Uslugama“; null = nije podgrupa. */
   headerNavGroup: string | null;
   byLocale: Record<
@@ -87,6 +92,8 @@ export async function getSitePageForAdmin(
     id: page.id,
     slug: page.slug,
     published: page.published,
+    unlisted: page.unlisted,
+    questionnaireEmbedUrl: page.questionnaireEmbedUrl ?? null,
     headerNavGroup: page.headerNavGroup ?? null,
     byLocale: fillByLocale(trans),
   };

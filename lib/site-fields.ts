@@ -336,8 +336,16 @@ const ME_SITE_STRING_DEFAULTS = {
 /** EN i RU počinju kao kopija ME dok CMS ne dobije posebne prevode (fallback na javnom sajtu). */
 export const SITE_STRING_DEFAULTS: Defaults = {
   me: ME_SITE_STRING_DEFAULTS,
-  en: { ...ME_SITE_STRING_DEFAULTS },
-  ru: { ...ME_SITE_STRING_DEFAULTS },
+  en: {
+    ...ME_SITE_STRING_DEFAULTS,
+    "hero.cta_secondary": "Our services",
+    "hero.cta_secondary_href": "#usluge",
+  },
+  ru: {
+    ...ME_SITE_STRING_DEFAULTS,
+    "hero.cta_secondary": "Наши услуги",
+    "hero.cta_secondary_href": "#usluge",
+  },
 };
 
 export function allSiteStringKeys(): SiteStringKey[] {

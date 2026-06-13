@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ContactForm } from "@/components/forms/contact-form";
 import { PageHero } from "@/components/site/page-hero";
+import { QuestionnaireEmbed } from "@/components/site/questionnaire-embed";
 import { SiteInnerSidebar } from "@/components/site/site-inner-sidebar";
 import { SiteTeamPageRoster } from "@/components/site/site-team-page-roster";
 import { CLINIC_PAGE_HERO_BG } from "@/lib/clinic-assets";
@@ -30,7 +31,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const page = await getPublishedSitePage(raw, slug);
     if (!page) return {};
-    return withCanonical(`/${raw}/s/${slug}`, { title: page.title });
+    const meta = withCanonical(`/${raw}/s/${slug}`, { title: page.title });
+    if (page.unlisted) {
+      return {
+        ...meta,
+        robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+      };
+    }
+    return meta;
   } catch {
     return { title: "Stranica" };
   }
@@ -101,18 +109,24 @@ export default async function SitePage({ params }: Props) {
     console.error(e);
   }
 
-  const innerNav = getONamaInnerPageContext(raw, slug, navResolved);
+  const innerNav = page.unlisted
+    ? null
+    : getONamaInnerPageContext(raw, slug, navResolved);
   const homeCrumb = await getHomeBreadcrumbLabel(raw);
-  const breadcrumbs = [
-    { label: homeCrumb, href: `/${raw}` },
-    ...(innerNav
-      ? [{ label: innerNav.sectionLabel.toUpperCase(), href: innerNav.sectionHref }]
-      : []),
-  ];
+  const breadcrumbs = page.unlisted
+    ? [{ label: homeCrumb, href: `/${raw}` }]
+    : [
+        { label: homeCrumb, href: `/${raw}` },
+        ...(innerNav
+          ? [{ label: innerNav.sectionLabel.toUpperCase(), href: innerNav.sectionHref }]
+          : []),
+      ];
 
-  const articleInner = innerNav
-    ? "wp-content wp-content--article wp-content--inner-panel site-card-elevated-lg max-w-none px-6 py-8 backdrop-blur-sm sm:px-10 sm:py-10"
-    : "wp-content wp-content--article max-w-3xl";
+  const articleInner = page.unlisted
+    ? "wp-content wp-content--article max-w-3xl mx-auto"
+    : innerNav
+      ? "wp-content wp-content--article wp-content--inner-panel site-card-elevated-lg max-w-none px-6 py-8 backdrop-blur-sm sm:px-10 sm:py-10"
+      : "wp-content wp-content--article max-w-3xl";
 
   if (slug === "kontakt") {
     return (
@@ -157,7 +171,13 @@ export default async function SitePage({ params }: Props) {
         <div className="mt-5 h-0.5 w-14 bg-site-brand sm:mt-6 sm:w-16" />
       </PageHero>
 
-      <div className="mx-auto w-full max-w-7xl px-6 py-10 sm:py-12 lg:px-12">
+      <div
+        className={
+          page.unlisted
+            ? "mx-auto w-full max-w-4xl px-6 py-10 sm:py-12 lg:px-12"
+            : "mx-auto w-full max-w-7xl px-6 py-10 sm:py-12 lg:px-12"
+        }
+      >
         {innerNav ? (
           <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12">
             <SiteInnerSidebar
@@ -172,13 +192,19 @@ export default async function SitePage({ params }: Props) {
                   <SiteTeamPageRoster locale={raw} members={teamRoster} />
                 </div>
               ) : null}
+              {page.questionnaireEmbedUrl ? (
+                <QuestionnaireEmbed
+                  embedUrl={page.questionnaireEmbedUrl}
+                  title={page.title}
+                />
+              ) : null}
               {articleHtml ? (
                 <article
                   className={articleInner}
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: articleHtml }}
                 />
-              ) : !showTeamRoster ? (
+              ) : !showTeamRoster && !page.questionnaireEmbedUrl ? (
                 <p className="rounded-xl border border-[#f0e6dc] bg-white/80 px-5 py-6 text-sm text-zinc-600">
                   Sadržaj ove stranice još nije dodat. Uredite stranicu u admin panelu ili
                   objavite profile tima (Blog → uloga „tim“) sa naslovnom slikom.
@@ -193,13 +219,19 @@ export default async function SitePage({ params }: Props) {
                 <SiteTeamPageRoster locale={raw} members={teamRoster} />
               </div>
             ) : null}
+            {page.questionnaireEmbedUrl ? (
+              <QuestionnaireEmbed
+                embedUrl={page.questionnaireEmbedUrl}
+                title={page.title}
+              />
+            ) : null}
             {articleHtml ? (
               <article
                 className={articleInner}
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: articleHtml }}
               />
-            ) : !showTeamRoster ? (
+            ) : !showTeamRoster && !page.questionnaireEmbedUrl ? (
               <p className="rounded-xl border border-[#f0e6dc] bg-white/80 px-5 py-6 text-sm text-zinc-600">
                 Sadržaj ove stranice još nije dodat. Uredite stranicu u admin panelu ili
                 objavite profile tima sa naslovnom slikom.

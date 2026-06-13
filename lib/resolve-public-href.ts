@@ -6,7 +6,7 @@ export function resolvePublicHref(locale: Locale, href: string | null | undefine
   if (t === "/" || t === "") return `/${locale}`;
   if (t.startsWith("#")) return `/${locale}${t}`;
   if (t.startsWith("/") && !t.startsWith("//")) {
-    if (t.startsWith("/posts/") || t.startsWith("/s/")) {
+    if (t.startsWith("/posts/") || t.startsWith("/s/") || t.startsWith("/upitnik")) {
       return `/${locale}${t}`;
     }
     const prefixed = locales.some(

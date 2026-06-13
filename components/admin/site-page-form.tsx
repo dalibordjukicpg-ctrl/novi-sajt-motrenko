@@ -39,6 +39,8 @@ type Props = {
       pageId: string;
       initialSlug: string;
       initialPublished: boolean;
+      initialUnlisted: boolean;
+      initialQuestionnaireEmbedUrl: string | null;
       /** Vrijednost iz SITE_PAGE_HEADER_GROUP_OPTIONS ili null */
       initialHeaderNavGroup: string | null;
       byLocale: ByLocale;
@@ -60,6 +62,12 @@ export function SitePageFormClient(props: Props) {
     props.mode === "edit"
       ? props.initialPublished
       : (props.initialPublished ?? true),
+  );
+  const [unlisted, setUnlisted] = useState(
+    props.mode === "edit" ? props.initialUnlisted : false,
+  );
+  const [questionnaireEmbedUrl, setQuestionnaireEmbedUrl] = useState(
+    props.mode === "edit" ? (props.initialQuestionnaireEmbedUrl ?? "") : "",
   );
   const [titles, setTitles] = useState<Record<Locale, string>>(() => {
     const o = {} as Record<Locale, string>;
@@ -124,6 +132,57 @@ export function SitePageFormClient(props: Props) {
         </label>
       </div>
 
+      <div className="rounded-xl border border-violet-200 bg-violet-50/60 p-4 space-y-3">
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="hidden"
+            name="unlisted"
+            value={unlisted ? "on" : "off"}
+            readOnly
+          />
+          <input
+            type="checkbox"
+            checked={unlisted}
+            onChange={(e) => setUnlisted(e.target.checked)}
+            className="mt-0.5 rounded border-neutral-300"
+          />
+          <span>
+            <span className="font-medium text-neutral-800">
+              Skrivena stranica (samo direktan link)
+            </span>
+            <span className="mt-1 block text-xs text-neutral-600">
+              Ne pojavljuje se u meniju, footeru ni Google pretrazi. Pošaljite link
+              samo korisnicima koji ispunjavaju uslove.
+            </span>
+          </span>
+        </label>
+
+        {unlisted ? (
+          <label className="block text-sm">
+            <span className="font-medium text-neutral-700">Link upitnika</span>
+            <input
+              name="questionnaire_embed_url"
+              value={questionnaireEmbedUrl}
+              onChange={(e) => setQuestionnaireEmbedUrl(e.target.value)}
+              className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm"
+              placeholder="https://docs.google.com/forms/d/e/…/viewform"
+            />
+            <span className="mt-1 block text-xs text-neutral-500">
+              Google Forms, Microsoft Forms ili drugi embed URL. Prikazuje se ispod
+              kratkog uvoda (sadržaj iz editora).
+            </span>
+            {slug ? (
+              <span className="mt-2 block rounded-md bg-white/80 px-3 py-2 font-mono text-xs text-neutral-700">
+                Javni link: /me/s/{slug}
+              </span>
+            ) : null}
+          </label>
+        ) : (
+          <input type="hidden" name="questionnaire_embed_url" value="" readOnly />
+        )}
+      </div>
+
+      {!unlisted ? (
       <label className="block text-sm">
         <span className="font-medium text-neutral-700">
           Grupa u meniju (Usluge)
@@ -149,6 +208,7 @@ export function SitePageFormClient(props: Props) {
           već postoji u Header i footer.
         </span>
       </label>
+      ) : null}
 
       <TranslateFromMeButton
         disabled={!titles.me.trim() && !bodies.me.trim()}
@@ -183,6 +243,8 @@ export function SitePageFormClient(props: Props) {
           }
           fd.set("slug", slug);
           fd.set("published", published ? "on" : "off");
+          fd.set("unlisted", unlisted ? "on" : "off");
+          fd.set("questionnaire_embed_url", questionnaireEmbedUrl);
           const headerNavGroup =
             formRef.current != null
               ? String(
