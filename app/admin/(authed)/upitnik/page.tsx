@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect, unauthorized } from "next/navigation";
 import {
@@ -11,6 +12,7 @@ import {
   Send,
 } from "lucide-react";
 
+import { ClearStaleAdminQuery } from "@/components/admin/clear-stale-admin-query";
 import { QuestionnaireTranslatePanel } from "@/components/admin/questionnaire-translate-panel";
 import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
@@ -57,8 +59,15 @@ export default async function UpitnikAdminPage({
     { locale: "ru", flag: "🇷🇺", label: "Ruski", path: "/ru/upitnik" },
   ];
 
+  /** Stari ?err=missing_api_key u URL-u dok je Resend već aktivan na serveru. */
+  const staleMissingKeyErr = sp.err === "missing_api_key" && resendConfigured;
+  const showErr = Boolean(sp.err) && !staleMissingKeyErr;
+
   return (
     <div className="mx-auto max-w-4xl">
+      <Suspense fallback={null}>
+        <ClearStaleAdminQuery clearStaleMissingKeyErr={staleMissingKeyErr} />
+      </Suspense>
       {/* Header */}
       <header className="mb-8 flex items-start gap-4">
         <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#e8682a]/10 text-[#e8682a]">
@@ -85,7 +94,7 @@ export default async function UpitnikAdminPage({
           </div>
         </div>
       ) : null}
-      {sp.err ? (
+      {showErr ? (
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
           <AlertTriangle size={20} className="shrink-0 mt-0.5" />
           <div>
@@ -93,7 +102,9 @@ export default async function UpitnikAdminPage({
             <p className="mt-1 text-red-700">
               {sp.err === "missing_api_key"
                 ? "RESEND_API_KEY nije postavljen u .env fajlu."
-                : `Greška: ${sp.err}`}
+                : sp.err === "resend_http"
+                  ? "Resend API je odbio poruku — provjerite RESEND_FROM domen i inbox primaoca."
+                  : `Greška: ${sp.err}`}
             </p>
           </div>
         </div>
