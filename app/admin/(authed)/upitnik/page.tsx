@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { redirect, unauthorized } from "next/navigation";
 import {
+  CheckCircle2,
   ClipboardList,
   ExternalLink,
+  FileCode,
   Inbox,
+  Languages,
   Mail,
 } from "lucide-react";
 
+import { QuestionnaireTranslatePanel } from "@/components/admin/questionnaire-translate-panel";
 import { UpitnikPublicLinks } from "@/components/admin/upitnik-public-links";
 import { UpitnikSubmissionsTable } from "@/components/admin/upitnik-submissions-table";
 import { UpitnikTestEmailPanel } from "@/components/admin/upitnik-test-email-panel";
@@ -14,11 +18,20 @@ import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { resolveUpitnikNotifyInbox } from "@/lib/email/resolve-notify-inbox";
 import { listQuestionnaireSubmissionsForAdmin } from "@/lib/queries/questionnaire-submissions-admin";
+import { hasQuestionnaireOverride } from "@/lib/questionnaire-overrides";
 import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
-export default async function UpitnikAdminPage() {
+type Search = {
+  reset?: string;
+};
+
+export default async function UpitnikAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<Search>;
+}) {
   const session = await getSession();
   if (!session) redirect(adminPath("login"));
   if (!hasPermission(session.role, PERMISSIONS.SITE_CONTENT_MANAGE)) {
@@ -28,6 +41,11 @@ export default async function UpitnikAdminPage() {
   const siteUrl = (getSiteUrl() || "").replace(/\/$/, "");
   const notifyTo = resolveUpitnikNotifyInbox();
   const submissions = await listQuestionnaireSubmissionsForAdmin(200);
+  const sp = await searchParams;
+  const [hasOverrideEn, hasOverrideRu] = await Promise.all([
+    hasQuestionnaireOverride("en"),
+    hasQuestionnaireOverride("ru"),
+  ]);
 
   const urls = [
     { locale: "me", flag: "🇲🇪", label: "Crnogorski", path: "/me/upitnik" },
@@ -52,6 +70,20 @@ export default async function UpitnikAdminPage() {
           </p>
         </div>
       </header>
+
+      {sp.reset === "en" || sp.reset === "ru" ? (
+        <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
+          <CheckCircle2 size={20} className="mt-0.5 shrink-0" />
+          <div>
+            <p className="font-semibold">
+              Override za <strong>{sp.reset.toUpperCase()}</strong> je obrisan.
+            </p>
+            <p className="mt-1 text-emerald-700">
+              Stranica sada koristi default prevod iz fajla.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {/* Stranice po jeziku */}
       <section className="mb-6 rounded-2xl border border-[#e9dccb] bg-white p-6 shadow-sm">
@@ -88,6 +120,34 @@ export default async function UpitnikAdminPage() {
 
         <div className="mt-5">
           <UpitnikTestEmailPanel notifyTo={notifyTo} />
+        </div>
+      </section>
+
+      {/* Prevodi — ručno */}
+      <section className="mb-6 rounded-2xl border border-[#e9dccb] bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <Languages size={16} className="text-[#e8682a]" />
+          <h2 className="text-sm font-bold uppercase tracking-wider text-[#5c4f44]">
+            Prevodi upitnika
+          </h2>
+        </div>
+        <p className="mb-4 text-sm leading-relaxed text-[#6b5f54]">
+          Kliknite <strong>Prevedi</strong> da ručno uredite engleski ili ruski tekst upitnika.
+          Promjene se odmah primjenjuju na javnoj stranici.
+        </p>
+        <QuestionnaireTranslatePanel
+          hasOverrideEn={hasOverrideEn}
+          hasOverrideRu={hasOverrideRu}
+        />
+        <div className="mt-5 flex items-start gap-3 rounded-xl border border-[#f3ecdf] bg-[#fdf9f3] px-4 py-3">
+          <FileCode size={18} className="mt-0.5 shrink-0 text-[#e8682a]" />
+          <p className="text-xs leading-relaxed text-[#6b5f54]">
+            Crnogorski (ME) se uređuje u{" "}
+            <code className="rounded bg-neutral-100 px-1 font-mono text-[#2a2118]">
+              lib/questionnaire-i18n.ts
+            </code>
+            . Email klinici je uvijek na crnogorskom.
+          </p>
         </div>
       </section>
 
