@@ -499,13 +499,11 @@ export function drawCategorySection(
   ]);
 }
 
-/** Fiksni footer u donjoj margini — uvijek na prvoj stranici. */
-export function drawFooters(
+/** Fiksni footer u donjoj margini trenutne stranice. */
+export function drawFooterOnCurrentPage(
   doc: InstanceType<typeof PDFDocument>,
   branding: PdfBranding,
 ): void {
-  doc.switchToPage(0);
-
   const left = doc.page.margins.left;
   const right = doc.page.width - doc.page.margins.right;
   const w = contentWidth(doc);
@@ -547,6 +545,95 @@ export function drawFooters(
       .fillColor("#666666")
       .text(subLines, left, footerTop + 20, { width: w, align: "center", lineBreak: false });
   }
+}
+
+/** Fiksni footer u donjoj margini — uvijek na prvoj stranici. */
+export function drawFooters(
+  doc: InstanceType<typeof PDFDocument>,
+  branding: PdfBranding,
+): void {
+  doc.switchToPage(0);
+  drawFooterOnCurrentPage(doc, branding);
+}
+
+/** Footer na svim stranicama (višestranični PDF). */
+export function drawFootersAllPages(
+  doc: InstanceType<typeof PDFDocument>,
+  branding: PdfBranding,
+): void {
+  const range = doc.bufferedPageRange();
+  for (let i = 0; i < range.count; i++) {
+    doc.switchToPage(range.start + i);
+    drawFooterOnCurrentPage(doc, branding);
+  }
+}
+
+function sectionBlockHeight(plan: SectionPlan, scale: number): number {
+  return plan.titleHeight + 2.5 * scale + plan.bodyHeight;
+}
+
+/** Dijeli sekciju ako ne stane na jednu A4 stranicu. */
+function splitSectionForPages(
+  doc: InstanceType<typeof PDFDocument>,
+  section: PdfSection,
+  scale: number,
+): PdfSection[] {
+  const top = doc.page.margins.top;
+  const bottom = contentBottomLimit(doc);
+  if (planSinglePageSections(doc, [section], top, bottom, scale)) {
+    return [section];
+  }
+  if (section.fields.length <= 1) return [section];
+  const mid = Math.ceil(section.fields.length / 2);
+  const head: PdfSection = {
+    index: section.index,
+    title: section.title,
+    fields: section.fields.slice(0, mid),
+  };
+  const tail: PdfSection = {
+    index: section.index,
+    title: `${section.title} — nastavak`,
+    fields: section.fields.slice(mid),
+  };
+  return [
+    ...splitSectionForPages(doc, head, scale),
+    ...splitSectionForPages(doc, tail, scale),
+  ];
+}
+
+/** Višestranični A4 layout — sekcije prelaze na sljedeću stranicu po potrebi. */
+export function drawFlowSections(
+  doc: InstanceType<typeof PDFDocument>,
+  sections: PdfSection[],
+  scale = 0.74,
+): void {
+  const gap = 3.5 * scale;
+  const top = doc.page.margins.top;
+  const bottom = contentBottomLimit(doc);
+  let y = doc.y;
+
+  for (const section of sections) {
+    for (const part of splitSectionForPages(doc, section, scale)) {
+      let plan =
+        planSinglePageSections(doc, [part], top, bottom, scale)?.[0] ??
+        planSinglePageSections(doc, [part], top, bottom, 0.66)?.[0];
+      if (!plan) continue;
+
+      const blockH = sectionBlockHeight(plan, scale) + gap;
+      if (y + blockH > bottom && y > top + 2) {
+        doc.addPage();
+        y = top;
+        plan =
+          planSinglePageSections(doc, [part], top, bottom, scale)?.[0] ??
+          planSinglePageSections(doc, [part], top, bottom, 0.66)?.[0];
+        if (!plan) continue;
+      }
+
+      y = drawSectionAt(doc, plan, y, scale) + gap;
+    }
+  }
+
+  doc.y = y;
 }
 
 export function assertSinglePdfPage(doc: InstanceType<typeof PDFDocument>): void {

@@ -18,6 +18,11 @@ export function contactPdfAttachmentName(submissionId: string): string {
   return `kontakt-upit-HRC-${id || "NOVI"}.pdf`;
 }
 
+/** Ime PDF priloga za upitnik — email ženske strane za lakšu pretragu. */
+export function questionnairePdfAttachmentName(email: string): string {
+  return `upitnik-${emailToPdfBasename(email)}.pdf`;
+}
+
 /** Skraćuje dugačak tekst da stane u A4 blok. */
 export function truncateForPdf(text: string, maxChars: number): string {
   const t = text.trim();
