@@ -223,8 +223,8 @@ export default async function UpitnikAdminPage({
           <li>Pošaljete pacijentu link iznad (npr. preko Vibera).</li>
           <li>Pacijent otvara link u browseru — vidi premium formu sa progress barom.</li>
           <li>Popunjava sekcije (Da/Ne dugmad, polja, dinamičke tabele).</li>
-          <li>Klikne <strong>"Pošalji upitnik"</strong> — vi dobijate formatirani HTML email sa svim odgovorima na: <strong className="text-[#2a2118]">{notifyTo}</strong></li>
-          <li>Pacijent vidi poruku potvrde <em>"Upitnik je uspješno poslat!"</em></li>
+          <li>Klikne <strong>&laquo;Pošalji upitnik&raquo;</strong> — vi dobijate formatirani HTML email sa svim odgovorima na: <strong className="text-[#2a2118]">{notifyTo}</strong></li>
+          <li>Pacijent vidi poruku potvrde <em>&laquo;Upitnik je uspješno poslat!&raquo;</em></li>
         </ol>
         <div className="mt-5 flex flex-wrap gap-2">
           <Link

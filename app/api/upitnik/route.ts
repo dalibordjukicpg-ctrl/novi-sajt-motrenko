@@ -145,7 +145,6 @@ function bDetKey(prefix: string, b: string) {
   return prefix + "_b_det_" + b.toLowerCase().replace(/[^a-zšđčćž]/g, "_").replace(/_+/g, "_");
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 function buildHtml(d: any, t: QuestionnaireI18n, submissionLocale: Locale = "me"): string {
   const now = new Date().toLocaleString("sr-ME", { timeZone: "Europe/Podgorica" });
   const langBanner =
