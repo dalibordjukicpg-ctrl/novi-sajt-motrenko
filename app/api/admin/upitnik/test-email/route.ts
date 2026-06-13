@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
-import { DEFAULT_NOTIFY_INBOX } from "@/lib/email/resolve-notify-inbox";
+import { resolveUpitnikNotifyInbox } from "@/lib/email/resolve-notify-inbox";
 import { sendResendEmailWithFallbacks } from "@/lib/email/send-resend-email";
 import { getResendEnvStatus } from "@/lib/email/resend-env";
 import { getQuestionnaireI18n } from "@/lib/questionnaire-i18n";
@@ -20,7 +20,7 @@ export async function POST(): Promise<NextResponse> {
   }
 
   const t = getQuestionnaireI18n("me");
-  const to = process.env.UPITNIK_NOTIFY_EMAIL?.trim() || DEFAULT_NOTIFY_INBOX;
+  const to = resolveUpitnikNotifyInbox();
   const resendEnv = getResendEnvStatus();
   const now = new Date().toLocaleString("sr-ME", { timeZone: "Europe/Podgorica" });
 

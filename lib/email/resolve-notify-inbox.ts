@@ -16,3 +16,10 @@ export function resolveNotifyInboxFromEnv(
   }
   return DEFAULT_NOTIFY_INBOX;
 }
+
+/** Inbox za upitnik — UPITNIK_NOTIFY_EMAIL, zatim kontakt/booking env, pa default. */
+export function resolveUpitnikNotifyInbox(): string {
+  const direct = process.env.UPITNIK_NOTIFY_EMAIL?.trim();
+  if (direct && direct.includes("@")) return direct;
+  return resolveNotifyInboxFromEnv("contact");
+}

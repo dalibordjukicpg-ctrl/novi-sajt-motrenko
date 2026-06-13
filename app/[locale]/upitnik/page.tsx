@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { QuestionnaireForm } from "@/components/site/questionnaire-form";
 import { isLocale } from "@/lib/i18n";
-import { getQuestionnaireI18nMerged } from "@/lib/questionnaire-overrides";
+import { getQuestionnaireI18n } from "@/lib/questionnaire-i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale: raw } = await params;
   const locale = isLocale(raw) ? raw : "me";
-  const t = await getQuestionnaireI18nMerged(locale);
+  const t = getQuestionnaireI18n(locale);
   return {
     title: t.page.title,
     robots: { index: false, follow: false },
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function UpitnikPage({ params }: Props) {
   const { locale: raw } = await params;
   const locale = isLocale(raw) ? raw : "me";
-  const t = await getQuestionnaireI18nMerged(locale);
+  const t = getQuestionnaireI18n(locale);
 
   return (
     <main className="min-h-screen bg-neutral-50/60 pb-16">
