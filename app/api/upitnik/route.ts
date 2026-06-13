@@ -34,6 +34,19 @@ function isFreeText(v: unknown): v is string {
   return true;
 }
 
+/** Polja koja se ne prevode (ime, kontakt — ostaju original). */
+const SKIP_TRANSLATE_KEYS = new Set([
+  "_locale",
+  "z_ime",
+  "m_ime",
+  "z_email",
+  "m_email",
+  "z_telefon",
+  "m_telefon",
+  "z_pasos",
+  "m_pasos",
+]);
+
 /**
  * Prevodi sve slobodne tekstove iz pacijentovog odgovora na crnogorski
  * (in-place mutacija dobijene strukture). Ne dira `da`/`ne`, brojeve, datume.
@@ -46,6 +59,7 @@ async function translatePatientData(
   const flatVals: string[] = [];
 
   for (const [k, v] of Object.entries(data)) {
+    if (SKIP_TRANSLATE_KEYS.has(k)) continue;
     if (isFreeText(v)) {
       flatKeys.push(k);
       flatVals.push(v);

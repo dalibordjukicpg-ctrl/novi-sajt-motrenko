@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { QuestionnaireTranslatePanel } from "@/components/admin/questionnaire-translate-panel";
+import { UpitnikPublicLinks } from "@/components/admin/upitnik-public-links";
 import { UpitnikTestEmailPanel } from "@/components/admin/upitnik-test-email-panel";
 import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
@@ -87,33 +88,7 @@ export default async function UpitnikAdminPage({
             Javni link upitnika
           </h2>
         </div>
-        <div className="space-y-2">
-          {urls.map((u) => {
-            const fullUrl = siteUrl ? `${siteUrl}${u.path}` : u.path;
-            return (
-              <div
-                key={u.locale}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#f3ecdf] bg-[#fdf9f3] px-4 py-3"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-xl shrink-0">{u.flag}</span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[#2a2118]">{u.label}</p>
-                    <p className="truncate text-xs text-[#8a7b6e] font-mono">{fullUrl}</p>
-                  </div>
-                </div>
-                <a
-                  href={u.path}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#e8682a]/30 bg-white px-4 py-2 text-xs font-semibold text-[#e8682a] hover:bg-[#e8682a]/5 transition"
-                >
-                  Otvori <ExternalLink size={13} />
-                </a>
-              </div>
-            );
-          })}
-        </div>
+        <UpitnikPublicLinks links={urls} siteUrl={siteUrl} />
         <p className="mt-4 text-xs text-[#8a7b6e] leading-relaxed">
           Ovaj link možete poslati pacijentu putem Vibera, WhatsApp-a ili emaila. Pacijent popunjava
           formu direktno u browseru — sve odgovore primićete na email naveden ispod.
