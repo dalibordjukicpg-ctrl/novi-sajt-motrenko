@@ -1,19 +1,16 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { redirect, unauthorized } from "next/navigation";
 import {
-  AlertTriangle,
   CheckCircle2,
   ClipboardList,
   ExternalLink,
   FileCode,
   Languages,
   Mail,
-  Send,
 } from "lucide-react";
 
-import { ClearStaleAdminQuery } from "@/components/admin/clear-stale-admin-query";
 import { QuestionnaireTranslatePanel } from "@/components/admin/questionnaire-translate-panel";
+import { UpitnikTestEmailPanel } from "@/components/admin/upitnik-test-email-panel";
 import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { DEFAULT_NOTIFY_INBOX } from "@/lib/email/resolve-notify-inbox";
@@ -21,14 +18,9 @@ import { isMachineTranslateConfigured } from "@/lib/machine-translate";
 import { hasQuestionnaireOverride } from "@/lib/questionnaire-overrides";
 import { getSiteUrl } from "@/lib/site-url";
 
-import { sendTestQuestionnaireEmailAction } from "./actions";
-
 export const dynamic = "force-dynamic";
 
 type Search = {
-  ok?: string;
-  err?: string;
-  to?: string;
   reset?: string;
 };
 
@@ -59,15 +51,8 @@ export default async function UpitnikAdminPage({
     { locale: "ru", flag: "🇷🇺", label: "Ruski", path: "/ru/upitnik" },
   ];
 
-  /** Stari ?err=missing_api_key u URL-u dok je Resend već aktivan na serveru. */
-  const staleMissingKeyErr = sp.err === "missing_api_key" && resendConfigured;
-  const showErr = Boolean(sp.err) && !staleMissingKeyErr;
-
   return (
     <div className="mx-auto max-w-4xl">
-      <Suspense fallback={null}>
-        <ClearStaleAdminQuery clearStaleMissingKeyErr={staleMissingKeyErr} />
-      </Suspense>
       {/* Header */}
       <header className="mb-8 flex items-start gap-4">
         <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#e8682a]/10 text-[#e8682a]">
@@ -84,31 +69,7 @@ export default async function UpitnikAdminPage({
         </div>
       </header>
 
-      {/* Banner: feedback iz akcije */}
-      {sp.ok === "1" ? (
-        <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
-          <CheckCircle2 size={20} className="shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold">Test email je uspješno poslat.</p>
-            <p className="mt-1 text-emerald-700">Provjerite inbox: <strong>{sp.to ?? notifyTo}</strong></p>
-          </div>
-        </div>
-      ) : null}
-      {showErr ? (
-        <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
-          <AlertTriangle size={20} className="shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold">Slanje nije uspjelo.</p>
-            <p className="mt-1 text-red-700">
-              {sp.err === "missing_api_key"
-                ? "RESEND_API_KEY nije postavljen u .env fajlu."
-                : sp.err === "resend_http"
-                  ? "Resend API je odbio poruku — provjerite RESEND_FROM domen i inbox primaoca."
-                  : `Greška: ${sp.err}`}
-            </p>
-          </div>
-        </div>
-      ) : null}
+      {/* Banner: reset prevoda */}
       {sp.reset ? (
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
           <CheckCircle2 size={20} className="shrink-0 mt-0.5" />
@@ -178,24 +139,8 @@ export default async function UpitnikAdminPage({
           Za promjenu primaoca, postavite varijablu <code className="px-1.5 py-0.5 rounded bg-neutral-100 text-[#2a2118]">UPITNIK_NOTIFY_EMAIL</code> u <code className="px-1.5 py-0.5 rounded bg-neutral-100 text-[#2a2118]">.env</code> fajlu i restartujte server.
         </p>
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          {resendConfigured ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-              <span className="size-1.5 rounded-full bg-emerald-500" /> RESEND_API_KEY postavljen
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700">
-              <span className="size-1.5 rounded-full bg-amber-500" /> RESEND_API_KEY nije postavljen — mailovi neće biti poslati
-            </span>
-          )}
-          <form action={sendTestQuestionnaireEmailAction}>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#e8682a] px-4 py-2 text-xs font-bold text-white hover:bg-[#c45418] transition shadow-sm"
-            >
-              <Send size={13} /> Pošalji probni email
-            </button>
-          </form>
+        <div className="mt-5">
+          <UpitnikTestEmailPanel notifyTo={notifyTo} resendConfigured={resendConfigured} />
         </div>
       </section>
 
