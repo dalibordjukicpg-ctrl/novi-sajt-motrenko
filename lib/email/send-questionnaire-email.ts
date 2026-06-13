@@ -14,6 +14,34 @@ function isValidEmail(v: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 }
 
+/** Ime za pozdrav — puno ime iz forme, bez praznog ili generičkog teksta. */
+export function formatQuestionnairePatientName(raw: string, fallback: string): string {
+  const name = raw.trim().replace(/\s+/g, " ");
+  if (!name) return fallback;
+  const lower = name.toLowerCase();
+  if (lower === "pacijent" || lower === "patient" || lower === "humana" || lower === "human") {
+    return fallback;
+  }
+  return name;
+}
+
+export function buildPatientGreetingLines(
+  t: QuestionnaireI18n,
+  name: string,
+): { salutation: string; nameLine: string; plain: string } {
+  const displayName = formatQuestionnairePatientName(name, t.email.patientFallbackName);
+  const salutation = t.email.patientSalutation;
+  const nameLine =
+    t.email.patientSalutation === "Dear"
+      ? `${displayName},`
+      : `${displayName},`;
+  const plain =
+    t.email.patientSalutation === "Dear"
+      ? `${salutation} ${displayName},`
+      : `${salutation}\n${nameLine}`;
+  return { salutation, nameLine, plain };
+}
+
 export function collectQuestionnaireRecipientEmails(data: Record<string, unknown>): string[] {
   const raw = [String(data.z_email ?? ""), String(data.m_email ?? "")]
     .map((e) => e.trim().toLowerCase())
@@ -62,10 +90,13 @@ export function buildQuestionnairePatientConfirmation(opts: {
   name: string;
   branding: PdfBranding;
 }): { subject: string; text: string; html: string } {
-  const greeting = opts.t.email.patientGreeting.replace("{name}", opts.name.trim() || opts.t.email.patientFallbackName);
+  const { salutation, nameLine, plain: greetingPlain } = buildPatientGreetingLines(
+    opts.t,
+    opts.name,
+  );
   const subject = opts.t.email.patientSubject;
   const text = [
-    greeting,
+    greetingPlain,
     "",
     opts.t.email.patientBody,
     "",
@@ -75,10 +106,16 @@ export function buildQuestionnairePatientConfirmation(opts: {
     opts.branding.clinicEmail,
   ].join("\n");
 
+  const greetingHtml =
+    opts.t.email.patientSalutation === "Dear"
+      ? `<p style="margin:0 0 16px;font-size:15px">${escapeHtml(salutation)} ${escapeHtml(nameLine.replace(/,$/, ""))},</p>`
+      : `<p style="margin:0 0 4px;font-size:15px">${escapeHtml(salutation)}</p>
+  <p style="margin:0 0 16px;font-size:15px"><strong>${escapeHtml(nameLine.replace(/,$/, ""))}</strong>,</p>`;
+
   const html = `<!DOCTYPE html>
 <html lang="sr">
 <body style="font-family:Segoe UI,Arial,sans-serif;color:#1a1208;line-height:1.6;max-width:520px">
-  <p style="margin:0 0 16px;font-size:15px">${escapeHtml(greeting)}</p>
+  ${greetingHtml}
   <p style="margin:0 0 16px;font-size:14px;color:#444">${escapeHtml(opts.t.email.patientBody)}</p>
   <p style="margin:0;font-size:14px;color:#444">${escapeHtml(opts.t.email.patientSignoff)}</p>
   <p style="margin:20px 0 0;font-size:13px;color:#666">
@@ -92,24 +129,39 @@ export function buildQuestionnairePatientConfirmation(opts: {
   return { subject, text, html };
 }
 
-export async function sendQuestionnaireStaffEmail(opts: {
+export async function sendQuestionnaireStaffNotify(opts: {
   to: string;
   subject: string;
   summaryText: string;
   html: string;
   replyTo?: string;
-  pdfBuffer: Buffer;
-  pdfFilename: string;
 }) {
-  return sendResendEmailWithFallbacks({
+  return sendResendEmail({
     to: opts.to,
     subject: opts.subject,
     text: opts.summaryText,
     html: opts.html,
     replyTo: opts.replyTo,
+    logPrefix: "[upitnik:staff:notify]",
+  });
+}
+
+export async function sendQuestionnaireStaffPdf(opts: {
+  to: string;
+  subject: string;
+  summaryText: string;
+  pdfBuffer: Buffer;
+  pdfFilename: string;
+  replyTo?: string;
+}) {
+  return sendResendEmailWithFallbacks({
+    to: opts.to,
+    subject: opts.subject,
+    text: opts.summaryText,
+    replyTo: opts.replyTo,
     pdfBuffer: opts.pdfBuffer,
     pdfFilename: opts.pdfFilename,
-    logPrefix: "[upitnik:staff]",
+    logPrefix: "[upitnik:staff:pdf]",
   });
 }
 

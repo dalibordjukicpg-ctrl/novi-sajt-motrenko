@@ -4,8 +4,10 @@ import {
   buildQuestionnairePatientConfirmation,
   buildQuestionnaireStaffHtml,
   collectQuestionnaireRecipientEmails,
+  formatQuestionnairePatientName,
   sendQuestionnairePatientConfirmation,
-  sendQuestionnaireStaffEmail,
+  sendQuestionnaireStaffNotify,
+  sendQuestionnaireStaffPdf,
 } from "@/lib/email/send-questionnaire-email";
 import { resolveUpitnikNotifyInbox } from "@/lib/email/resolve-notify-inbox";
 import { isLocale, type Locale } from "@/lib/i18n";
@@ -138,9 +140,19 @@ export async function POST(req: Request): Promise<Response> {
   const tPatient = getQuestionnaireI18n(submissionLocale);
 
   const femaleEmail = String(data.z_email || "").trim().toLowerCase();
-  const femaleName = String(data.z_ime || "Pacijent").trim();
+  const femaleNameRaw = String(data.z_ime || "").trim();
+  const femaleNameStaff = femaleNameRaw || "Pacijent";
+  const femaleNameGreeting = formatQuestionnairePatientName(
+    femaleNameRaw,
+    tStaff.email.patientFallbackName,
+  );
   const maleEmail = String(data.m_email || "").trim().toLowerCase();
-  const maleName = String(data.m_ime || "").trim();
+  const maleNameRaw = String(data.m_ime || "").trim();
+  const maleNameStaff = maleNameRaw || "—";
+  const maleNameGreeting = formatQuestionnairePatientName(
+    maleNameRaw,
+    tStaff.email.patientFallbackName,
+  );
   const phone = String(data.z_telefon || data.m_telefon || "").trim();
 
   const langTag =
@@ -151,7 +163,7 @@ export async function POST(req: Request): Promise<Response> {
   const submittedAt = new Date();
   const branding = questionnaireBranding();
   const toClinic = resolveUpitnikNotifyInbox();
-  const subject = `${tStaff.email.subjectPrefix} ${femaleName} — ${submittedAt.toLocaleDateString("sr-ME")}${langTag}`;
+  const subject = `${tStaff.email.subjectPrefix} ${femaleNameStaff} — ${submittedAt.toLocaleDateString("sr-ME")}${langTag}`;
 
   let pdf: Buffer;
   try {
@@ -166,8 +178,8 @@ export async function POST(req: Request): Promise<Response> {
 
   const pdfFilename = questionnairePdfAttachmentName(femaleEmail);
   const summaryText = [
-    `Primljen upitnik od: ${femaleName} (${femaleEmail || "—"}).`,
-    maleName ? `Muški partner: ${maleName} (${maleEmail || "—"})` : null,
+    `Primljen upitnik od: ${femaleNameStaff} (${femaleEmail || "—"}).`,
+    maleNameRaw ? `Muški partner: ${maleNameStaff} (${maleEmail || "—"})` : null,
     submissionLocale !== "me"
       ? `Pacijent je ispunjavao formu na ${submissionLocale === "en" ? "engleskom" : "ruskom"} jeziku.`
       : null,
@@ -181,9 +193,9 @@ export async function POST(req: Request): Promise<Response> {
 
   const staffHtml = buildQuestionnaireStaffHtml({
     t: tStaff,
-    femaleName,
+    femaleName: femaleNameStaff,
     femaleEmail,
-    maleName,
+    maleName: maleNameStaff,
     maleEmail,
     phone,
     submittedAt,
@@ -191,29 +203,43 @@ export async function POST(req: Request): Promise<Response> {
     submissionLocale,
   });
 
-  const staffResult = await sendQuestionnaireStaffEmail({
+  const staffResult = await sendQuestionnaireStaffNotify({
     to: toClinic,
     subject,
     summaryText,
     html: staffHtml,
     replyTo: femaleEmail || undefined,
+  });
+
+  if (!staffResult.ok) {
+    console.error("[upitnik] staff notify failed", { to: toClinic, staffResult });
+    return NextResponse.json({ ok: false, error: "email_failed" }, { status: 500 });
+  }
+
+  const pdfResult = await sendQuestionnaireStaffPdf({
+    to: toClinic,
+    subject: `${subject} — PDF prilog`,
+    summaryText: `${summaryText}\n\n(PDF u prilogu — A4, spreman za štampu.)`,
+    replyTo: femaleEmail || undefined,
     pdfBuffer: pdf,
     pdfFilename,
   });
 
-  if (!staffResult.ok) {
-    console.error("[upitnik] staff email failed", { to: toClinic, staffResult });
-    return NextResponse.json({ ok: false, error: "email_failed" }, { status: 500 });
+  if (!pdfResult.ok) {
+    console.warn("[upitnik] staff PDF email failed (notify already sent)", {
+      to: toClinic,
+      pdfResult,
+    });
   }
 
   const recipientEmails = collectQuestionnaireRecipientEmails(data);
   for (const patientEmail of recipientEmails) {
     const patientName =
       patientEmail === femaleEmail
-        ? femaleName
+        ? femaleNameGreeting
         : patientEmail === maleEmail
-          ? maleName || tPatient.email.patientFallbackName
-          : femaleName;
+          ? maleNameGreeting
+          : femaleNameGreeting;
     const confirmation = buildQuestionnairePatientConfirmation({
       t: tPatient,
       name: patientName,
