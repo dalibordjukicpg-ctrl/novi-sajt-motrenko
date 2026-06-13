@@ -52,7 +52,6 @@ export async function generateQuestionnairePdf(
       referenceId: "",
     },
     dateLocale: "sr-Latn-ME",
-    scale: 1.05,
   });
 
   drawFlowSections(doc, buildQuestionnairePdfSections(payload.data, t), QUESTIONNAIRE_FLOW);

@@ -98,27 +98,27 @@ export const COMPACT_FLOW: FlowLayoutConfig = {
   },
 };
 
-/** Čitljiv layout — upitnik (veća slova, razmaci, odgovori u brand boji). */
+/** Čitljiv layout — upitnik (veća slova, brand boja za odgovore, bez prevelikih razmaka). */
 export const QUESTIONNAIRE_FLOW: FlowLayoutConfig = {
   scale: 1,
-  fonts: { sectionTitle: 11.5, label: 9.5, value: 10.5, groupHeading: 10.5 },
+  fonts: { sectionTitle: 10, label: 9, value: 9.5, groupHeading: 8.5 },
   colors: { label: "#5c4f44", value: PDF_BRAND_ORANGE, groupHeading: "#c45418" },
   valueBold: true,
   spacing: {
-    sectionGap: 18,
-    rowMin: 22,
-    rowExtra: 10,
-    titleHeight: 28,
-    padX: 14,
-    padY: 12,
-    labelW: 168,
-    titleBodyGap: 5,
-    bodyPadTop: 14,
-    blockLabelH: 14,
-    pairGap: 10,
+    sectionGap: 6,
+    rowMin: 14,
+    rowExtra: 2,
+    titleHeight: 20,
+    padX: 10,
+    padY: 7,
+    labelW: 150,
+    titleBodyGap: 3,
+    bodyPadTop: 7,
+    blockLabelH: 11,
+    pairGap: 8,
   },
   zebraRows: true,
-  rowDividers: true,
+  rowDividers: false,
 };
 
 const SINGLE_PAGE_SCALES = [1, 0.94, 0.88, 0.82, 0.76, 0.7] as const;
@@ -334,22 +334,23 @@ function measureFieldHeights(
 
   return fields.map((field) => {
     if (isGroupHeading(field)) {
-      return 20 * scale;
+      // label font + linija ispod + margina gore/dole
+      return (cfg.fonts.groupHeading * scale) + 10 * scale;
     }
 
     if (field.kind === "pair") {
       const value = field.value.trim() || "—";
       doc.font(fontBold(doc)).fontSize(cfg.fonts.label * scale);
-      const labelH = doc.heightOfString(field.label, { width: labelW, lineGap: 1 });
+      const labelH = doc.heightOfString(field.label, { width: labelW, lineGap: 0.5 });
       doc.font(valueFont).fontSize(cfg.fonts.value * scale);
-      const valueH = doc.heightOfString(value, { width: valueW, lineGap: 1 });
+      const valueH = doc.heightOfString(value, { width: valueW, lineGap: 0.5 });
       return Math.max(pairRowMin, labelH, valueH) + cfg.spacing.rowExtra * scale;
     }
 
     const value = field.value.trim() || "—";
     doc.font(valueFont).fontSize(cfg.fonts.value * scale);
-    const valueH = doc.heightOfString(value, { width: innerW, lineGap: 2 });
-    return blockLabelH + Math.max(blockValueMin, valueH) + 6 * scale;
+    const valueH = doc.heightOfString(value, { width: innerW, lineGap: 1 });
+    return blockLabelH + Math.max(blockValueMin, valueH) + 4 * scale;
   });
 }
 
@@ -473,7 +474,7 @@ function drawSectionAt(
     const rowH = fieldHeights[idx] ?? cfg.spacing.rowMin * scale;
 
     if (isGroupHeading(field)) {
-      if (idx > 0) cursorY += 4 * scale;
+      if (idx > 0) cursorY += 2 * scale;
       doc
         .font(fontBold(doc))
         .fontSize(cfg.fonts.groupHeading * scale)
@@ -482,14 +483,15 @@ function drawSectionAt(
           width: innerW,
           lineBreak: false,
         });
-      const lineY = cursorY + 14 * scale;
+      const textH = cfg.fonts.groupHeading * scale;
+      const lineY = cursorY + textH + 2 * scale;
       doc
         .moveTo(left + padX, lineY)
         .lineTo(left + w - padX, lineY)
-        .strokeColor("#f3dcc8")
-        .lineWidth(0.75)
+        .strokeColor("#f0d8c4")
+        .lineWidth(0.5)
         .stroke();
-      cursorY = lineY + 8 * scale;
+      cursorY += textH + 10 * scale;
       return;
     }
 
