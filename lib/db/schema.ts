@@ -336,6 +336,36 @@ export const appointmentRequests = mysqlTable(
   ],
 );
 
+/** Poslani upitnici (sajt → email + PDF arhiva na disku + JSON u bazi). */
+export const questionnaireSubmissions = mysqlTable(
+  "questionnaire_submissions",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    locale: localeEnum.notNull(),
+    femaleName: varchar("female_name", { length: 200 }).notNull(),
+    femaleEmail: varchar("female_email", { length: 255 }).notNull(),
+    maleName: varchar("male_name", { length: 200 }),
+    maleEmail: varchar("male_email", { length: 255 }),
+    phone: varchar("phone", { length: 64 }),
+    formDataJson: longtext("form_data_json").notNull(),
+    pdfStorageKey: varchar("pdf_storage_key", { length: 512 }).notNull(),
+    pdfFilename: varchar("pdf_filename", { length: 255 }).notNull(),
+    pdfSizeBytes: int("pdf_size_bytes").notNull(),
+    staffEmailSent: boolean("staff_email_sent").notNull().default(false),
+    staffPdfEmailSent: boolean("staff_pdf_email_sent").notNull().default(false),
+    patientEmailSent: boolean("patient_email_sent").notNull().default(false),
+    createdAt: datetime("created_at", { mode: "date", fsp: 3 })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    ipAddress: varchar("ip_address", { length: 45 }),
+    userAgent: varchar("user_agent", { length: 512 }),
+  },
+  (table) => [
+    index("questionnaire_submissions_created_at_idx").on(table.createdAt),
+    index("questionnaire_submissions_female_email_idx").on(table.femaleEmail),
+  ],
+);
+
 /** Javna kontakt forma (sajt → email + PDF arhiva u bazi). */
 export const contactSubmissions = mysqlTable(
   "contact_submissions",

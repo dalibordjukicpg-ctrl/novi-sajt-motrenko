@@ -5,7 +5,7 @@
 import { getResendApiKey, getResendFrom } from "@/lib/email/resend-env";
 
 export type SendResendEmailResult =
-  | { ok: true; skipped?: boolean; resendId?: string }
+  | { ok: true; skipped?: boolean; resendId?: string; deliveryMode?: string }
   | { ok: false; code: "missing_api_key" }
   | { ok: false; code: "resend_http"; status: number; bodySnippet: string };
 
@@ -168,7 +168,7 @@ export async function sendResendEmailWithFallbacks(opts: {
       pdfFilename: attempt.pdfFilename,
       logPrefix: `${prefix}:${attempt.label}`,
     });
-    if (r.ok) return r;
+    if (r.ok) return { ...r, deliveryMode: attempt.label };
     last = r;
     console.warn(`${prefix} attempt failed`, attempt.label, r);
   }

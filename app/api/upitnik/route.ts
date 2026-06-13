@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 
 import {
   buildQuestionnairePatientConfirmation,
@@ -6,8 +7,7 @@ import {
   collectQuestionnaireRecipientEmails,
   formatQuestionnairePatientName,
   sendQuestionnairePatientConfirmation,
-  sendQuestionnaireStaffNotify,
-  sendQuestionnaireStaffPdf,
+  sendQuestionnaireStaffEmail,
 } from "@/lib/email/send-questionnaire-email";
 import { resolveUpitnikNotifyInbox } from "@/lib/email/resolve-notify-inbox";
 import { isLocale, type Locale } from "@/lib/i18n";
@@ -18,9 +18,22 @@ import {
 import { generateQuestionnairePdf } from "@/lib/pdf/generate-questionnaire-pdf";
 import { questionnairePdfAttachmentName } from "@/lib/pdf/pdf-filenames";
 import { getQuestionnaireI18n } from "@/lib/questionnaire-i18n";
+import {
+  saveQuestionnaireSubmission,
+  updateQuestionnaireSubmissionEmailFlags,
+} from "@/lib/questionnaire/save-questionnaire-submission";
 import { getSiteUrl, PRODUCTION_SITE_URL } from "@/lib/site-url";
 
 export const runtime = "nodejs";
+
+function getClientIp(h: Headers): string {
+  const forwarded = h.get("x-forwarded-for");
+  const ip =
+    forwarded?.split(",")[0]?.trim() ??
+    h.get("x-real-ip")?.trim() ??
+    "";
+  return ip.slice(0, 128) || "unknown";
+}
 
 /** Email klinici uvijek na crnogorskom (labelama i sadržajem). */
 const STAFF_EMAIL_LOCALE: Locale = "me";
@@ -177,6 +190,39 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const pdfFilename = questionnairePdfAttachmentName(femaleEmail);
+
+  let submissionId: string;
+  let ipAddress: string | null = null;
+  let userAgent: string | null = null;
+  try {
+    const h = await headers();
+    ipAddress = getClientIp(h).slice(0, 45);
+    userAgent = h.get("user-agent")?.slice(0, 512) ?? null;
+  } catch {
+    /* headers optional */
+  }
+
+  try {
+    const saved = await saveQuestionnaireSubmission({
+      locale: submissionLocale,
+      femaleName: femaleNameStaff,
+      femaleEmail: femaleEmail || "—",
+      maleName: maleNameRaw || null,
+      maleEmail: maleEmail || null,
+      phone: phone || null,
+      formData: data,
+      pdfBuffer: pdf,
+      pdfFilename,
+      submittedAt,
+      ipAddress,
+      userAgent,
+    });
+    submissionId = saved.id;
+  } catch (e) {
+    console.error("[upitnik] db save failed", e);
+    return NextResponse.json({ ok: false, error: "save_failed" }, { status: 500 });
+  }
+
   const summaryText = [
     `Primljen upitnik od: ${femaleNameStaff} (${femaleEmail || "—"}).`,
     maleNameRaw ? `Muški partner: ${maleNameStaff} (${maleEmail || "—"})` : null,
@@ -203,36 +249,44 @@ export async function POST(req: Request): Promise<Response> {
     submissionLocale,
   });
 
-  const staffResult = await sendQuestionnaireStaffNotify({
+  const staffResult = await sendQuestionnaireStaffEmail({
     to: toClinic,
     subject,
     summaryText,
     html: staffHtml,
     replyTo: femaleEmail || undefined,
-  });
-
-  if (!staffResult.ok) {
-    console.error("[upitnik] staff notify failed", { to: toClinic, staffResult });
-    return NextResponse.json({ ok: false, error: "email_failed" }, { status: 500 });
-  }
-
-  const pdfResult = await sendQuestionnaireStaffPdf({
-    to: toClinic,
-    subject: `${subject} — PDF prilog`,
-    summaryText: `${summaryText}\n\n(PDF u prilogu — A4, spreman za štampu.)`,
-    replyTo: femaleEmail || undefined,
     pdfBuffer: pdf,
     pdfFilename,
   });
 
-  if (!pdfResult.ok) {
-    console.warn("[upitnik] staff PDF email failed (notify already sent)", {
+  if (!staffResult.ok) {
+    console.error("[upitnik] staff email failed", {
       to: toClinic,
-      pdfResult,
+      staffResult,
+      submissionId,
     });
+  } else {
+    const pdfIncluded =
+      staffResult.deliveryMode === "pdf+reply" || staffResult.deliveryMode === "pdf";
+    try {
+      await updateQuestionnaireSubmissionEmailFlags(submissionId, {
+        staffEmailSent: true,
+        staffPdfEmailSent: pdfIncluded,
+      });
+    } catch (e) {
+      console.error("[upitnik] staff email flags", e);
+    }
+    if (!pdfIncluded) {
+      console.warn("[upitnik] staff email sent without PDF attachment", {
+        to: toClinic,
+        deliveryMode: staffResult.deliveryMode,
+        submissionId,
+      });
+    }
   }
 
   const recipientEmails = collectQuestionnaireRecipientEmails(data);
+  let anyPatientEmailSent = false;
   for (const patientEmail of recipientEmails) {
     const patientName =
       patientEmail === femaleEmail
@@ -253,7 +307,18 @@ export async function POST(req: Request): Promise<Response> {
       console.warn("[upitnik] patient confirmation failed", {
         to: patientEmail,
         patientResult,
+        submissionId,
       });
+    } else {
+      anyPatientEmailSent = true;
+    }
+  }
+
+  if (anyPatientEmailSent) {
+    try {
+      await updateQuestionnaireSubmissionEmailFlags(submissionId, { patientEmailSent: true });
+    } catch (e) {
+      console.error("[upitnik] patientEmailSent flag", e);
     }
   }
 

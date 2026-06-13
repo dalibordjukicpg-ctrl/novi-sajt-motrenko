@@ -129,39 +129,24 @@ export function buildQuestionnairePatientConfirmation(opts: {
   return { subject, text, html };
 }
 
-export async function sendQuestionnaireStaffNotify(opts: {
+export async function sendQuestionnaireStaffEmail(opts: {
   to: string;
   subject: string;
   summaryText: string;
   html: string;
   replyTo?: string;
-}) {
-  return sendResendEmail({
-    to: opts.to,
-    subject: opts.subject,
-    text: opts.summaryText,
-    html: opts.html,
-    replyTo: opts.replyTo,
-    logPrefix: "[upitnik:staff:notify]",
-  });
-}
-
-export async function sendQuestionnaireStaffPdf(opts: {
-  to: string;
-  subject: string;
-  summaryText: string;
   pdfBuffer: Buffer;
   pdfFilename: string;
-  replyTo?: string;
 }) {
   return sendResendEmailWithFallbacks({
     to: opts.to,
     subject: opts.subject,
     text: opts.summaryText,
+    html: opts.html,
     replyTo: opts.replyTo,
     pdfBuffer: opts.pdfBuffer,
     pdfFilename: opts.pdfFilename,
-    logPrefix: "[upitnik:staff:pdf]",
+    logPrefix: "[upitnik:staff]",
   });
 }
 

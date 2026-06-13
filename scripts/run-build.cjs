@@ -96,6 +96,36 @@ if (ensureSitePagesUnlisted.status !== 0) {
   );
 }
 
+const ensureQuestionnairePdfs = spawnSync(
+  process.execPath,
+  ["scripts/ensure-questionnaire-pdfs.cjs"],
+  {
+    stdio: "inherit",
+    cwd,
+    env: process.env,
+  },
+);
+if (ensureQuestionnairePdfs.status !== 0) {
+  console.warn(
+    "[run-build] ensure-questionnaire-pdfs nije uspio — PDF arhiva upitnika možda neće raditi.",
+  );
+}
+
+const ensureQuestionnaireSubmissions = spawnSync(
+  process.execPath,
+  ["scripts/ensure-questionnaire-submissions.cjs"],
+  {
+    stdio: "inherit",
+    cwd,
+    env: process.env,
+  },
+);
+if (ensureQuestionnaireSubmissions.status !== 0) {
+  console.warn(
+    "[run-build] ensure-questionnaire-submissions nije uspio — evidencija upitnika možda neće raditi dok se ne pokrene migracija 0024.",
+  );
+}
+
 let nextBin;
 try {
   nextBin = require.resolve("next/dist/bin/next");

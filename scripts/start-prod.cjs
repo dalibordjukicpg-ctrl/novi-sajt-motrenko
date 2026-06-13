@@ -91,6 +91,16 @@ spawnSync(process.execPath, ["scripts/ensure-site-pages-unlisted.cjs"], {
   cwd,
   env: process.env,
 });
+spawnSync(process.execPath, ["scripts/ensure-questionnaire-pdfs.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
+spawnSync(process.execPath, ["scripts/ensure-questionnaire-submissions.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
 
 let nextBin;
 try {

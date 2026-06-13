@@ -3,14 +3,17 @@ import { redirect, unauthorized } from "next/navigation";
 import {
   ClipboardList,
   ExternalLink,
+  Inbox,
   Mail,
 } from "lucide-react";
 
 import { UpitnikPublicLinks } from "@/components/admin/upitnik-public-links";
+import { UpitnikSubmissionsTable } from "@/components/admin/upitnik-submissions-table";
 import { UpitnikTestEmailPanel } from "@/components/admin/upitnik-test-email-panel";
 import { adminPath } from "@/lib/admin-base-path";
 import { getSession, hasPermission, PERMISSIONS } from "@/lib/auth";
 import { resolveUpitnikNotifyInbox } from "@/lib/email/resolve-notify-inbox";
+import { listQuestionnaireSubmissionsForAdmin } from "@/lib/queries/questionnaire-submissions-admin";
 import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +27,7 @@ export default async function UpitnikAdminPage() {
 
   const siteUrl = (getSiteUrl() || "").replace(/\/$/, "");
   const notifyTo = resolveUpitnikNotifyInbox();
+  const submissions = await listQuestionnaireSubmissionsForAdmin(200);
 
   const urls = [
     { locale: "me", flag: "🇲🇪", label: "Crnogorski", path: "/me/upitnik" },
@@ -32,7 +36,7 @@ export default async function UpitnikAdminPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-6xl">
       {/* Header */}
       <header className="mb-8 flex items-start gap-4">
         <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#e8682a]/10 text-[#e8682a]">
@@ -87,6 +91,23 @@ export default async function UpitnikAdminPage() {
         </div>
       </section>
 
+      {/* Evidencija poslanih upitnika */}
+      <section className="mb-6 rounded-2xl border border-[#e9dccb] bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <Inbox size={16} className="text-[#e8682a]" />
+          <h2 className="text-sm font-bold uppercase tracking-wider text-[#5c4f44]">
+            Poslani upitnici
+          </h2>
+        </div>
+        <p className="mb-4 text-xs text-[#8a7b6e] leading-relaxed">
+          Svaki poslani upitnik se automatski čuva ovdje sa PDF arhivom — čak i ako email na{" "}
+          <strong className="text-[#2a2118]">{notifyTo}</strong> ne stigne. Preuzmite PDF za
+          štampu ili arhivu. Status kolone pokazuje da li je Resend prijavio uspješno slanje
+          (zeleno) ili ne (crveno).
+        </p>
+        <UpitnikSubmissionsTable rows={submissions} />
+      </section>
+
       {/* Linkovi u sidebar — quick links */}
       <section className="rounded-2xl border border-[#e9dccb] bg-white p-6 shadow-sm">
         <div className="mb-4">
@@ -96,7 +117,7 @@ export default async function UpitnikAdminPage() {
           <li>Pošaljete pacijentu link iznad (npr. preko Vibera).</li>
           <li>Pacijent otvara link u browseru — vidi premium formu sa progress barom.</li>
           <li>Popunjava sekcije (Da/Ne dugmad, polja, dinamičke tabele).</li>
-          <li>Klikne <strong>&laquo;Pošalji upitnik&raquo;</strong> — klinika dobija email + PDF na <strong className="text-[#2a2118]">{notifyTo}</strong>; pacijent dobija potvrdu na email iz forme</li>
+          <li>Klikne <strong>&laquo;Pošalji upitnik&raquo;</strong> — klinika dobija email + PDF na <strong className="text-[#2a2118]">{notifyTo}</strong>; pacijent dobija potvrdu na email iz forme. Kopija sa PDF-om uvijek ostaje u sekciji <strong>Poslani upitnici</strong> iznad.</li>
           <li>Pacijent vidi poruku potvrde <em>&laquo;Upitnik je uspješno poslat!&raquo;</em></li>
         </ol>
         <div className="mt-5 flex flex-wrap gap-2">
