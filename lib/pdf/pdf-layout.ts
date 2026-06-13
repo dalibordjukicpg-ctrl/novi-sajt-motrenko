@@ -105,17 +105,17 @@ export const QUESTIONNAIRE_FLOW: FlowLayoutConfig = {
   colors: { label: "#5c4f44", value: PDF_BRAND_ORANGE, groupHeading: "#c45418" },
   valueBold: true,
   spacing: {
-    sectionGap: 4,
-    rowMin: 12,
-    rowExtra: 1.5,
+    sectionGap: 5,
+    rowMin: 16,
+    rowExtra: 5,
     titleHeight: 17,
     padX: 8,
-    padY: 4,
-    labelW: 150,
+    padY: 5,
+    labelW: 170,
     titleBodyGap: 2,
-    bodyPadTop: 2,
-    blockLabelH: 10,
-    pairGap: 6,
+    bodyPadTop: 3,
+    blockLabelH: 11,
+    pairGap: 8,
   },
   zebraRows: true,
   rowDividers: false,
@@ -334,23 +334,22 @@ function measureFieldHeights(
 
   return fields.map((field) => {
     if (isGroupHeading(field)) {
-      // label font + linija ispod + mala margina
       return (cfg.fonts.groupHeading * scale) + 6 * scale;
     }
 
     if (field.kind === "pair") {
       const value = field.value.trim() || "—";
       doc.font(fontBold(doc)).fontSize(cfg.fonts.label * scale);
-      const labelH = doc.heightOfString(field.label, { width: labelW, lineGap: 0.5 });
+      const labelH = doc.heightOfString(field.label, { width: labelW, lineGap: 2 });
       doc.font(valueFont).fontSize(cfg.fonts.value * scale);
-      const valueH = doc.heightOfString(value, { width: valueW, lineGap: 0.5 });
+      const valueH = doc.heightOfString(value, { width: valueW, lineGap: 2 });
       return Math.max(pairRowMin, labelH, valueH) + cfg.spacing.rowExtra * scale;
     }
 
     const value = field.value.trim() || "—";
     doc.font(valueFont).fontSize(cfg.fonts.value * scale);
-    const valueH = doc.heightOfString(value, { width: innerW, lineGap: 1 });
-    return blockLabelH + Math.max(blockValueMin, valueH) + 2 * scale;
+    const valueH = doc.heightOfString(value, { width: innerW, lineGap: 2 });
+    return blockLabelH + Math.max(blockValueMin, valueH) + 4 * scale;
   });
 }
 
@@ -495,19 +494,17 @@ function drawSectionAt(
     }
 
     if (field.kind === "pair") {
-      if (cfg.rowDividers && pairIndex > 0) {
-        doc
-          .moveTo(left + padX, cursorY - 4 * scale)
-          .lineTo(left + w - padX, cursorY - 4 * scale)
-          .strokeColor("#f5ebe0")
-          .lineWidth(0.5)
-          .stroke();
-      }
-
       if (cfg.zebraRows && pairIndex % 2 === 1) {
         doc
-          .roundedRect(left + padX - 2, cursorY - 2 * scale, innerW + 4, rowH + 2 * scale, 2)
-          .fill("#fdf9f5");
+          .roundedRect(left + padX - 3, cursorY - 1 * scale, innerW + 6, rowH, 2)
+          .fill("#fbf6ef");
+      } else if (pairIndex > 0) {
+        doc
+          .moveTo(left + padX, cursorY - 1 * scale)
+          .lineTo(left + w - padX, cursorY - 1 * scale)
+          .strokeColor("#f3eadd")
+          .lineWidth(0.4)
+          .stroke();
       }
 
       const value = field.value.trim() || "—";
@@ -518,7 +515,7 @@ function drawSectionAt(
         .fillColor(cfg.colors.label)
         .text(field.label, left + padX, cursorY + 2 * scale, {
           width: labelW,
-          lineGap: 1,
+          lineGap: 2,
           height: textH,
         });
       doc
@@ -527,7 +524,7 @@ function drawSectionAt(
         .fillColor(cfg.colors.value)
         .text(value, left + padX + labelW + gap, cursorY + 2 * scale, {
           width: valueW,
-          lineGap: 1,
+          lineGap: 2,
           height: textH,
         });
       cursorY += rowH;
