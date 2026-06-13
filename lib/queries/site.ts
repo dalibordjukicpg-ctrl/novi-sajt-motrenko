@@ -87,22 +87,34 @@ function collectNavHrefs(nodes: PublicNavItem[]): Set<string> {
 async function loadCmsNavPageEntriesForLocale(
   locale: Locale,
 ): Promise<CmsNavPageEntry[]> {
-  const rows = await db
-    .select({
-      slug: sitePages.slug,
-      title: sitePageTranslations.title,
-      headerNavGroup: sitePages.headerNavGroup,
-    })
-    .from(sitePages)
-    .innerJoin(
-      sitePageTranslations,
-      and(
-        eq(sitePageTranslations.pageId, sitePages.id),
-        eq(sitePageTranslations.locale, locale),
-      ),
-    )
-    .where(and(eq(sitePages.published, true), eq(sitePages.unlisted, false)))
-    .orderBy(asc(sitePageTranslations.title));
+  const baseQuery = () =>
+    db
+      .select({
+        slug: sitePages.slug,
+        title: sitePageTranslations.title,
+        headerNavGroup: sitePages.headerNavGroup,
+      })
+      .from(sitePages)
+      .innerJoin(
+        sitePageTranslations,
+        and(
+          eq(sitePageTranslations.pageId, sitePages.id),
+          eq(sitePageTranslations.locale, locale),
+        ),
+      );
+
+  let rows;
+  try {
+    rows = await baseQuery()
+      .where(and(eq(sitePages.published, true), eq(sitePages.unlisted, false)))
+      .orderBy(asc(sitePageTranslations.title));
+  } catch (e) {
+    // Fallback ako site_pages.unlisted kolona jos nije migrirana na ovom serveru
+    console.warn("[site.ts] loadCmsNavPageEntriesForLocale: unlisted filter pao, koristim samo published", e);
+    rows = await baseQuery()
+      .where(eq(sitePages.published, true))
+      .orderBy(asc(sitePageTranslations.title));
+  }
 
   const out: CmsNavPageEntry[] = [];
   for (const r of rows) {
@@ -162,13 +174,23 @@ async function loadCmsNavPageEntries(locale: Locale): Promise<CmsNavPageEntry[]>
 
 /** Slug → `header_nav_group` za objavljene stranice (raspored stavki u mega meniju). */
 async function loadPublishedSlugToHeaderGroup(): Promise<Map<string, string>> {
-  const rows = await db
-    .select({
-      slug: sitePages.slug,
-      headerNavGroup: sitePages.headerNavGroup,
-    })
-    .from(sitePages)
-    .where(and(eq(sitePages.published, true), eq(sitePages.unlisted, false)));
+  const baseQuery = () =>
+    db
+      .select({
+        slug: sitePages.slug,
+        headerNavGroup: sitePages.headerNavGroup,
+      })
+      .from(sitePages);
+
+  let rows;
+  try {
+    rows = await baseQuery().where(
+      and(eq(sitePages.published, true), eq(sitePages.unlisted, false)),
+    );
+  } catch (e) {
+    console.warn("[site.ts] loadPublishedSlugToHeaderGroup: unlisted filter pao, fallback", e);
+    rows = await baseQuery().where(eq(sitePages.published, true));
+  }
 
   const m = new Map<string, string>();
   for (const r of rows) {
@@ -183,21 +205,31 @@ async function loadPublishedSlugToHeaderGroup(): Promise<Map<string, string>> {
 async function loadPublishedPagesForFooterLocale(
   locale: Locale,
 ): Promise<FooterPageRow[]> {
-  const rows = await db
-    .select({
-      slug: sitePages.slug,
-      title: sitePageTranslations.title,
-      headerNavGroup: sitePages.headerNavGroup,
-    })
-    .from(sitePages)
-    .innerJoin(
-      sitePageTranslations,
-      and(
-        eq(sitePageTranslations.pageId, sitePages.id),
-        eq(sitePageTranslations.locale, locale),
-      ),
-    )
-    .where(and(eq(sitePages.published, true), eq(sitePages.unlisted, false)));
+  const baseQuery = () =>
+    db
+      .select({
+        slug: sitePages.slug,
+        title: sitePageTranslations.title,
+        headerNavGroup: sitePages.headerNavGroup,
+      })
+      .from(sitePages)
+      .innerJoin(
+        sitePageTranslations,
+        and(
+          eq(sitePageTranslations.pageId, sitePages.id),
+          eq(sitePageTranslations.locale, locale),
+        ),
+      );
+
+  let rows;
+  try {
+    rows = await baseQuery().where(
+      and(eq(sitePages.published, true), eq(sitePages.unlisted, false)),
+    );
+  } catch (e) {
+    console.warn("[site.ts] loadPublishedPagesForFooterLocale: unlisted filter pao, fallback", e);
+    rows = await baseQuery().where(eq(sitePages.published, true));
+  }
 
   const out: FooterPageRow[] = [];
   for (const r of rows) {

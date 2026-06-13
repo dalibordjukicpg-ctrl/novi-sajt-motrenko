@@ -86,6 +86,11 @@ spawnSync(process.execPath, ["scripts/ensure-admin-login-otp.cjs"], {
   cwd,
   env: process.env,
 });
+spawnSync(process.execPath, ["scripts/ensure-site-pages-unlisted.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
 
 let nextBin;
 try {

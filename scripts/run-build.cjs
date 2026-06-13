@@ -81,6 +81,21 @@ if (ensureAdminOtp.status !== 0) {
   );
 }
 
+const ensureSitePagesUnlisted = spawnSync(
+  process.execPath,
+  ["scripts/ensure-site-pages-unlisted.cjs"],
+  {
+    stdio: "inherit",
+    cwd,
+    env: process.env,
+  },
+);
+if (ensureSitePagesUnlisted.status !== 0) {
+  console.warn(
+    "[run-build] ensure-site-pages-unlisted nije uspio — javni header/footer query-ji mogu pucati dok se ne pokrene migracija 0023.",
+  );
+}
+
 let nextBin;
 try {
   nextBin = require.resolve("next/dist/bin/next");
