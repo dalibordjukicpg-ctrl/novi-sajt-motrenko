@@ -15,8 +15,8 @@ import { SITE_STRING_DEFAULTS } from "@/lib/site-fields";
 import type { HomeServiceCard } from "@/lib/queries/home-service-cards";
 import type { HomeTeamHighlight } from "@/lib/queries/home-team-highlights";
 
-/** Početna — ISR keš (layout ostaje dinamičan zbog maintenance / headers). */
-export const revalidate = 300;
+/** Početna — bez ISR keša (footer/CTA moraju odmah prati deploy). */
+export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ locale: string }> };
 

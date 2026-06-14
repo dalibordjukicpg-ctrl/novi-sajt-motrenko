@@ -1,10 +1,7 @@
-"use client";
-
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 
-import { FadeIn } from "@/components/site/fade-in";
 import { DEFAULT_HEADER_LOGO } from "@/lib/clinic-assets";
 import type { Locale } from "@/lib/i18n";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
@@ -114,7 +111,6 @@ export function SiteFooter({
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-transparent to-transparent" />
 
       <div className="mx-auto max-w-7xl px-6 lg:px-14">
-        <FadeIn>
           <div className="border-b border-site-line py-14 lg:py-16">
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-10 md:gap-y-12 lg:grid-cols-12 lg:items-start lg:gap-x-8 xl:gap-x-10">
               <FooterSection
@@ -259,7 +255,7 @@ export function SiteFooter({
                       </IconTile>
                       <span className="min-w-0">
                         <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                          Telefon 2
+                          Mobilni
                         </span>
                         <span className="font-medium text-zinc-900 transition group-hover:text-site-brand">
                           {secondaryPhone}
@@ -368,7 +364,6 @@ export function SiteFooter({
               </FooterSection>
             </div>
           </div>
-        </FadeIn>
 
         <div className="grid grid-cols-1 gap-6 py-8 text-[13px] leading-relaxed text-zinc-800 lg:grid-cols-3 lg:items-center lg:gap-8 lg:py-9">
           <p className="text-center lg:text-left">

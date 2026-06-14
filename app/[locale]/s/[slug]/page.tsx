@@ -20,10 +20,11 @@ import { resolvePublicHref } from "@/lib/resolve-public-href";
 import { stripTimPregledSection, isMeaningfulPublicHtml } from "@/lib/public-cms-html";
 import { getONamaInnerPageContext } from "@/lib/site-page-inner-layout";
 import { getServicePageSeo } from "@/lib/service-page-seo";
+import { formatBreadcrumbLabel } from "@/lib/breadcrumb-format";
 import { withCanonical } from "@/lib/page-metadata";
 
-/** CMS stranice — keširane između posjeta (layout i dalje dinamičan zbog maintenance). */
-export const revalidate = 300;
+/** Javne CMS stranice — bez ISR keša da deploy odmah bude vidljiv. */
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -127,7 +128,7 @@ export default async function SitePage({ params }: Props) {
     : getONamaInnerPageContext(raw, slug, navResolved);
   const homeCrumb = await getHomeBreadcrumbLabel(raw);
   const currentCrumb = {
-    label: page.title,
+    label: formatBreadcrumbLabel(page.title),
     href: `/${raw}/s/${slug}`,
     current: true as const,
   };
@@ -137,7 +138,10 @@ export default async function SitePage({ params }: Props) {
         { label: homeCrumb, href: `/${raw}` },
         ...(innerNav
           ? [
-              { label: innerNav.sectionLabel, href: innerNav.sectionHref },
+              {
+                label: formatBreadcrumbLabel(innerNav.sectionLabel),
+                href: innerNav.sectionHref,
+              },
               currentCrumb,
             ]
           : [currentCrumb]),

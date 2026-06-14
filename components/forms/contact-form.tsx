@@ -182,25 +182,20 @@ export function ContactForm({ locale, privacyHref, className }: Props) {
       <form className="relative mt-6 space-y-5" onSubmit={onSubmit} noValidate>
         <input type="hidden" {...register("locale")} />
 
-        {/* Antibot: skriveno polje — bez vidljivog teksta za korisnike i čitače ekrana. */}
-        <div
-          className="pointer-events-none absolute left-[-9999px] top-auto h-px w-px overflow-hidden opacity-0"
-          aria-hidden
+        {/* Antibot — potpuno skriveno (hidden + van tab reda + van SR stabla). */}
+        <input
+          ref={hpRef}
+          type="text"
+          name="form_hp_dummy"
+          hidden
           tabIndex={-1}
-        >
-          <input
-            ref={hpRef}
-            id="contact_form_hp_dummy"
-            name="form_hp_dummy"
-            type="text"
-            tabIndex={-1}
-            autoComplete="off"
-            data-1p-ignore
-            data-lpignore="true"
-            data-bwignore="true"
-            defaultValue=""
-          />
-        </div>
+          autoComplete="off"
+          aria-hidden
+          data-1p-ignore
+          data-lpignore="true"
+          data-bwignore="true"
+          defaultValue=""
+        />
 
         <div>
           <label htmlFor="contact_fullName" className={labelCls}>
