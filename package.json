@@ -29,6 +29,7 @@
     "db:dump": "node --env-file=.env scripts/dump-database.mjs",
     "sync": "node --env-file=.env scripts/sync-from-prod.mjs",
     "deploy": "node --env-file=.env scripts/deploy.mjs",
+    "verify:prod": "node scripts/verify-production.mjs",
     "import:wordpress": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/import-wordpress.ts",
     "import:wordpress:header-pages": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/import-wordpress.ts --only-header-and-pages",
     "migrate:wp-etl": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/migrate-wordpress-etl.ts",
