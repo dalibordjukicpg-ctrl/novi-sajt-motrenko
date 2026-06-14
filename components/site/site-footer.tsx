@@ -9,6 +9,7 @@ import { DEFAULT_HEADER_LOGO } from "@/lib/clinic-assets";
 import type { Locale } from "@/lib/i18n";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
 import { formatHoursDisplay } from "@/lib/format-hours-display";
+import { formatPhoneDisplay, telHrefMontenegro } from "@/lib/phone-format";
 import type { SiteStringKey } from "@/lib/site-fields";
 
 const CRAFTED_BY_HREF = "https://www.computer-doctor.me";
@@ -19,11 +20,6 @@ type Props = {
   footerContactHref?: string | null;
   logoUrl?: string | null;
 };
-
-function telHref(raw: string): string {
-  const digits = raw.replace(/[^\d+]/g, "");
-  return digits.startsWith("+") ? `tel:${digits}` : `tel:${digits}`;
-}
 
 const COL_TITLE =
   "mb-5 text-[11px] font-semibold uppercase leading-snug tracking-[0.22em] text-site-brand";
@@ -46,7 +42,7 @@ function IconTile({ children }: { children: ReactNode }) {
   );
 }
 
-function FooterAccordionSection({
+function FooterSection({
   title,
   children,
   className = "",
@@ -55,35 +51,11 @@ function FooterAccordionSection({
   children: ReactNode;
   className?: string;
 }) {
-  const summaryClasses = `${COL_TITLE} mb-0 list-none cursor-pointer px-4 py-4 [&::-webkit-details-marker]:hidden flex items-center justify-between gap-2`;
-  const bodyClasses =
-    "border-t border-site-line px-4 pb-4 pt-3 md:border-0 md:px-0 md:pb-0 md:pt-0";
-
   return (
-    <div className={className}>
-      <div className="hidden md:block">
-        <p className={COL_TITLE}>{title}</p>
-        {children}
-      </div>
-
-      <details className="group rounded-xl border border-site-border bg-site-card shadow-site-card md:hidden">
-        <summary className={summaryClasses}>
-          <span>{title}</span>
-          <span className="text-site-brand transition-transform group-open:rotate-180">
-            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
-              <path
-                d="M2 4l4 4 4-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
-        </summary>
-        <div className={bodyClasses}>{children}</div>
-      </details>
-    </div>
+    <section className={className}>
+      <h2 className={COL_TITLE}>{title}</h2>
+      {children}
+    </section>
   );
 }
 
@@ -123,8 +95,10 @@ export function SiteFooter({
   const mapsIsUrl =
     mapsHref.startsWith("http://") || mapsHref.startsWith("https://");
 
-  const primaryPhone = (s["contact.phone1"] ?? "").trim();
-  const secondaryPhone = (s["contact.phone2"] ?? "").trim();
+  const primaryPhone = formatPhoneDisplay((s["contact.phone1"] ?? "").trim());
+  const secondaryPhone = formatPhoneDisplay((s["contact.phone2"] ?? "").trim());
+  const primaryTel = telHrefMontenegro(s["contact.phone1"] ?? "");
+  const secondaryTel = telHrefMontenegro(s["contact.phone2"] ?? "");
   const email = (s["contact.email"] ?? "").trim();
   const address = (s["contact.address"] ?? "").trim();
   const tagline = (s["footer.tagline"] ?? "").trim();
@@ -143,7 +117,7 @@ export function SiteFooter({
         <FadeIn>
           <div className="border-b border-site-line py-14 lg:py-16">
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-10 md:gap-y-12 lg:grid-cols-12 lg:items-start lg:gap-x-8 xl:gap-x-10">
-              <FooterAccordionSection
+              <FooterSection
                 title={s["footer.hours_title"]}
                 className="md:min-w-0 lg:col-span-3"
               >
@@ -170,9 +144,9 @@ export function SiteFooter({
                     );
                   })}
                 </div>
-              </FooterAccordionSection>
+              </FooterSection>
 
-              <FooterAccordionSection
+              <FooterSection
                 title={s["footer.social_title"]}
                 className="md:min-w-0 lg:col-span-2"
               >
@@ -244,9 +218,9 @@ export function SiteFooter({
                     Unesite URL u adminu: Footer i kontakt → Društvene mreže.
                   </p>
                 )}
-              </FooterAccordionSection>
+              </FooterSection>
 
-              <FooterAccordionSection
+              <FooterSection
                 title={s["footer.col_contact"]}
                 className="md:min-w-0 lg:col-span-4"
               >
@@ -256,9 +230,9 @@ export function SiteFooter({
                   ) : null}
 
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  {primaryPhone ? (
+                  {primaryPhone && primaryTel ? (
                     <a
-                      href={telHref(primaryPhone)}
+                      href={primaryTel}
                       className="group flex items-start gap-3 text-[13px] transition-colors hover:text-site-brand"
                     >
                       <IconTile>
@@ -275,9 +249,9 @@ export function SiteFooter({
                     </a>
                   ) : null}
 
-                  {secondaryPhone && secondaryPhone !== primaryPhone ? (
+                  {secondaryPhone && secondaryPhone !== primaryPhone && secondaryTel ? (
                     <a
-                      href={telHref(secondaryPhone)}
+                      href={secondaryTel}
                       className="group flex items-start gap-3 text-[13px] transition-colors hover:text-site-brand"
                     >
                       <IconTile>
@@ -368,9 +342,9 @@ export function SiteFooter({
                     </Link>
                   </div>
                 </div>
-              </FooterAccordionSection>
+              </FooterSection>
 
-              <FooterAccordionSection
+              <FooterSection
                 title={s["footer.col_clinic"]}
                 className="md:min-w-0 md:col-span-2 lg:col-span-3"
               >
@@ -391,7 +365,7 @@ export function SiteFooter({
                     {s["footer.about_body"]}
                   </p>
                 </div>
-              </FooterAccordionSection>
+              </FooterSection>
             </div>
           </div>
         </FadeIn>

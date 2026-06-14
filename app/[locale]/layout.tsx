@@ -24,7 +24,7 @@ type Props = {
   params: Promise<{ locale: string }>;
 };
 
-export const dynamic = "force-dynamic";
+/** Layout koristi headers() za maintenance — ne treba eksplicitno force-dynamic. */
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale: raw } = await params;

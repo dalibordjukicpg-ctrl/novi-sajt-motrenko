@@ -179,12 +179,15 @@ export function ContactForm({ locale, privacyHref, className }: Props) {
         </p>
       ) : null}
 
-      <form className="mt-6 space-y-5" onSubmit={onSubmit} noValidate>
+      <form className="relative mt-6 space-y-5" onSubmit={onSubmit} noValidate>
         <input type="hidden" {...register("locale")} />
 
-        {/* Antibot: ne smije biti "website" — autofill menadžeri ga pune i API onda ne šalje mail. */}
-        <div className="sr-only" aria-hidden>
-          <label htmlFor="contact_form_hp_dummy">Ne popunjavati</label>
+        {/* Antibot: skriveno polje — bez vidljivog teksta za korisnike i čitače ekrana. */}
+        <div
+          className="pointer-events-none absolute left-[-9999px] top-auto h-px w-px overflow-hidden opacity-0"
+          aria-hidden
+          tabIndex={-1}
+        >
           <input
             ref={hpRef}
             id="contact_form_hp_dummy"

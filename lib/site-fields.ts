@@ -234,9 +234,9 @@ const ME_SITE_STRING_DEFAULTS = {
     "hero.rotate.1": "Savremena tehnologija i laboratorij",
     "hero.rotate.2": "Stručnjaci posvećeni vašem rezultatu",
     "hero.rotate.3": "Iskustvo na kojem možete računati",
-    "hero.rotate.4": "Njega i poverenje na prvom mjestu",
+    "hero.rotate.4": "Njega i povjerenje na prvom mjestu",
     "hero.subtitle":
-      "Napredna reproduktivna medicina za vašu porodicu. Individualizovan pristup i savremena oprema.",
+      "Napredna reproduktivna medicina za vašu porodicu. Individualiziran pristup i savremena oprema.",
     "hero.cta_primary": "Zakaži pregled",
     "hero.cta_secondary": "Naše usluge",
     "hero.cta_primary_href": "#kontakt",
@@ -281,7 +281,7 @@ const ME_SITE_STRING_DEFAULTS = {
     "team.m3.name": "Dr [Ime i prezime]",
     "team.m3.role": "Specijalista kliničke embriologije",
     "team.m4.name": "Dr [Ime i prezime]",
-    "team.m4.role": "Specijalistički saradnik",
+    "team.m4.role": "Specijalistički suradnik",
     "team.hl1.title": "Individualan pristup",
     "team.hl1.body": "Plan prilagođen vašim potrebama i tempu.",
     "team.hl2.title": "Savremena dijagnostika",
@@ -290,7 +290,7 @@ const ME_SITE_STRING_DEFAULTS = {
     "team.hl3.body": "Prostor osmišljen da se osjećate sigurno.",
 
     "footer.tagline":
-      "Posvećeni vašem zdravlju uz savremenu medicinsku njegu i individualizovan pristup od 2004. godine.",
+      "Posvećeni vašem zdravlju uz savremenu medicinsku njegu i individualiziran pristup od 2004. godine.",
     "footer.col_clinic": "O klinici",
     "footer.col_about_nav": "O nama",
     "footer.col_infertility": "Infertilitet i sterilitet",
@@ -312,11 +312,11 @@ const ME_SITE_STRING_DEFAULTS = {
     "footer.crafted": "DigitaL eXperience",
     "footer.crafted_by": "Computer Doctor Podgorica",
     "footer.privacy": "Politika privatnosti",
-    "footer.terms": "Uslovi korišćenja",
+    "footer.terms": "Uslovi korištenja",
     "footer.privacy_href": "/s/politika-privatnosti",
     "footer.terms_href": "/s/uslovi-koriscenja",
 
-    "contact.phone1": "+382 67 052 052",
+    "contact.phone1": "033 402 432",
     "contact.phone2": "067 052 052",
     "contact.email": "info@humanareprodukcija.com",
     "contact.address": "bb XVI Ulica, Budva 85310",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { absoluteSiteUrl } from "@/lib/site-url";
+import { locales } from "@/lib/i18n";
 import {
   getShareCopy,
   localeFromPublicPath,
@@ -26,6 +27,23 @@ function resolveDescription(
   return share?.ogDescription;
 }
 
+/** hreflang za /me, /en, /ru varijante iste putanje. */
+function buildLanguageAlternates(path: string): Record<string, string> | undefined {
+  const match = path.match(/^\/(me|en|ru)(\/.*)?$/);
+  if (!match) return undefined;
+  const suffix = match[2] ?? "";
+  const languages: Record<string, string> = {
+    "sr-ME": absoluteSiteUrl(`/me${suffix}`),
+    en: absoluteSiteUrl(`/en${suffix}`),
+    ru: absoluteSiteUrl(`/ru${suffix}`),
+    "x-default": absoluteSiteUrl(`/me${suffix}`),
+  };
+  for (const loc of locales) {
+    languages[loc] = absoluteSiteUrl(`/${loc}${suffix}`);
+  }
+  return languages;
+}
+
 /** Dodaje canonical, Open Graph i Twitter kartice za javne stranice. */
 export function withCanonical(path: string, meta: Metadata = {}): Metadata {
   const url = absoluteSiteUrl(path);
@@ -39,6 +57,8 @@ export function withCanonical(path: string, meta: Metadata = {}): Metadata {
   const ogLocale =
     locale != null ? openGraphLocaleTag(locale as Locale) : "sr_ME";
 
+  const languageAlternates = buildLanguageAlternates(path);
+
   return {
     ...meta,
     ...(title ? { title } : {}),
@@ -46,6 +66,7 @@ export function withCanonical(path: string, meta: Metadata = {}): Metadata {
     alternates: {
       ...meta.alternates,
       canonical: url,
+      ...(languageAlternates ? { languages: languageAlternates } : {}),
     },
     openGraph: {
       type: "website",

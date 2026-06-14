@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 export type PageHeroBreadcrumb = {
   label: string;
   href: string;
+  /** Trenutna stranica — bez linka (npr. Tim). */
+  current?: boolean;
 };
 
 type Props = {
@@ -52,21 +54,27 @@ export function PageHero({
           {breadcrumbs?.length ? (
             <nav
               aria-label="Putanja"
-              className="mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-site-brand sm:mb-6 sm:text-[11px] sm:tracking-[0.26em]"
+              className="mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium tracking-wide text-zinc-600 sm:mb-6"
             >
               {breadcrumbs.map((c, i) => (
-                <span key={`${c.href}-${c.label}`} className="flex items-center gap-2">
+                <span key={`${c.href}-${c.label}-${i}`} className="flex items-center gap-2">
                   {i > 0 ? (
-                    <span className="font-normal text-zinc-500" aria-hidden>
-                      &gt;
+                    <span className="text-zinc-400" aria-hidden>
+                      /
                     </span>
                   ) : null}
-                  <Link
-                    href={c.href}
-                    className="text-site-brand transition hover:text-site-brand-muted hover:underline"
-                  >
-                    {c.label}
-                  </Link>
+                  {c.current ? (
+                    <span className="text-zinc-900" aria-current="page">
+                      {c.label}
+                    </span>
+                  ) : (
+                    <Link
+                      href={c.href}
+                      className="text-site-brand transition hover:text-site-brand-muted hover:underline"
+                    >
+                      {c.label}
+                    </Link>
+                  )}
                 </span>
               ))}
             </nav>

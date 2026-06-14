@@ -55,7 +55,7 @@ export const LEGAL_PAGE_PRIVACY_BODY = `
 
 export const LEGAL_PAGE_TERMS_BODY = `
 <h2>1. Uvod</h2>
-<p>Ovim Uslovima korišćenja uređuje se korišćenje veb-sajta klinike (u daljem tekstu: „sajt“). Pristupanjem i korišćenjem sajta potvrđujete da ste pročitali i da se slažete sa ovim uslovima. Ako se ne slažete, molimo vas da ne koristite sajt.</p>
+<p>Ovim Uslovima korištenja uređuje se korištenje veb-sajta klinike (u daljem tekstu: „sajt“). Pristupanjem i korištenjem sajta potvrđujete da ste pročitali i da se slažete sa ovim uslovima. Ako se ne slažete, molimo vas da ne koristite sajt.</p>
 
 <h2>2. Informacioni karakter sadržaja</h2>
 <p>Sadržaj na sajtu (tekstovi, opisi usluga, članci) ima <strong>opšte informativni karakter</strong>. Ne predstavlja medicinski savjet, dijagnozu ili plan liječenja. Zdravstvene odluke donosite isključivo u dogovoru sa licenciranim liječnikom nakon pregleda.</p>
@@ -64,8 +64,8 @@ export const LEGAL_PAGE_TERMS_BODY = `
 <h2>3. Kontakt i rezervacije</h2>
 <p>Slanjem upita putem forme ili traženjem termina dajete tačne podatke u mjeri u kojoj su potrebni. Klinika će odgovoriti u razumnom roku, ali elektronska komunikacija ne garantuje trenutni odgovor. Zakazivanje termina zvanično je tek kada ga potvrdi klinika.</p>
 
-<h2>4. Zabranjena korišćenja</h2>
-<p>Zabranjeno je korišćenje sajta na način koji:</p>
+<h2>4. Zabranjena korištenja</h2>
+<p>Zabranjeno je korištenje sajta na način koji:</p>
 <ul>
   <li>krši zakon ili prava trećih lica;</li>
   <li>pokušava neovlašćeni pristup sistemima, podacima ili nalozima;</li>
@@ -77,13 +77,13 @@ export const LEGAL_PAGE_TERMS_BODY = `
 <p>Logotipi, tekstovi, fotografije, grafički elementi i raspored stranica zaštićeni su autorskim pravima i drugim pravima, osim ako je drugačije naznačeno. Zabranjena je reprodukcija, javno objavljivanje ili komercijalna upotreba bez prethodne pisane saglasnosti nosioca prava.</p>
 
 <h2>6. Linkovi ka trećim stranama</h2>
-<p>Sajt može sadržati linkove ka vanjskim sajtovima. Klinika nije odgovorna za sadržaj ili praksu privatnosti tih sajtova. Korišćenje je na vašu odgovornost.</p>
+<p>Sajt može sadržati linkove ka vanjskim sajtovima. Klinika nije odgovorna za sadržaj ili praksu privatnosti tih sajtova. Korištenje je na vašu odgovornost.</p>
 
 <h2>7. Ograničenje odgovornosti</h2>
-<p>Klinika polaže napor da informacije na sajtu budu tačne i ažurne, ali ne garantuje potpunost ni ažurnost u svakom trenutku. Sajt se koristi „kakav jeste“. U zakonom dopuštenom obimu, klinika ne snosi odgovornost za bilo kakvu štetu nastalu korišćenjem ili nemogućnošću korišćenja sajta.</p>
+<p>Klinika polaže napor da informacije na sajtu budu tačne i ažurne, ali ne garantuje potpunost ni ažurnost u svakom trenutku. Sajt se koristi „kakav jeste“. U zakonom dopuštenom obimu, klinika ne snosi odgovornost za bilo kakvu štetu nastalu korištenjem ili nemogućnošću korištenja sajta.</p>
 
 <h2>8. Izmene uslova</h2>
-<p>Klinika zadržava pravo da izmijeni ove Uslove korišćenja. Izmjene stupaju na snagu objavljivanjem na ovoj stranici. Nastavak korišćenja sajta nakon izmjena smatra se prihvatanjem novih uslova.</p>
+<p>Klinika zadržava pravo da izmijeni ove Uslove korištenja. Izmjene stupaju na snagu objavljivanjem na ovoj stranici. Nastavak korištenja sajta nakon izmjena smatra se prihvatanjem novih uslova.</p>
 
 <h2>9. Primjenjivo pravo</h2>
 <p>Na ove Uslove primjenjuju se propisi Republike Crne Gore, osim ako primjenljivo pravo ne nalaže drugačije. Sporovi se u prvom redu pokušavaju riješiti miroljubivim putem.</p>

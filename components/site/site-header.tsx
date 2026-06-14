@@ -19,6 +19,7 @@ import type { Locale } from "@/lib/i18n";
 import type { PublicNavItem } from "@/lib/queries/site";
 import { DEFAULT_HEADER_LOGO, HEADER_LOGO_PIXEL_HEIGHT, HEADER_LOGO_PIXEL_WIDTH } from "@/lib/clinic-assets";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
+import { formatPhoneDisplay, telHrefMontenegro } from "@/lib/phone-format";
 import type { SiteStringKey } from "@/lib/site-fields";
 import {
   looksLikeUslugeParent,
@@ -698,8 +699,8 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
     : `${ctaCompact} rounded-[3px] border border-white/75 bg-white/10 text-white transition hover:border-site-brand hover:bg-site-brand/20 hover:text-white`;
 
   const phoneRaw = (s["contact.phone1"] ?? "").trim();
-  const phoneLabel = phoneRaw;
-  const phoneHref = phoneRaw ? `tel:${phoneRaw.replace(/\s+/g, "")}` : "";
+  const phoneLabel = formatPhoneDisplay(phoneRaw);
+  const phoneHref = telHrefMontenegro(phoneRaw) ?? "";
 
   return (
     <header

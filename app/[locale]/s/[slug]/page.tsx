@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ContactForm } from "@/components/forms/contact-form";
+import { ContactPageCtas } from "@/components/site/contact-page-ctas";
 import { PageHero } from "@/components/site/page-hero";
 import { QuestionnaireEmbed } from "@/components/site/questionnaire-embed";
 import { SiteInnerSidebar } from "@/components/site/site-inner-sidebar";
@@ -13,13 +14,17 @@ import { FALLBACK_HEADER_NAV, resolveHeaderNav } from "@/lib/fallback-header-nav
 import { isLocale } from "@/lib/i18n";
 import { getPublishedSitePage } from "@/lib/queries/site-pages";
 import { listPublishedTeamSummaries } from "@/lib/queries/posts";
-import { getHomeBreadcrumbLabel, getSiteLayoutData } from "@/lib/queries/site";
+import { SITE_STRING_DEFAULTS, type SiteStringKey } from "@/lib/site-fields";
+import { getHomeBreadcrumbLabel, getSiteLayoutData, mergeSiteStrings } from "@/lib/queries/site";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
 import { stripTimPregledSection, isMeaningfulPublicHtml } from "@/lib/public-cms-html";
 import { getONamaInnerPageContext } from "@/lib/site-page-inner-layout";
+import { getServicePageSeo } from "@/lib/service-page-seo";
+import { filterPublishedTeamMembers } from "@/lib/team-profile-placeholders";
 import { withCanonical } from "@/lib/page-metadata";
 
-export const dynamic = "force-dynamic";
+/** CMS stranice — keširane između posjeta (layout i dalje dinamičan zbog maintenance). */
+export const revalidate = 300;
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -31,7 +36,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const page = await getPublishedSitePage(raw, slug);
     if (!page) return {};
-    const meta = withCanonical(`/${raw}/s/${slug}`, { title: page.title });
+    const seo = getServicePageSeo(raw, slug);
+    const meta = withCanonical(`/${raw}/s/${slug}`, {
+      title: seo?.title ?? page.title,
+      description: seo?.description,
+    });
     if (page.unlisted) {
       return {
         ...meta,
@@ -78,7 +87,9 @@ export default async function SitePage({ params }: Props) {
   const wantsTeamRoster = page.showTeamRoster ?? slug === "tim";
   if (wantsTeamRoster) {
     try {
-      teamRoster = await listPublishedTeamSummaries(raw);
+      teamRoster = filterPublishedTeamMembers(
+        await listPublishedTeamSummaries(raw),
+      );
     } catch (e) {
       console.error("[SitePage listPublishedTeamSummaries]", e);
     }
@@ -94,8 +105,13 @@ export default async function SitePage({ params }: Props) {
 
   let navResolved = await resolveHeaderNav(FALLBACK_HEADER_NAV, raw, {});
   let privacyHref = resolvePublicHref(raw, "/s/politika-privatnosti");
+  let contactStrings: Record<SiteStringKey, string> = mergeSiteStrings(
+    raw,
+    SITE_STRING_DEFAULTS[raw],
+  );
   try {
     const layout = await getSiteLayoutData(raw);
+    contactStrings = layout.s;
     navResolved = await resolveHeaderNav(
       layout.nav.length > 0 ? layout.nav : FALLBACK_HEADER_NAV,
       raw,
@@ -113,13 +129,21 @@ export default async function SitePage({ params }: Props) {
     ? null
     : getONamaInnerPageContext(raw, slug, navResolved);
   const homeCrumb = await getHomeBreadcrumbLabel(raw);
+  const currentCrumb = {
+    label: page.title,
+    href: `/${raw}/s/${slug}`,
+    current: true as const,
+  };
   const breadcrumbs = page.unlisted
-    ? [{ label: homeCrumb, href: `/${raw}` }]
+    ? [{ label: homeCrumb, href: `/${raw}` }, currentCrumb]
     : [
         { label: homeCrumb, href: `/${raw}` },
         ...(innerNav
-          ? [{ label: innerNav.sectionLabel.toUpperCase(), href: innerNav.sectionHref }]
-          : []),
+          ? [
+              { label: innerNav.sectionLabel, href: innerNav.sectionHref },
+              currentCrumb,
+            ]
+          : [currentCrumb]),
       ];
 
   const articleInner = page.unlisted
@@ -131,10 +155,7 @@ export default async function SitePage({ params }: Props) {
   if (slug === "kontakt") {
     return (
       <main className="min-h-screen w-full min-w-0 overflow-x-hidden bg-transparent">
-        <PageHero
-          backgroundImage={CLINIC_PAGE_HERO_BG}
-          breadcrumbs={[{ label: homeCrumb, href: `/${raw}` }]}
-        >
+        <PageHero backgroundImage={CLINIC_PAGE_HERO_BG} breadcrumbs={breadcrumbs}>
           <h1
             style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
             className="max-w-[95vw] text-[clamp(1.85rem,6.5vw,3.5rem)] font-light leading-[1.08] tracking-tight text-zinc-900 [text-shadow:0_1px_24px_rgba(255,255,255,0.9),0_0_1px_rgba(255,255,255,0.95)] sm:max-w-none sm:leading-[1.05]"
@@ -144,7 +165,11 @@ export default async function SitePage({ params }: Props) {
           <div className="mt-5 h-0.5 w-14 bg-site-brand sm:mt-6 sm:w-16" />
         </PageHero>
 
-        <div className="mx-auto w-full max-w-xl px-6 py-10 sm:py-12 lg:px-12">
+        <div
+          id="kontakt-forma"
+          className="mx-auto w-full max-w-3xl scroll-mt-28 px-6 py-10 sm:py-12 lg:px-12"
+        >
+          <ContactPageCtas locale={raw} s={contactStrings} />
           <ContactForm locale={raw} privacyHref={privacyHref} />
           <div className="mt-12">
             <Link

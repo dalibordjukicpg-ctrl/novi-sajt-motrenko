@@ -7,14 +7,8 @@ import { FadeIn } from "@/components/site/fade-in";
 import type { Locale } from "@/lib/i18n";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
 import { formatHoursDisplay } from "@/lib/format-hours-display";
+import { formatPhoneDisplay, telHrefMontenegro } from "@/lib/phone-format";
 import type { SiteStringKey } from "@/lib/site-fields";
-
-function telFromDisplay(phone: string): string | undefined {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length < 6) return undefined;
-  if (digits.startsWith("382")) return `tel:+${digits}`;
-  return `tel:+382${digits.replace(/^0+/, "")}`;
-}
 
 type Props = {
   locale: Locale;
@@ -33,8 +27,10 @@ export function HomeCtaMotrenko({
   headingLine1,
   headingLine2,
 }: Props) {
-  const href1 = telFromDisplay(s["contact.phone1"]);
-  const href2 = telFromDisplay(s["contact.phone2"]);
+  const href1 = telHrefMontenegro(s["contact.phone1"]);
+  const href2 = telHrefMontenegro(s["contact.phone2"]);
+  const display1 = formatPhoneDisplay(s["contact.phone1"]);
+  const display2 = formatPhoneDisplay(s["contact.phone2"]);
 
   return (
     <section
@@ -94,7 +90,7 @@ export function HomeCtaMotrenko({
                   href={href1}
                   className="transition-colors hover:text-site-brand"
                 >
-                  {s["contact.phone1"]}
+                  {display1}
                 </a>
               ) : null}
               {href2 ? (
@@ -102,7 +98,7 @@ export function HomeCtaMotrenko({
                   href={href2}
                   className="transition-colors hover:text-site-brand"
                 >
-                  {s["contact.phone2"]}
+                  {display2}
                 </a>
               ) : null}
             </div>
@@ -112,7 +108,7 @@ export function HomeCtaMotrenko({
             <BookingIntakeForm
               locale={locale}
               privacyHref={privacyHref}
-              callDisplay={s["contact.phone1"]}
+              callDisplay={display1}
               callHref={href1}
             />
           </div>

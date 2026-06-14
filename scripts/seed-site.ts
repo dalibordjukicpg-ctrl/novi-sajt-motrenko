@@ -266,7 +266,7 @@ async function seedLegalPages(): Promise<void> {
     },
     {
       slug: "uslovi-koriscenja",
-      title: "Uslovi korišćenja",
+      title: "Uslovi korištenja",
       body: LEGAL_PAGE_TERMS_BODY,
     },
   ] as const;
