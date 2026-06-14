@@ -1,5 +1,12 @@
-/** Mora biti isto kao lib/content-sync-secret.ts */
-export const CONTENT_SYNC_SECRET = "hrc-motrenko-content-sync-2026";
+/** Mora odgovarati lib/content-sync-secret.ts — čita CONTENT_SYNC_SECRET iz env. */
+export function getContentSyncSecret() {
+  const fromEnv = process.env.CONTENT_SYNC_SECRET?.trim();
+  if (fromEnv) return fromEnv;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("CONTENT_SYNC_SECRET nije postavljen u produkciji.");
+  }
+  return "dev-content-sync";
+}
 export const CONTENT_SYNC_API = "/api/sync/content";
 
 /** Produkcijski URL — isto kao lib/site-url.ts */
@@ -85,5 +92,5 @@ export function parseDbFromEnv() {
 
 export function prodConfig() {
   const url = (process.env.PROD_SITE_URL || PRODUCTION_SITE_URL).replace(/\/$/, "");
-  return { url, secret: CONTENT_SYNC_SECRET };
+  return { url, secret: getContentSyncSecret() };
 }

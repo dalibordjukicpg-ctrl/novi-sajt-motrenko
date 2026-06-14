@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
 import { buildLegacyWordPressRedirects } from "@/lib/legacy-wordpress-redirects";
+import { buildSecurityHeaders } from "@/lib/security-headers";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   images: {
     /**
      * Hostinger Node: sharp/optimizer često ruši proces (500/503).
@@ -23,22 +25,14 @@ const nextConfig: NextConfig = {
     "*.ngrok.io",
   ],
   /**
-   * Osnovni sigurnosni headeri za prezentacioni sajt + admin.
-   * (CSP po potrebi proširite okvirno po izvorima skripti koje ubacujete u CMS.)
+   * Globalni security headeri (HSTS u produkciji, CSP, frame deny, itd.).
    */
   async headers() {
+    const security = buildSecurityHeaders();
     return [
       {
         source: "/:path*",
-        headers: [
-          { key: "X-Frame-Options", value: "SAMEORIGIN" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-        ],
+        headers: security,
       },
     ];
   },

@@ -6,8 +6,13 @@ import {
   bookingAttachmentAbsPath,
   ensureBookingAttachmentsRootDir,
 } from "@/lib/booking-attachment-storage";
+import {
+  mimeMatchesExtension,
+  sniffUploadMime,
+} from "@/lib/file-upload-magic";
 import type { BookingAttachmentMeta } from "@/lib/validations/booking-attachments";
 import {
+  extOf,
   sanitizeBookingFilename,
   validateBookingAttachmentFiles,
 } from "@/lib/validations/booking-attachments";
@@ -23,22 +28,27 @@ export async function saveBookingAttachmentFiles(
   const out: BookingAttachmentMeta[] = [];
 
   for (const file of validated.files) {
+    const buf = Buffer.from(await file.arrayBuffer());
+    const ext = extOf(file.name || "dokument");
+    const sniffed = sniffUploadMime(buf);
+    if (!sniffed || !mimeMatchesExtension(ext, sniffed)) {
+      throw new Error("attachment rejected: mime mismatch");
+    }
+
     const id = randomUUID();
     const safeName = sanitizeBookingFilename(file.name || "dokument");
-    const ext = path.extname(safeName).slice(0, 12).toLowerCase();
     const storedName = `${id}${ext || ""}`;
     const storageKey = `booking-attachments/${requestId}/${storedName}`;
     const abs = bookingAttachmentAbsPath(storageKey);
     if (!abs) continue;
 
-    const buf = Buffer.from(await file.arrayBuffer());
     await mkdir(path.dirname(abs), { recursive: true });
     await writeFile(abs, buf);
 
     out.push({
       id,
       filename: safeName,
-      mimeType: file.type || "application/octet-stream",
+      mimeType: sniffed,
       size: buf.length,
       storageKey,
     });

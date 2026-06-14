@@ -1,6 +1,12 @@
 /**
  * Tajni ključ za sync sadržaja (lokal ↔ produkcija).
- * Ide kroz git deploy — ne treba ručno dodavati na Hostingeru.
- * Privatni repo; štiti samo CMS sadržaj (ne korisnike/lozinke).
+ * Postavi CONTENT_SYNC_SECRET u .env / Hostinger env — ne commituj stvarnu vrijednost.
  */
-export const CONTENT_SYNC_SECRET = "hrc-motrenko-content-sync-2026";
+export function getContentSyncSecret(): string {
+  const fromEnv = process.env.CONTENT_SYNC_SECRET?.trim();
+  if (fromEnv) return fromEnv;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("CONTENT_SYNC_SECRET nije postavljen u produkciji.");
+  }
+  return "dev-content-sync";
+}

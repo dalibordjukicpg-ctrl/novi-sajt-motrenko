@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { isAllowedPublicFormOrigin } from "@/lib/api-origin-guard";
+import { allowBookingSubmission } from "@/lib/booking-rate-limit";
 import { processBookingSubmission } from "@/lib/booking/process-booking-submission";
 
 export const runtime = "nodejs";
@@ -15,6 +17,25 @@ function clientIp(req: Request): string | null {
 }
 
 export async function POST(req: Request) {
+  if (!isAllowedPublicFormOrigin(req)) {
+    return NextResponse.json(
+      { ok: false, error: "Neispravan zahtjev." },
+      { status: 403 },
+    );
+  }
+
+  const ip = clientIp(req) ?? "unknown";
+  if (!allowBookingSubmission(ip)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Previše pokušaja u kratkom roku. Sačekajte minut pa pokušajte ponovo.",
+      },
+      { status: 429 },
+    );
+  }
+
   let formData: FormData;
   try {
     formData = await req.formData();

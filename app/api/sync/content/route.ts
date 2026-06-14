@@ -6,13 +6,19 @@
 import { createConnection } from "mysql2/promise";
 
 import { CONTENT_TABLE_NAMES, exportContentSql } from "@/lib/content-db-sync";
-import { CONTENT_SYNC_SECRET } from "@/lib/content-sync-secret";
+import { getContentSyncSecret } from "@/lib/content-sync-secret";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function checkSecret(req: Request): boolean {
-  return new URL(req.url).searchParams.get("secret") === CONTENT_SYNC_SECRET;
+  const secret = new URL(req.url).searchParams.get("secret");
+  if (!secret) return false;
+  try {
+    return secret === getContentSyncSecret();
+  } catch {
+    return false;
+  }
 }
 
 function parseDbUrl() {

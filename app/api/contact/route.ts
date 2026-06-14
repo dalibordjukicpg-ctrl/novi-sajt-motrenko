@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import { allowContactSubmission } from "@/lib/contact-rate-limit";
+import { isAllowedPublicFormOrigin } from "@/lib/api-origin-guard";
 import { db } from "@/lib/db";
 import { contactSubmissions } from "@/lib/db/schema";
 import {
@@ -60,6 +61,13 @@ type ErrorBody = {
 };
 
 export async function POST(req: Request) {
+  if (!isAllowedPublicFormOrigin(req)) {
+    return NextResponse.json<ErrorBody>(
+      { ok: false, error: "Neispravan zahtjev." },
+      { status: 403 },
+    );
+  }
+
   let json: unknown;
   try {
     json = await req.json();

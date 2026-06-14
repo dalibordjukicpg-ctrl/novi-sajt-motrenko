@@ -194,16 +194,14 @@ export function BookingIntakeForm({
       >
         <input type="hidden" name="locale" value={locale} />
 
-        <div className="sr-only" aria-hidden>
-          <label htmlFor="company_website">Website</label>
-          <input
-            id="company_website"
-            name="company_website"
-            type="text"
-            tabIndex={-1}
-            autoComplete="off"
-          />
-        </div>
+        <input
+          type="text"
+          name="company_website"
+          hidden
+          aria-hidden
+          tabIndex={-1}
+          autoComplete="off"
+        />
 
         <fieldset className="space-y-4">
           <legend className={cn(sectionTitleCls, "mb-1")}>
