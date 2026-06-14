@@ -47,6 +47,7 @@ export type BookingIntakeLabels = {
   attachmentsErrorTotalTooLarge: string;
   attachmentsErrorType: string;
   attachmentsErrorSave: string;
+  attachmentsDisabled: string;
   pdfAttachmentsNote: string;
   pdfMetaSubmitted: string;
   pdfMetaLanguage: string;
@@ -120,6 +121,8 @@ const ME: BookingIntakeLabels = {
   attachmentsErrorType: "Dozvoljeni formati: JPG, PNG, WEBP, PDF, DOC, DOCX.",
   attachmentsErrorSave:
     "Prilog nije sačuvan na serveru. Pokušajte bez fajla ili nas pozovite telefonom.",
+  attachmentsDisabled:
+    "Slanje medicinske dokumentacije putem forme trenutno nije dostupno. Pozovite nas telefonom.",
   pdfAttachmentsNote: "Prilozi pacijenta su u e-poruci uz PDF prijavnice.",
   pdfMetaSubmitted: "Datum slanja",
   pdfMetaLanguage: "Jezik forme",
@@ -192,6 +195,8 @@ const EN: BookingIntakeLabels = {
   attachmentsErrorType: "Allowed formats: JPG, PNG, WEBP, PDF, DOC, DOCX.",
   attachmentsErrorSave:
     "Could not save the attachment on the server. Try without a file or call us.",
+  attachmentsDisabled:
+    "Sending medical documents via the form is currently unavailable. Please call us.",
   pdfAttachmentsNote: "Patient files are attached to the email with the PDF form.",
   pdfMetaSubmitted: "Submitted at",
   pdfMetaLanguage: "Form language",
@@ -265,6 +270,8 @@ const RU: BookingIntakeLabels = {
   attachmentsErrorType: "Допустимые форматы: JPG, PNG, WEBP, PDF, DOC, DOCX.",
   attachmentsErrorSave:
     "Не удалось сохранить вложение на сервере. Попробуйте без файла или позвоните нам.",
+  attachmentsDisabled:
+    "Отправка медицинских документов через форму сейчас недоступна. Пожалуйста, позвоните нам.",
   pdfAttachmentsNote: "Файлы пациента приложены к письму вместе с PDF анкеты.",
   pdfMetaSubmitted: "Дата отправки",
   pdfMetaLanguage: "Язык формы",

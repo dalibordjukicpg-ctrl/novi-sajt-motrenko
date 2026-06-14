@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Calendar, FileUp, Phone } from "lucide-react";
+import { Calendar, Phone } from "lucide-react";
 
 import type { Locale } from "@/lib/i18n";
 import { formatPhoneDisplay, telHrefMontenegro } from "@/lib/phone-format";
@@ -13,28 +13,22 @@ type Props = {
 
 const LABELS: Record<
   Locale,
-  { call: string; book: string; bookHint: string; docs: string; docsHint: string }
+  { call: string; book: string; bookHint: string }
 > = {
   me: {
     call: "Pozovite odmah",
     book: "Zakažite pregled",
     bookHint: "Online prijava ili poziv klinike",
-    docs: "Pošaljite dokumentaciju",
-    docsHint: "Rezultati, nalazi i pitanja",
   },
   en: {
     call: "Call now",
     book: "Book appointment",
     bookHint: "Online form or call the clinic",
-    docs: "Send documentation",
-    docsHint: "Results, reports and questions",
   },
   ru: {
     call: "Позвонить",
     book: "Записаться на приём",
     bookHint: "Онлайн-форма или звонок в клинику",
-    docs: "Отправить документы",
-    docsHint: "Результаты, заключения и вопросы",
   },
 };
 
@@ -47,7 +41,7 @@ export function ContactPageCtas({ locale, s }: Props) {
   const bookHref = resolvePublicHref(locale, s["header.cta_book_href"] || "#kontakt-forma");
 
   return (
-    <div className="mb-8 grid gap-3 sm:grid-cols-3">
+    <div className="mb-8 grid gap-3 sm:grid-cols-2">
       {tel1 ? (
         <a
           href={tel1}
@@ -75,18 +69,6 @@ export function ContactPageCtas({ locale, s }: Props) {
         <span className="text-sm font-semibold text-neutral-900">{s["header.cta_book"]}</span>
         <span className="text-xs text-neutral-500">{labels.bookHint}</span>
       </Link>
-
-      <a
-        href="#kontakt-forma"
-        className="group flex flex-col gap-2 rounded-xl border border-[#f0e6dc] bg-white px-4 py-4 shadow-sm transition hover:border-[#f37021]/40 hover:shadow-md"
-      >
-        <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#f37021]">
-          <FileUp size={14} aria-hidden />
-          {labels.docs}
-        </span>
-        <span className="text-sm font-semibold text-neutral-900">Kontakt forma</span>
-        <span className="text-xs text-neutral-500">{labels.docsHint}</span>
-      </a>
     </div>
   );
 }

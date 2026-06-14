@@ -1,9 +1,8 @@
-"use client";
-
 import Link from "next/link";
 
 import { BookingIntakeForm } from "@/components/site/booking-intake-form";
 import { FadeIn } from "@/components/site/fade-in";
+import { isBookingAttachmentsEnabled } from "@/lib/booking/attachments-enabled";
 import type { Locale } from "@/lib/i18n";
 import { resolvePublicHref } from "@/lib/resolve-public-href";
 import { formatHoursDisplay } from "@/lib/format-hours-display";
@@ -110,6 +109,7 @@ export function HomeCtaMotrenko({
               privacyHref={privacyHref}
               callDisplay={display1}
               callHref={href1}
+              attachmentsEnabled={isBookingAttachmentsEnabled()}
             />
           </div>
         </FadeIn>

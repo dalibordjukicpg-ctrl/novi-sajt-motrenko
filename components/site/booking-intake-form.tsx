@@ -57,6 +57,7 @@ type Props = {
   privacyHref: string;
   callDisplay: string;
   callHref?: string;
+  attachmentsEnabled?: boolean;
 };
 
 export function BookingIntakeForm({
@@ -64,6 +65,7 @@ export function BookingIntakeForm({
   privacyHref,
   callDisplay,
   callHref,
+  attachmentsEnabled = false,
 }: Props) {
   const bookingLocale = locale as BookingFormLocale;
   const labels = useMemo(
@@ -143,8 +145,10 @@ export function BookingIntakeForm({
     try {
       const fd = new FormData(formRef.current);
       fd.delete("attachments");
-      for (const item of pickedAttachments) {
-        fd.append("attachments", item.file, item.file.name);
+      if (attachmentsEnabled) {
+        for (const item of pickedAttachments) {
+          fd.append("attachments", item.file, item.file.name);
+        }
       }
       const res = await fetch("/api/booking", {
         method: "POST",
@@ -381,91 +385,93 @@ export function BookingIntakeForm({
           </div>
         </fieldset>
 
-        <fieldset className="space-y-4 border-t border-neutral-100 pt-6">
-          <legend className={cn(sectionTitleCls, "mb-1")}>
-            {labels.sectionAttachments}
-          </legend>
+        {attachmentsEnabled ? (
+          <fieldset className="space-y-4 border-t border-neutral-100 pt-6">
+            <legend className={cn(sectionTitleCls, "mb-1")}>
+              {labels.sectionAttachments}
+            </legend>
 
-          <div>
-            <span className={labelCls}>{labels.attachmentsLabel}</span>
+            <div>
+              <span className={labelCls}>{labels.attachmentsLabel}</span>
 
-            <input
-              key={fileInputKey}
-              ref={attachmentsInputRef}
-              id="attachments"
-              name="attachments"
-              type="file"
-              multiple
-              accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,image/jpeg,image/png,image/webp,application/pdf"
-              className="sr-only"
-              onChange={(e) => handleAttachmentsChange(e.target.files)}
-            />
+              <input
+                key={fileInputKey}
+                ref={attachmentsInputRef}
+                id="attachments"
+                name="attachments"
+                type="file"
+                multiple
+                accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
+                className="sr-only"
+                onChange={(e) => handleAttachmentsChange(e.target.files)}
+              />
 
-            <div
-              className={cn(
-                "mt-1.5 rounded-md border border-neutral-200 bg-white p-3",
-                err("attachments") && "border-red-400",
-              )}
-            >
-              <button
-                type="button"
-                onClick={() => attachmentsInputRef.current?.click()}
-                className="inline-flex items-center gap-2 rounded-md bg-site-brand px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_8px_20px_-8px_rgba(243,112,33,0.55)] transition-colors hover:bg-site-brand-hover"
+              <div
+                className={cn(
+                  "mt-1.5 rounded-md border border-neutral-200 bg-white p-3",
+                  err("attachments") && "border-red-400",
+                )}
               >
-                <Upload className="h-4 w-4" aria-hidden />
-                {labels.attachmentsChoose}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => attachmentsInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 rounded-md bg-site-brand px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_8px_20px_-8px_rgba(243,112,33,0.55)] transition-colors hover:bg-site-brand-hover"
+                >
+                  <Upload className="h-4 w-4" aria-hidden />
+                  {labels.attachmentsChoose}
+                </button>
 
-              <p className="mt-2 text-xs leading-relaxed text-neutral-500">
-                {labels.attachmentsHint}
-              </p>
+                <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+                  {labels.attachmentsHint}
+                </p>
 
-              {pickedAttachments.length > 0 ? (
-                <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-                  {pickedAttachments.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex items-center gap-3 rounded-lg border border-site-brand/15 bg-site-surface-a/40 p-2"
-                    >
-                      {item.previewUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={item.previewUrl}
-                          alt=""
-                          className="h-14 w-14 shrink-0 rounded-md border border-white object-cover shadow-sm"
-                        />
-                      ) : (
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-site-brand/20 bg-white text-site-brand">
-                          <FileText className="h-6 w-6" aria-hidden />
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-medium text-neutral-800">
-                          {item.file.name}
-                        </p>
-                        <p className="text-[10px] text-neutral-500">
-                          {formatFileSize(item.file.size)}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeAttachment(item.id)}
-                        className="shrink-0 rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                        aria-label={`${labels.attachmentsRemove}: ${item.file.name}`}
+                {pickedAttachments.length > 0 ? (
+                  <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {pickedAttachments.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center gap-3 rounded-lg border border-site-brand/15 bg-site-surface-a/40 p-2"
                       >
-                        <X className="h-4 w-4" aria-hidden />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                        {item.previewUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={item.previewUrl}
+                            alt=""
+                            className="h-14 w-14 shrink-0 rounded-md border border-white object-cover shadow-sm"
+                          />
+                        ) : (
+                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-site-brand/20 bg-white text-site-brand">
+                            <FileText className="h-6 w-6" aria-hidden />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-medium text-neutral-800">
+                            {item.file.name}
+                          </p>
+                          <p className="text-[10px] text-neutral-500">
+                            {formatFileSize(item.file.size)}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(item.id)}
+                          className="shrink-0 rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                          aria-label={`${labels.attachmentsRemove}: ${item.file.name}`}
+                        >
+                          <X className="h-4 w-4" aria-hidden />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+
+              {err("attachments") ? (
+                <p className="mt-1 text-xs text-red-600">{err("attachments")}</p>
               ) : null}
             </div>
-
-            {err("attachments") ? (
-              <p className="mt-1 text-xs text-red-600">{err("attachments")}</p>
-            ) : null}
-          </div>
-        </fieldset>
+          </fieldset>
+        ) : null}
 
         <div className="border-t border-neutral-100 pt-5">
           <label className="flex items-start gap-3 text-xs leading-relaxed text-neutral-600">

@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 
 import { writeAuditLog } from "@/lib/auth";
 import { bookingAttachmentAbsPath } from "@/lib/booking-attachment-storage";
+import { isBookingAttachmentsEnabled } from "@/lib/booking/attachments-enabled";
 import { getBookingIntakeLabels, getBookingStaffDocumentLabels } from "@/lib/booking/intake-labels";
 import { saveBookingAttachmentFiles } from "@/lib/booking/save-booking-attachments";
 import { buildBookingEmailBody } from "@/lib/email/booking-email-body";
@@ -145,14 +146,27 @@ export async function processBookingSubmission(
   }
 
   const attachmentFiles = attachmentFilesFromFormData(formData);
-  const attachmentCheck = validateBookingAttachmentFiles(attachmentFiles);
-  if (!attachmentCheck.ok) {
+  const attachmentsEnabled = isBookingAttachmentsEnabled();
+
+  if (!attachmentsEnabled && attachmentFiles.length > 0) {
     return {
       error: labels.errorValidation,
-      fieldErrors: {
-        attachments: attachmentErrorLabel(attachmentCheck.error, labels),
-      },
+      fieldErrors: { attachments: labels.attachmentsDisabled },
     };
+  }
+
+  let attachmentCheck: ReturnType<typeof validateBookingAttachmentFiles> | null =
+    null;
+  if (attachmentsEnabled && attachmentFiles.length > 0) {
+    attachmentCheck = validateBookingAttachmentFiles(attachmentFiles);
+    if (!attachmentCheck.ok) {
+      return {
+        error: labels.errorValidation,
+        fieldErrors: {
+          attachments: attachmentErrorLabel(attachmentCheck.error, labels),
+        },
+      };
+    }
   }
 
   const data = parsed.data;
@@ -164,17 +178,20 @@ export async function processBookingSubmission(
 
   let savedAttachments: Awaited<ReturnType<typeof saveBookingAttachmentFiles>> =
     [];
-  try {
-    savedAttachments = await saveBookingAttachmentFiles(
-      id,
-      attachmentCheck.files,
-    );
-  } catch (e) {
-    console.error("[booking] attachments", e);
-    return {
-      error: labels.attachmentsErrorSave,
-      fieldErrors: { attachments: labels.attachmentsErrorSave },
-    };
+
+  if (attachmentsEnabled && attachmentCheck?.ok) {
+    try {
+      savedAttachments = await saveBookingAttachmentFiles(
+        id,
+        attachmentCheck.files,
+      );
+    } catch (e) {
+      console.error("[booking] attachments", e);
+      return {
+        error: labels.attachmentsErrorSave,
+        fieldErrors: { attachments: labels.attachmentsErrorSave },
+      };
+    }
   }
 
   const partnerAttending =
