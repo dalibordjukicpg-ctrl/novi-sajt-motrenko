@@ -5,13 +5,7 @@ import { CLINIC_PAGE_HERO_BG } from "@/lib/clinic-assets";
 import type { Locale } from "@/lib/i18n";
 import type { TeamMemberSummary } from "@/lib/queries/posts";
 import { splitFeaturedTeamMember } from "@/lib/team-roster-order";
-import { preparePublicPlainText } from "@/lib/public-cms-html";
-
-function plainExcerpt(htmlOrText: string | null, max = 180): string {
-  const t = preparePublicPlainText(htmlOrText);
-  if (!t) return "";
-  return t.length > max ? `${t.slice(0, max - 1)}…` : t;
-}
+import { resolveTeamCardExcerpt } from "@/lib/team-profile-placeholders";
 
 const CARD_MIN_H = "min-h-[260px]";
 
@@ -62,7 +56,7 @@ function FeaturedMemberCard({
   locale: Locale;
   m: TeamMemberSummary;
 }) {
-  const excerpt = plainExcerpt(m.excerpt, 320);
+  const excerpt = resolveTeamCardExcerpt(m, 320);
 
   return (
     <Link
@@ -112,7 +106,7 @@ function MemberCard({
   locale: Locale;
   m: TeamMemberSummary;
 }) {
-  const excerpt = plainExcerpt(m.excerpt);
+  const excerpt = resolveTeamCardExcerpt(m);
 
   return (
     <li className="flex h-full">

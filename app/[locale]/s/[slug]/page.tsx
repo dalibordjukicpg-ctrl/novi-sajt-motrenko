@@ -20,7 +20,6 @@ import { resolvePublicHref } from "@/lib/resolve-public-href";
 import { stripTimPregledSection, isMeaningfulPublicHtml } from "@/lib/public-cms-html";
 import { getONamaInnerPageContext } from "@/lib/site-page-inner-layout";
 import { getServicePageSeo } from "@/lib/service-page-seo";
-import { filterPublishedTeamMembers } from "@/lib/team-profile-placeholders";
 import { withCanonical } from "@/lib/page-metadata";
 
 /** CMS stranice — keširane između posjeta (layout i dalje dinamičan zbog maintenance). */
@@ -87,9 +86,7 @@ export default async function SitePage({ params }: Props) {
   const wantsTeamRoster = page.showTeamRoster ?? slug === "tim";
   if (wantsTeamRoster) {
     try {
-      teamRoster = filterPublishedTeamMembers(
-        await listPublishedTeamSummaries(raw),
-      );
+      teamRoster = await listPublishedTeamSummaries(raw);
     } catch (e) {
       console.error("[SitePage listPublishedTeamSummaries]", e);
     }
