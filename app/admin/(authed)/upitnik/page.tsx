@@ -153,11 +153,19 @@ export default async function UpitnikAdminPage({
 
       {/* Evidencija poslanih upitnika */}
       <section className="mb-6 rounded-2xl border border-[#e9dccb] bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
-          <Inbox size={16} className="text-[#e8682a]" />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[#5c4f44]">
-            Poslani upitnici
-          </h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Inbox size={16} className="text-[#e8682a]" />
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[#5c4f44]">
+              Poslani upitnici
+            </h2>
+          </div>
+          <Link
+            href={adminPath("upitnik/prijave")}
+            className="text-xs font-semibold text-[#c55a15] hover:underline"
+          >
+            Otvori punu arhivu →
+          </Link>
         </div>
         <p className="mb-4 text-xs text-[#8a7b6e] leading-relaxed">
           Svaki poslani upitnik se automatski čuva ovdje sa PDF arhivom — čak i ako email na{" "}
@@ -165,7 +173,15 @@ export default async function UpitnikAdminPage({
           štampu ili arhivu. Status kolone pokazuje da li je Resend prijavio uspješno slanje
           (zeleno) ili ne (crveno).
         </p>
-        <UpitnikSubmissionsTable rows={submissions} />
+        <UpitnikSubmissionsTable rows={submissions.slice(0, 10)} showDetailsLink />
+        {submissions.length > 10 ? (
+          <p className="mt-3 text-center text-xs text-[#8a7b6e]">
+            Prikazano 10 najnovijih.{" "}
+            <Link href={adminPath("upitnik/prijave")} className="font-semibold text-[#c55a15] hover:underline">
+              Vidi svih {submissions.length}+ u arhivi
+            </Link>
+          </p>
+        ) : null}
       </section>
 
       {/* Linkovi u sidebar — quick links */}

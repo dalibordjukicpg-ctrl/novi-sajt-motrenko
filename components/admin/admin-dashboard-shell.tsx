@@ -259,9 +259,18 @@ function SidebarNav({
         {navFlags.showGlobalSiteContent ? (
           <NavSection title="Upitnik" icon={<ClipboardList size={15} strokeWidth={2} />} tone="warm">
             <NavItem
+              href={adminPath("upitnik/prijave")}
+              label="Poslani upitnici (PDF arhiva)"
+              active={pathname.startsWith(adminPath("upitnik/prijave"))}
+              onNavigate={onNavigate}
+            />
+            <NavItem
               href={adminPath("upitnik")}
-              label="Upitnik za pacijente"
-              active={pathname.startsWith(adminPath("upitnik"))}
+              label="Podešavanja upitnika"
+              active={
+                pathname.startsWith(adminPath("upitnik")) &&
+                !pathname.startsWith(adminPath("upitnik/prijave"))
+              }
               onNavigate={onNavigate}
             />
           </NavSection>

@@ -113,7 +113,10 @@ export function buildQuestionnairePdfSections(
 
   sections.push(
     next(t.sections.s2, [
-      pair(`${t.f.relYears} / ${t.f.relMonths}`, `${str(d.veza_godine)} / ${str(d.veza_mjeseci)}`),
+      pair(
+        t.f.relDurationPdf ?? `${t.f.relYears} / ${t.f.relMonths}`,
+        `${str(d.veza_godine)} / ${str(d.veza_mjeseci)}`,
+      ),
       ynPair(
         t.f.pregInRel,
         d.trudnoca_veza,
@@ -122,7 +125,10 @@ export function buildQuestionnairePdfSections(
           : null,
         t,
       ),
-      pair(`${t.f.tryYears} / ${t.f.tryMonths}`, `${str(d.pokusaj_godine)} / ${str(d.pokusaj_mjeseci)}`),
+      pair(
+        t.f.tryDurationPdf ?? `${t.f.tryYears} / ${t.f.tryMonths}`,
+        `${str(d.pokusaj_godine)} / ${str(d.pokusaj_mjeseci)}`,
+      ),
       ynPair(
         t.f.diagYn,
         d.dijagnoza_yn,

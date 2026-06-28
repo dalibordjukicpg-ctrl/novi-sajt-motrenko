@@ -35,6 +35,10 @@ export type QuestionnaireI18n = {
     progress: string;          /* npr "{done} / {total} sekcija popunjeno" */
     requiredHint: string;      /* "* obavezna polja" */
     optional: string;
+    signatureTitle: string;
+    signatureHint: string;
+    signatureClear: string;
+    signaturePdfTitle: string;
   };
   /* Naslovi sekcija */
   sections: {
@@ -135,6 +139,11 @@ const ME: QuestionnaireI18n = {
     progress: "{done} / {total} sekcija popunjeno",
     requiredHint: "* označava obavezna polja",
     optional: "(opcionalno)",
+    signatureTitle: "Potpis",
+    signatureHint:
+      "Potpišite prstom ili olovkom na tabletu u okvir ispod. Potpis se čuva u PDF-u upitnika u originalnom obliku.",
+    signatureClear: "Obriši potpis",
+    signaturePdfTitle: "Potpis pacijenta",
   },
   sections: {
     s1: "DIO 1 — Informacije o pacijentu",
@@ -185,19 +194,22 @@ const ME: QuestionnaireI18n = {
     prefComm: "Preferirani način komunikacije",
     mainContact: "Glavna osoba za kontakt",
     relYears: "Koliko dugo ste u vezi/braku? (godine)",
-    relMonths: "Koliko dugo ste u vezi/braku? (mjeseci)",
+    relMonths: "(mjeseci)",
+    relDurationPdf: "Koliko dugo ste u vezi/braku? (godine / mjeseci)",
     pregInRel: "Da li ste ikada bili trudni tokom ove veze?",
     pregCount: "Koliko puta?",
     pregTerm: "Koliko završeno terminskim porođajem?",
     tryYears: "Koliko dugo pokušavate zatrudnjeti? (godine)",
-    tryMonths: "Koliko dugo pokušavate zatrudnjeti? (mjeseci)",
+    tryMonths: "(mjeseci)",
+    tryDurationPdf: "Koliko dugo pokušavate zatrudnjeti? (godine / mjeseci)",
     diagYn: "Da li vam je dato medicinsko objašnjenje za infertilitet?",
     diagFactor: "Faktor",
     diagText: "Dijagnoza",
     diagYear: "Godina dijagnoze",
     artYn: "Da li ste pokušavali ART (IUI, IVF)?",
     artDetails: "Kratko objasnite (tip tretmana, koje godine, koliko pokušaja, klinika)",
-    frozenYn: "Da li imate zamrznuti materijal (embrioni, jajne ćelije, spermatozoidi)?",
+    frozenYn:
+      "Da li imate biološki zamrznuti materijal (embrioni, jajne ćelije, spermatozoidi, ovarijalno ili testikularno tkivo)?",
     frozenDetails: "Navedite",
     frozenTransport: "Želite transportovati u našu kliniku?",
 
@@ -261,7 +273,7 @@ const ME: QuestionnaireI18n = {
     pregNG: "Nedjelja gestacije (NG)",
 
     artYesYn: "Da li ste imali ART tretmane (IUI, IVF, ICSI, donacija jajnih ćelija/embriona)?",
-    surrogateYn: "Da li ste učestvovali u surogat programima?",
+    surrogateYn: "Da li ste učestvovali u donacijama kao davalac ćelija?",
     artDate: "Datum",
     artType: "Tip tretmana",
     artProtocol: "Protokol hormonske stimulacije",
@@ -427,6 +439,11 @@ const EN: QuestionnaireI18n = {
     progress: "{done} / {total} sections completed",
     requiredHint: "* indicates required fields",
     optional: "(optional)",
+    signatureTitle: "Signature",
+    signatureHint:
+      "Sign with your finger or stylus in the box below. Your signature will be saved in the questionnaire PDF as drawn.",
+    signatureClear: "Clear signature",
+    signaturePdfTitle: "Patient signature",
   },
   sections: {
     s1: "PART 1 — Patient information",
@@ -477,19 +494,22 @@ const EN: QuestionnaireI18n = {
     prefComm: "Preferred communication channel",
     mainContact: "Main contact person",
     relYears: "How long have you been in a relationship/married? (years)",
-    relMonths: "How long have you been in a relationship/married? (months)",
+    relMonths: "(months)",
+    relDurationPdf: "How long have you been in a relationship/married? (years / months)",
     pregInRel: "Have you ever been pregnant during this relationship?",
     pregCount: "How many times?",
     pregTerm: "How many ended in full-term delivery?",
     tryYears: "How long have you been trying to conceive? (years)",
-    tryMonths: "How long have you been trying to conceive? (months)",
+    tryMonths: "(months)",
+    tryDurationPdf: "How long have you been trying to conceive? (years / months)",
     diagYn: "Have you ever been given a medical explanation for infertility?",
     diagFactor: "Factor",
     diagText: "Diagnosis",
     diagYear: "Year of diagnosis",
     artYn: "Have you attempted ART (IUI, IVF)?",
     artDetails: "Briefly explain (type, year, attempts, clinic)",
-    frozenYn: "Do you have frozen material (embryos, eggs, sperm)?",
+    frozenYn:
+      "Do you have biologically frozen material (embryos, eggs, sperm, ovarian or testicular tissue)?",
     frozenDetails: "Please specify",
     frozenTransport: "Would you like to transfer it to our clinic?",
 
@@ -553,7 +573,7 @@ const EN: QuestionnaireI18n = {
     pregNG: "Gestational weeks (GW)",
 
     artYesYn: "Have you had ART treatments (IUI, IVF, ICSI, egg/embryo donation)?",
-    surrogateYn: "Have you participated in surrogacy programs?",
+    surrogateYn: "Have you participated in cell donation as a donor?",
     artDate: "Date",
     artType: "Treatment type",
     artProtocol: "Hormone stimulation protocol",

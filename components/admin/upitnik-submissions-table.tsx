@@ -1,5 +1,6 @@
-import { Download, MailCheck, MailX } from "lucide-react";
+import { Download, ExternalLink, MailCheck, MailX } from "lucide-react";
 
+import { adminPath } from "@/lib/admin-base-path";
 import type { listQuestionnaireSubmissionsForAdmin } from "@/lib/queries/questionnaire-submissions-admin";
 
 type Row = Awaited<ReturnType<typeof listQuestionnaireSubmissionsForAdmin>>[number];
@@ -39,9 +40,10 @@ function EmailFlag({ ok, label }: { ok: boolean; label: string }) {
 
 type Props = {
   rows: Row[];
+  showDetailsLink?: boolean;
 };
 
-export function UpitnikSubmissionsTable({ rows }: Props) {
+export function UpitnikSubmissionsTable({ rows, showDetailsLink = false }: Props) {
   return (
     <div className="overflow-x-auto rounded-xl border border-[#f0e6dc] bg-white text-sm">
       <table className="min-w-full divide-y divide-[#f0e6dc] text-left">
@@ -53,12 +55,13 @@ export function UpitnikSubmissionsTable({ rows }: Props) {
             <th className="px-3 py-2">Kontakt</th>
             <th className="px-3 py-2">Email status</th>
             <th className="px-3 py-2">PDF</th>
+            {showDetailsLink ? <th className="px-3 py-2">Detalji</th> : null}
           </tr>
         </thead>
         <tbody className="divide-y divide-[#f0e6dc]">
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-3 py-8 text-center text-[#8a7b6e]">
+              <td colSpan={showDetailsLink ? 7 : 6} className="px-3 py-8 text-center text-[#8a7b6e]">
                 Još nema poslanih upitnika. Kada pacijent pošalje formu, ovdje će se
                 pojaviti zapis sa PDF arhivom.
               </td>
@@ -130,6 +133,17 @@ export function UpitnikSubmissionsTable({ rows }: Props) {
                     {formatBytes(r.pdfSizeBytes)}
                   </div>
                 </td>
+                {showDetailsLink ? (
+                  <td className="whitespace-nowrap px-3 py-2">
+                    <a
+                      href={adminPath(`upitnik/prijave/${r.id}`)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#c55a15] hover:underline"
+                    >
+                      <ExternalLink size={12} />
+                      Otvori
+                    </a>
+                  </td>
+                ) : null}
               </tr>
             ))
           )}

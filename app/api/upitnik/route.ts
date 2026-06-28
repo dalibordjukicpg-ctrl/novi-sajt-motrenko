@@ -18,11 +18,12 @@ import {
 import { generateQuestionnairePdf } from "@/lib/pdf/generate-questionnaire-pdf";
 import { questionnairePdfAttachmentName } from "@/lib/pdf/pdf-filenames";
 import { getQuestionnaireI18n } from "@/lib/questionnaire-i18n";
+import { normalizeQuestionnaireSignatureField } from "@/lib/questionnaire/parse-signature-png";
+import { questionnairePdfBranding } from "@/lib/questionnaire/questionnaire-pdf-branding";
 import {
   saveQuestionnaireSubmission,
   updateQuestionnaireSubmissionEmailFlags,
 } from "@/lib/questionnaire/save-questionnaire-submission";
-import { getSiteUrl, PRODUCTION_SITE_URL } from "@/lib/site-url";
 
 export const runtime = "nodejs";
 
@@ -37,21 +38,6 @@ function getClientIp(h: Headers): string {
 
 /** Email klinici uvijek na crnogorskom (labelama i sadržajem). */
 const STAFF_EMAIL_LOCALE: Locale = "me";
-
-function questionnaireBranding() {
-  const siteUrl = getSiteUrl();
-  const addr = process.env.CONTACT_PDF_CLINIC_ADDRESS?.trim();
-  const notify = resolveUpitnikNotifyInbox();
-  return {
-    clinicName:
-      process.env.CONTACT_PDF_CLINIC_NAME?.trim() ||
-      "Human Reproduction Center",
-    clinicEmail:
-      process.env.CONTACT_PDF_CLINIC_EMAIL?.trim() || notify,
-    clinicWeb: siteUrl || PRODUCTION_SITE_URL,
-    clinicAddress: addr && addr.length > 0 ? addr : undefined,
-  };
-}
 
 /** Heuristika: vrijednost je slobodan tekst koji ima smisla prevoditi. */
 function isFreeText(v: unknown): v is string {
@@ -70,6 +56,7 @@ function isFreeText(v: unknown): v is string {
 /** Polja koja se ne prevode (ime, kontakt — ostaju original). */
 const SKIP_TRANSLATE_KEYS = new Set([
   "_locale",
+  "potpis_png",
   "z_ime",
   "m_ime",
   "z_email",
@@ -141,6 +128,8 @@ export async function POST(req: Request): Promise<Response> {
   const rawLocale = typeof data._locale === "string" ? data._locale : "me";
   const submissionLocale: Locale = isLocale(rawLocale) ? rawLocale : "me";
 
+  normalizeQuestionnaireSignatureField(data);
+
   if (submissionLocale === "en" || submissionLocale === "ru") {
     if (isFormPatientTranslationEnabled()) {
       await translatePatientData(data, submissionLocale);
@@ -174,7 +163,7 @@ export async function POST(req: Request): Promise<Response> {
     : "";
 
   const submittedAt = new Date();
-  const branding = questionnaireBranding();
+  const branding = questionnairePdfBranding();
   const toClinic = resolveUpitnikNotifyInbox();
   const subject = `${tStaff.email.subjectPrefix} ${femaleNameStaff} — ${submittedAt.toLocaleDateString("sr-ME")}${langTag}`;
 

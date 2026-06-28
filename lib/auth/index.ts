@@ -6,6 +6,7 @@ export {
   createSession,
   destroySession,
   getSession,
+  revokeSessionFromCookie,
   SESSION_COOKIE_NAME,
   isLikelyValidSessionCookieShape,
 } from "./session";

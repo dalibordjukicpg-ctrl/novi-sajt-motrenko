@@ -4,10 +4,10 @@ import { redirect } from "next/navigation";
 import { AdminDashboardShell } from "@/components/admin/admin-dashboard-shell";
 import { adminPath } from "@/lib/admin-base-path";
 import {
-  destroySession,
   getSession,
   hasPermission,
   PERMISSIONS,
+  revokeSessionFromCookie,
 } from "@/lib/auth";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/constants";
 import {
@@ -52,8 +52,9 @@ export default async function AdminAuthedLayout({
 
   if (!session) {
     const store = await cookies();
-    if (store.get(SESSION_COOKIE_NAME)?.value) {
-      await destroySession();
+    const raw = store.get(SESSION_COOKIE_NAME)?.value;
+    if (raw) {
+      await revokeSessionFromCookie(raw);
     }
     redirect(adminPath("login"));
   }

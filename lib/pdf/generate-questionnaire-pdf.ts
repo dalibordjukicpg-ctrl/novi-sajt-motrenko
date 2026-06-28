@@ -12,9 +12,11 @@ import {
   drawFlowSections,
   drawFootersAllPages,
   drawPdfHeader,
+  drawQuestionnaireSignature,
   QUESTIONNAIRE_FLOW,
   type PdfBranding,
 } from "./pdf-layout";
+import { parseQuestionnaireSignaturePng } from "@/lib/questionnaire/parse-signature-png";
 
 export type QuestionnairePdfPayload = {
   submittedAt: Date;
@@ -55,6 +57,12 @@ export async function generateQuestionnairePdf(
   });
 
   drawFlowSections(doc, buildQuestionnairePdfSections(payload.data, t), QUESTIONNAIRE_FLOW);
+
+  const signaturePng = parseQuestionnaireSignaturePng(payload.data.potpis_png);
+  if (signaturePng) {
+    drawQuestionnaireSignature(doc, signaturePng, t.ui.signaturePdfTitle);
+  }
+
   drawFootersAllPages(doc, branding);
   doc.end();
   return pdfPromise;

@@ -3,6 +3,8 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { ChevronDown, ChevronUp, Plus, Trash2, Send, CheckCircle, Loader2, AlertCircle, Check } from "lucide-react";
 
+import { SignaturePad } from "@/components/forms/signature-pad";
+
 import type { Locale } from "@/lib/i18n";
 import type { QuestionnaireI18n } from "@/lib/questionnaire-i18n";
 
@@ -230,6 +232,8 @@ export function QuestionnaireForm({ locale, t }: Props) {
   const [mLijekovi, setMLijekovi] = useState<Row[]>([]);
   const [zOperacije, setZOperacije] = useState<Row[]>([]);
   const [mOperacije, setMOperacije] = useState<Row[]>([]);
+  const [signaturePng, setSignaturePng] = useState("");
+  const [signatureHasInk, setSignatureHasInk] = useState(false);
 
   // Section completion tracking based on key fields per section
   const SECTION_KEYS: Record<string, string[]> = useMemo(
@@ -279,7 +283,7 @@ export function QuestionnaireForm({ locale, t }: Props) {
     setStatus("loading");
     setErrorMsg("");
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         ...d,
         z_trudnoce: zTrudnoce,
         z_art_tretmani: zArtTretmani,
@@ -289,6 +293,9 @@ export function QuestionnaireForm({ locale, t }: Props) {
         m_operacije: mOperacije,
         _locale: locale,
       };
+      if (signatureHasInk && signaturePng) {
+        payload.potpis_png = signaturePng;
+      }
       const res = await fetch("/api/upitnik", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -986,6 +993,20 @@ export function QuestionnaireForm({ locale, t }: Props) {
           {errorMsg}
         </div>
       )}
+
+      <div className="mt-8 rounded-2xl border border-neutral-100 bg-white p-4 sm:p-6 shadow-sm">
+        <SignaturePad
+          title={t.ui.signatureTitle}
+          hint={t.ui.signatureHint}
+          clearLabel={t.ui.signatureClear}
+          optionalLabel={t.ui.optional}
+          value={signaturePng}
+          onChange={(dataUrl, hasInk) => {
+            setSignaturePng(dataUrl);
+            setSignatureHasInk(hasInk);
+          }}
+        />
+      </div>
 
       {/* Consent text (visible inline) */}
       <p className="text-xs text-neutral-400 mt-8 mb-4 text-center px-2">{t.ui.consent}</p>

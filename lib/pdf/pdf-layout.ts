@@ -799,6 +799,56 @@ export function drawFlowSections(
   doc.y = y;
 }
 
+/** Potpis pacijenta — PNG u originalnom obliku na dnu PDF-a upitnika. */
+export function drawQuestionnaireSignature(
+  doc: InstanceType<typeof PDFDocument>,
+  pngBuffer: Buffer,
+  title: string,
+): void {
+  const left = PDF_MARGINS.left;
+  const right = doc.page.width - PDF_MARGINS.right;
+  const width = right - left;
+  const titleH = mm(8);
+  const sigH = mm(32);
+  const gap = mm(2.5);
+  const blockH = titleH + gap + sigH + mm(6);
+  const bottom = contentBottomLimit(doc);
+
+  let y = doc.y + mm(4);
+  if (y + blockH > bottom) {
+    doc.addPage();
+    y = doc.page.margins.top;
+  }
+
+  doc.save();
+  doc.rect(left, y, width, titleH).fill(PDF_BRAND_ORANGE);
+  doc
+    .fillColor("#ffffff")
+    .font(fontBold(doc))
+    .fontSize(9)
+    .text(title, left + mm(3), y + mm(2.2), {
+      width: width - mm(6),
+      lineBreak: false,
+    });
+  doc.restore();
+
+  y += titleH + gap;
+  const pad = mm(2);
+  doc
+    .rect(left, y, width, sigH)
+    .lineWidth(0.6)
+    .strokeColor("#d4ccc4")
+    .stroke();
+
+  doc.image(pngBuffer, left + pad, y + pad, {
+    fit: [width - pad * 2, sigH - pad * 2],
+    align: "center",
+    valign: "center",
+  });
+
+  doc.y = y + sigH + mm(4);
+}
+
 export function assertSinglePdfPage(doc: InstanceType<typeof PDFDocument>): void {
   const range = doc.bufferedPageRange();
   if (range.count > 1) {

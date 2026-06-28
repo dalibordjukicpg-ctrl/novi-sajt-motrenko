@@ -85,25 +85,36 @@ export async function createSession(userId: string): Promise<void> {
   });
 }
 
+async function revokeSessionInDatabase(raw: string | undefined): Promise<void> {
+  const parsed = parseSessionCookie(raw);
+  if (!parsed) return;
+
+  const expectedHash = hashOpaqueToken(parsed.secretHex);
+  if (!expectedHash) return;
+
+  await db
+    .update(authSessions)
+    .set({ revokedAt: new Date() })
+    .where(
+      and(
+        eq(authSessions.id, parsed.sessionId),
+        eq(authSessions.tokenHash, expectedHash),
+        isNull(authSessions.revokedAt),
+      ),
+    );
+}
+
+/** Opozovi sesiju u bazi — bez mijenjanja cookie-a (sigurno u RSC layoutu). */
+export async function revokeSessionFromCookie(
+  raw: string | undefined,
+): Promise<void> {
+  await revokeSessionInDatabase(raw);
+}
+
 export async function destroySession(): Promise<void> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  const parsed = parseSessionCookie(raw);
-  if (parsed) {
-    const expectedHash = hashOpaqueToken(parsed.secretHex);
-    if (expectedHash) {
-      await db
-        .update(authSessions)
-        .set({ revokedAt: new Date() })
-        .where(
-          and(
-            eq(authSessions.id, parsed.sessionId),
-            eq(authSessions.tokenHash, expectedHash),
-            isNull(authSessions.revokedAt),
-          ),
-        );
-    }
-  }
+  await revokeSessionInDatabase(raw);
   cookieStore.delete(SESSION_COOKIE_NAME);
 }
 
