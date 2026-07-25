@@ -192,8 +192,8 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
     <div ref={ref} className="h-full">
       <article
         className={[
-          "group relative flex overflow-hidden rounded-[1.15rem] md:block md:rounded-2xl lg:rounded-[1.35rem]",
-          "h-[10rem] md:h-[14rem] lg:h-full lg:min-h-[12.5rem]",
+          "group relative flex flex-col overflow-hidden rounded-[1.15rem] md:block md:rounded-2xl lg:rounded-[1.35rem]",
+          "md:h-[14rem] lg:h-full lg:min-h-[12.5rem]",
           "bg-[#fffaf6] md:bg-[#3d2a1f]",
           "ring-1 ring-[rgb(var(--site-brand-rgb)/0.12)] md:ring-white/15",
           "shadow-[0_2px_0_rgba(255,255,255,0.95)_inset,0_14px_36px_-10px_rgba(28,18,10,0.1),0_4px_14px_rgb(var(--site-brand-rgb)/0.08)]",
@@ -204,19 +204,32 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
         ].join(" ")}
         style={{ transitionDelay: `${delay}ms` }}
       >
-        {/* Mobil: premium panel lijevo */}
+        {/* Mobil: slika kao gornji dio kartice (cover, bez prepolovljenih traka) */}
+        <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-[#f3ebe4] md:hidden">
+          <StatCardBg
+            src={stat.bgImage}
+            position={stat.bgPosition ?? "center center"}
+            fit="cover"
+          />
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3"
+            style={{
+              background:
+                "linear-gradient(to top, rgb(255 250 246 / 0.92) 0%, transparent 100%)",
+            }}
+          />
+        </div>
+
+        {/* Mobil: tekst ispod slike — cijela širina kartice */}
         <div
-          className="relative z-10 flex h-full w-[44%] shrink-0 flex-col justify-center gap-2 border-r border-[rgb(var(--site-brand-rgb)/0.08)] px-3.5 py-3 text-left md:hidden"
+          className="relative z-10 flex w-full flex-col gap-2.5 px-4 pb-4 pt-3 text-left md:hidden"
           style={{
             background:
-              "linear-gradient(145deg, rgb(255 255 255 / 0.98) 0%, rgb(255 252 248 / 0.96) 50%, rgb(255 246 238 / 0.94) 100%)",
-            boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,0.98), 6px 0 28px -12px rgba(28,18,10,0.1)",
+              "linear-gradient(180deg, rgb(255 250 246 / 0.98) 0%, rgb(255 252 248 / 1) 100%)",
           }}
         >
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[rgb(var(--site-brand-rgb)/0.32)] to-transparent" />
-          <StatPremiumIcon variant="light">{icon}</StatPremiumIcon>
-          <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <StatPremiumIcon variant="light">{icon}</StatPremiumIcon>
             <StatValue
               compact
               light
@@ -224,26 +237,10 @@ function StatItem({ stat, delay, index }: { stat: HomeStatItem; delay: number; i
               count={count}
               suffix={suffix}
             />
-            <p className="mt-1.5 text-[10.5px] font-medium leading-snug text-site-muted/90">
-              {stat.label}
-            </p>
           </div>
-        </div>
-
-        {/* Mobil: cijela slika desno */}
-        <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#f3ebe4] md:hidden">
-          <StatCardBg
-            src={stat.bgImage}
-            position={stat.bgPosition ?? "center center"}
-            fit="contain"
-          />
-          <div
-            className="pointer-events-none absolute inset-y-0 left-0 w-[16%]"
-            style={{
-              background:
-                "linear-gradient(to right, rgb(255 252 248 / 0.45) 0%, transparent 100%)",
-            }}
-          />
+          <p className="text-[12px] font-medium leading-snug text-site-muted">
+            {stat.label}
+          </p>
         </div>
 
         <div className="pointer-events-none absolute inset-0 hidden md:block" aria-hidden>
