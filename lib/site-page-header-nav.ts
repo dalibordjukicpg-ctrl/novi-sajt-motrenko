@@ -172,6 +172,19 @@ export function looksLikeBlogNavRoot(item: PublicNavItem): boolean {
   return false;
 }
 
+/** „Virtuelna tura“ / „Virtual tour“ / „Виртуальный тур“ → /s/virtuelna-tura. */
+export function looksLikeVirtualTourNavRoot(item: PublicNavItem): boolean {
+  const L = normNavLabel(item.label);
+  if (/\bvirtu[ae]lna tura\b/.test(L)) return true;
+  if (/\bvirtual tour\b/.test(L)) return true;
+  if (/\bвиртуальный тур\b/.test(L)) return true;
+  if (/\bвиртуальная экскурсия\b/.test(L)) return true;
+
+  const h = item.href.trim().toLowerCase();
+  const path = h.replace(/^https?:\/\/[^/]+/i, "");
+  return /\/s\/virtuelna-tura\b/.test(path);
+}
+
 function looksLikeKontaktNavRoot(item: PublicNavItem): boolean {
   const L = normNavLabel(item.label);
   const h = item.href.trim().toLowerCase();
@@ -185,7 +198,8 @@ function looksLikeKontaktNavRoot(item: PublicNavItem): boolean {
 }
 
 /**
- * Forsira javni header: „O nama“ (s padajućim ako postoji), „Usluge“, „Blog“, „Kontakt“.
+ * Forsira javni header: „O nama“ (s padajućim ako postoji), „Usluge“, „Blog“,
+ * „Virtuelna tura“, „Kontakt“.
  * Baza (`nav_links`) može i dalje sadržati višak — on se ovdje odbacuje pri renderu.
  *
  * Za privremeni pun meni (debug): `NAV_HEADER_FULL=1`.
@@ -208,6 +222,8 @@ export function applyPublicHeaderNavPolicy(roots: PublicNavItem[]): PublicNavIte
       out.push(cloneNavBranch(r));
     } else if (looksLikeBlogNavRoot(r)) {
       out.push({ ...cloneNavBranch(r), children: [] });
+    } else if (looksLikeVirtualTourNavRoot(r)) {
+      out.push({ ...r, children: [] });
     } else if (looksLikeKontaktNavRoot(r)) {
       out.push({ ...r, children: [] });
     }
@@ -216,14 +232,15 @@ export function applyPublicHeaderNavPolicy(roots: PublicNavItem[]): PublicNavIte
   return out;
 }
 
-/** Red glavnog menija: O nama → Usluge → Blog → Kontakt (+ ostalo na kraju). */
+/** Red glavnog menija: O nama → Usluge → Blog → Virtuelna tura → Kontakt (+ ostalo). */
 export function sortPublicHeaderRoots(roots: PublicNavItem[]): void {
   function rank(x: PublicNavItem): number {
     if (looksLikeONamaNavRoot(x)) return 0;
     if (looksLikeUslugeParent(x)) return 1;
     if (looksLikeBlogNavRoot(x)) return 2;
-    if (looksLikeKontaktNavRoot(x)) return 3;
-    return 4;
+    if (looksLikeVirtualTourNavRoot(x)) return 3;
+    if (looksLikeKontaktNavRoot(x)) return 4;
+    return 5;
   }
 
   roots.sort((a, b) => {
@@ -442,7 +459,10 @@ function looksLikeNonServiceHeaderRoot(item: PublicNavItem): boolean {
     "cjenovnik",
     "faq",
     "partneri",
+    "virtuelna tura",
+    "virtualna tura",
     // EN
+    "virtual tour",
     "about us",
     "about",
     "contact",
@@ -472,6 +492,8 @@ function looksLikeNonServiceHeaderRoot(item: PublicNavItem): boolean {
     "прайс лист",
     "партнёры",
     "партнеры",
+    "виртуальный тур",
+    "виртуальная экскурсия",
   ];
   for (const k of skip) {
     if (L === k || L.startsWith(k + " ")) return true;

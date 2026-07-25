@@ -8,6 +8,7 @@ import { PageHero } from "@/components/site/page-hero";
 import { QuestionnaireEmbed } from "@/components/site/questionnaire-embed";
 import { SiteInnerSidebar } from "@/components/site/site-inner-sidebar";
 import { SiteTeamPageRoster } from "@/components/site/site-team-page-roster";
+import { VirtualTourEmbed } from "@/components/site/virtual-tour-embed";
 import { CLINIC_PAGE_HERO_BG } from "@/lib/clinic-assets";
 import { getDbConnectionUserMessage, isDbConnectionError } from "@/lib/db-errors";
 import { FALLBACK_HEADER_NAV, resolveHeaderNav } from "@/lib/fallback-header-nav";
@@ -230,11 +231,20 @@ export default async function SitePage({ params }: Props) {
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: articleHtml }}
                 />
-              ) : !showTeamRoster && !page.questionnaireEmbedUrl ? (
+              ) : !showTeamRoster &&
+                !page.questionnaireEmbedUrl &&
+                !page.virtualTourEmbedUrl ? (
                 <p className="rounded-xl border border-[#f0e6dc] bg-white/80 px-5 py-6 text-sm text-zinc-600">
                   Sadržaj ove stranice još nije dodat. Uredite stranicu u admin panelu ili
                   objavite profile tima (Blog → uloga „tim“) sa naslovnom slikom.
                 </p>
+              ) : null}
+              {page.virtualTourEmbedUrl ? (
+                <VirtualTourEmbed
+                  embedUrl={page.virtualTourEmbedUrl}
+                  locale={raw}
+                  title={page.title}
+                />
               ) : null}
             </div>
           </div>
@@ -257,11 +267,20 @@ export default async function SitePage({ params }: Props) {
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: articleHtml }}
               />
-            ) : !showTeamRoster && !page.questionnaireEmbedUrl ? (
+            ) : !showTeamRoster &&
+              !page.questionnaireEmbedUrl &&
+              !page.virtualTourEmbedUrl ? (
               <p className="rounded-xl border border-[#f0e6dc] bg-white/80 px-5 py-6 text-sm text-zinc-600">
                 Sadržaj ove stranice još nije dodat. Uredite stranicu u admin panelu ili
                 objavite profile tima sa naslovnom slikom.
               </p>
+            ) : null}
+            {page.virtualTourEmbedUrl ? (
+              <VirtualTourEmbed
+                embedUrl={page.virtualTourEmbedUrl}
+                locale={raw}
+                title={page.title}
+              />
             ) : null}
           </div>
         )}

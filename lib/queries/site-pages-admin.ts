@@ -48,6 +48,7 @@ export type SitePageAdminDetail = {
   published: boolean;
   unlisted: boolean;
   questionnaireEmbedUrl: string | null;
+  virtualTourEmbedUrl: string | null;
   /** Ključ grupe u headeru pod „Uslugama“; null = nije podgrupa. */
   headerNavGroup: string | null;
   byLocale: Record<
@@ -94,6 +95,7 @@ export async function getSitePageForAdmin(
     published: page.published,
     unlisted: page.unlisted,
     questionnaireEmbedUrl: page.questionnaireEmbedUrl ?? null,
+    virtualTourEmbedUrl: page.virtualTourEmbedUrl ?? null,
     headerNavGroup: page.headerNavGroup ?? null,
     byLocale: fillByLocale(trans),
   };

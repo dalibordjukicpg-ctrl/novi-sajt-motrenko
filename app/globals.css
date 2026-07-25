@@ -1195,3 +1195,25 @@ main {
     min-height: 800px;
   }
 }
+
+/* 360° tura: odnos stranica umjesto fiksne visine — panorama je 2:1. */
+.virtual-tour-embed iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 320px;
+  border: 0;
+}
+
+@media (min-width: 640px) {
+  .virtual-tour-embed iframe {
+    aspect-ratio: 16 / 9;
+    min-height: 420px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .virtual-tour-embed iframe {
+    max-height: 680px;
+  }
+}

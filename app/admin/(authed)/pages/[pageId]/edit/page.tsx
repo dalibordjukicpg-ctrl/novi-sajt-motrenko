@@ -64,6 +64,7 @@ export default async function EditSitePageAdmin({ params, searchParams }: Props)
         initialPublished={page.published}
         initialUnlisted={page.unlisted}
         initialQuestionnaireEmbedUrl={page.questionnaireEmbedUrl}
+        initialVirtualTourEmbedUrl={page.virtualTourEmbedUrl}
         initialHeaderNavGroup={page.headerNavGroup}
         byLocale={page.byLocale}
         mediaOptions={mediaOptions}

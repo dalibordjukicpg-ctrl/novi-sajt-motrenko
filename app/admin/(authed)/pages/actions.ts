@@ -16,6 +16,7 @@ import { ensureYoutubeEmbedsInCmsHtml } from "@/lib/cms-youtube-html";
 import { revalidatePublicSite } from "@/lib/revalidate-content";
 import { SITE_PAGE_HEADER_GROUP_OPTIONS } from "@/lib/site-page-header-nav";
 import { slugifyTitle } from "@/lib/slugify";
+import { resolveVirtualTourEmbedUrl } from "@/lib/virtual-tour-embed";
 
 function parseHeaderNavGroup(formData: FormData): string | null {
   const raw = String(formData.get("header_nav_group") ?? "").trim();
@@ -57,6 +58,19 @@ function parseQuestionnaireEmbedUrl(formData: FormData): string | null {
   return raw ? raw.slice(0, 2048) : null;
 }
 
+/**
+ * Google Maps link → embed URL već pri snimanju: kratki maps.app.goo.gl
+ * linkovi zahtijevaju mrežni redirect, što ne smije da se radi pri renderu.
+ */
+async function parseVirtualTourEmbedUrl(
+  formData: FormData,
+): Promise<string | null> {
+  const raw = String(formData.get("virtual_tour_embed_url") ?? "").trim();
+  if (!raw) return null;
+  const resolved = await resolveVirtualTourEmbedUrl(raw);
+  return (resolved ?? raw).slice(0, 2048);
+}
+
 function parseUnlisted(formData: FormData): boolean {
   return formData.get("unlisted") === "on";
 }
@@ -92,6 +106,7 @@ export async function createSitePageAction(formData: FormData): Promise<void> {
   const published = formData.get("published") === "on";
   const unlisted = parseUnlisted(formData);
   const questionnaireEmbedUrl = parseQuestionnaireEmbedUrl(formData);
+  const virtualTourEmbedUrl = await parseVirtualTourEmbedUrl(formData);
   const headerNavGroup = parseHeaderNavGroup(formData);
   const pageId = randomUUID();
   const now = new Date();
@@ -103,6 +118,7 @@ export async function createSitePageAction(formData: FormData): Promise<void> {
     published,
     unlisted,
     questionnaireEmbedUrl,
+    virtualTourEmbedUrl,
     createdAt: now,
     updatedAt: now,
   });
@@ -165,6 +181,7 @@ export async function updateSitePageAction(formData: FormData): Promise<void> {
   const published = formData.get("published") === "on";
   const unlisted = parseUnlisted(formData);
   const questionnaireEmbedUrl = parseQuestionnaireEmbedUrl(formData);
+  const virtualTourEmbedUrl = await parseVirtualTourEmbedUrl(formData);
   const titleMe = String(formData.get("title_me") ?? "").trim();
   const headerNavGroup = parseHeaderNavGroup(formData);
 
@@ -175,6 +192,7 @@ export async function updateSitePageAction(formData: FormData): Promise<void> {
       published,
       unlisted,
       questionnaireEmbedUrl,
+      virtualTourEmbedUrl,
       headerNavGroup: unlisted ? null : headerNavGroup,
       updatedAt: new Date(),
     })

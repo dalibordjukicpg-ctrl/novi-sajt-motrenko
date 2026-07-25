@@ -588,6 +588,8 @@ export const sitePages = mysqlTable(
     unlisted: boolean("unlisted").notNull().default(false),
     /** Google Forms / Office Forms embed URL za skrivenu stranicu upitnika. */
     questionnaireEmbedUrl: varchar("questionnaire_embed_url", { length: 2048 }),
+    /** Google Street View / 360° tura — embed URL (vidi lib/virtual-tour-embed.ts). */
+    virtualTourEmbedUrl: varchar("virtual_tour_embed_url", { length: 2048 }),
     createdAt: datetime("created_at", { mode: "date", fsp: 3 })
       .notNull()
       .$defaultFn(() => new Date()),

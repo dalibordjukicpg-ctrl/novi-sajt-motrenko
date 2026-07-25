@@ -1,7 +1,8 @@
 /**
- * Idempotentne kolone za site_pages (migracija 0023):
+ * Idempotentne kolone za site_pages (migracije 0023 i 0025):
  *   - unlisted                  boolean NOT NULL DEFAULT false
  *   - questionnaire_embed_url   varchar(2048) NULL
+ *   - virtual_tour_embed_url    varchar(2048) NULL
  *
  * Pokrece se pri build/start na Hostingeru kad je DATABASE_URL dostupan.
  * Bez ovih kolona, public header/footer query-ji u lib/queries/site.ts pucaju
@@ -84,9 +85,10 @@ async function main() {
 
     const hasUnlisted = await columnExists(conn, "site_pages", "unlisted");
     const hasEmbedUrl = await columnExists(conn, "site_pages", "questionnaire_embed_url");
+    const hasTourUrl = await columnExists(conn, "site_pages", "virtual_tour_embed_url");
 
-    if (hasUnlisted && hasEmbedUrl) {
-      console.log("[ensure-site-pages-unlisted] OK — obje kolone postoje");
+    if (hasUnlisted && hasEmbedUrl && hasTourUrl) {
+      console.log("[ensure-site-pages-unlisted] OK — sve kolone postoje");
       return;
     }
 
@@ -112,6 +114,18 @@ async function main() {
         ADD COLUMN questionnaire_embed_url varchar(2048) NULL ${afterClause}
       `);
       console.log("[ensure-site-pages-unlisted] kolona questionnaire_embed_url dodata");
+    }
+
+    if (!hasTourUrl) {
+      console.log("[ensure-site-pages-unlisted] dodajem kolonu site_pages.virtual_tour_embed_url...");
+      const afterClause = await columnExists(conn, "site_pages", "questionnaire_embed_url")
+        ? "AFTER questionnaire_embed_url"
+        : "";
+      await conn.query(`
+        ALTER TABLE site_pages
+        ADD COLUMN virtual_tour_embed_url varchar(2048) NULL ${afterClause}
+      `);
+      console.log("[ensure-site-pages-unlisted] kolona virtual_tour_embed_url dodata");
     }
 
     console.log("[ensure-site-pages-unlisted] gotovo");

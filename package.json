@@ -37,6 +37,7 @@
     "sync:wp-pages-media": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/sync-wp-pages-media.ts",
     "seed:site": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-site.ts",
     "seed:team-highlights": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-team-highlights.ts",
+    "seed:virtual-tour": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-virtual-tour-page.ts",
     "seed:home-cards": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/seed-home-service-cards.ts",
     "nav:collapse-usluge": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/collapse-header-usluge.ts",
     "nav:link-header-pages": "node --env-file=.env ./node_modules/tsx/dist/cli.mjs scripts/link-header-nav-to-pages-by-title.ts",

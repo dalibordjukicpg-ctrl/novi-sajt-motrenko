@@ -5,6 +5,7 @@ import { sitePageTranslations, sitePages } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n";
 import { defaultLocale } from "@/lib/i18n";
 import { normalizeQuestionnaireEmbedUrl } from "@/lib/questionnaire-embed";
+import { normalizeVirtualTourEmbedUrl } from "@/lib/virtual-tour-embed";
 import { preparePublicHtml } from "@/lib/public-cms-html";
 import { containsStaffPostGridShortcode } from "@/lib/wordpress-shortcodes";
 import {
@@ -21,6 +22,7 @@ export type PublicSitePage = {
   body: string | null;
   unlisted: boolean;
   questionnaireEmbedUrl: string | null;
+  virtualTourEmbedUrl: string | null;
   /** Stranica je imala WP shortcode za osoblje — prikaži React roster. */
   showTeamRoster?: boolean;
 };
@@ -31,6 +33,7 @@ type SitePageRow = {
   body: string | null;
   unlisted: boolean;
   questionnaireEmbedUrl: string | null;
+  virtualTourEmbedUrl: string | null;
 };
 
 async function fetchSitePageRow(
@@ -44,6 +47,7 @@ async function fetchSitePageRow(
       body: sitePageTranslations.body,
       unlisted: sitePages.unlisted,
       questionnaireEmbedUrl: sitePages.questionnaireEmbedUrl,
+      virtualTourEmbedUrl: sitePages.virtualTourEmbedUrl,
     })
     .from(sitePages)
     .innerJoin(
@@ -66,6 +70,7 @@ async function fetchSitePageRow(
     body: row.body,
     unlisted: row.unlisted,
     questionnaireEmbedUrl: normalizeQuestionnaireEmbedUrl(row.questionnaireEmbedUrl),
+    virtualTourEmbedUrl: normalizeVirtualTourEmbedUrl(row.virtualTourEmbedUrl),
   };
 }
 
@@ -81,6 +86,7 @@ function toPublicSitePage(
     body: bodyRaw ? preparePublicHtml(bodyRaw, locale) : null,
     unlisted: row.unlisted,
     questionnaireEmbedUrl: row.questionnaireEmbedUrl,
+    virtualTourEmbedUrl: row.virtualTourEmbedUrl,
     showTeamRoster:
       row.slug === "tim" || containsStaffPostGridShortcode(bodyRaw),
   };

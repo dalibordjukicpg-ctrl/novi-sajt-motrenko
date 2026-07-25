@@ -41,6 +41,7 @@ type Props = {
       initialPublished: boolean;
       initialUnlisted: boolean;
       initialQuestionnaireEmbedUrl: string | null;
+      initialVirtualTourEmbedUrl: string | null;
       /** Vrijednost iz SITE_PAGE_HEADER_GROUP_OPTIONS ili null */
       initialHeaderNavGroup: string | null;
       byLocale: ByLocale;
@@ -68,6 +69,9 @@ export function SitePageFormClient(props: Props) {
   );
   const [questionnaireEmbedUrl, setQuestionnaireEmbedUrl] = useState(
     props.mode === "edit" ? (props.initialQuestionnaireEmbedUrl ?? "") : "",
+  );
+  const [virtualTourEmbedUrl, setVirtualTourEmbedUrl] = useState(
+    props.mode === "edit" ? (props.initialVirtualTourEmbedUrl ?? "") : "",
   );
   const [titles, setTitles] = useState<Record<Locale, string>>(() => {
     const o = {} as Record<Locale, string>;
@@ -182,6 +186,25 @@ export function SitePageFormClient(props: Props) {
         )}
       </div>
 
+      <label className="block rounded-xl border border-sky-200 bg-sky-50/60 p-4 text-sm">
+        <span className="font-medium text-neutral-800">
+          Virtuelna tura (360°) — link
+        </span>
+        <input
+          name="virtual_tour_embed_url"
+          value={virtualTourEmbedUrl}
+          onChange={(e) => setVirtualTourEmbedUrl(e.target.value)}
+          className="mt-2 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm"
+          placeholder="https://maps.app.goo.gl/…"
+        />
+        <span className="mt-2 block text-xs text-neutral-600">
+          Zalijepite link ture sa Google Mapa (Street View / 360°) — i skraćeni
+          „maps.app.goo.gl“ link radi. Sistem ga sam pretvara u ispravan embed pri
+          čuvanju. Podržani su i Matterport, Kuula i slični servisi. Ostavite prazno
+          da se tura ne prikazuje.
+        </span>
+      </label>
+
       {!unlisted ? (
       <label className="block text-sm">
         <span className="font-medium text-neutral-700">
@@ -245,6 +268,7 @@ export function SitePageFormClient(props: Props) {
           fd.set("published", published ? "on" : "off");
           fd.set("unlisted", unlisted ? "on" : "off");
           fd.set("questionnaire_embed_url", questionnaireEmbedUrl);
+          fd.set("virtual_tour_embed_url", virtualTourEmbedUrl);
           const headerNavGroup =
             formRef.current != null
               ? String(
