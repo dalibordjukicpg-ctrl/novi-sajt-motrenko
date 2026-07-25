@@ -105,7 +105,7 @@ function HeaderMenuLink({
 
 /** Outfit (header-nav): čitljiv caps na bijeloj traci; miran tracking. */
 const navLinkBase =
-  "whitespace-nowrap font-header-nav text-[12px] font-semibold uppercase tracking-[0.11em] antialiased transition md:text-[13px] md:tracking-[0.12em] lg:text-[14px] lg:tracking-[0.12em]";
+  "whitespace-nowrap font-header-nav text-[11px] font-semibold uppercase tracking-[0.1em] antialiased transition md:text-[11px] md:tracking-[0.11em] lg:text-[12px] lg:tracking-[0.12em] xl:text-[12.5px] xl:tracking-[0.13em]";
 
 function navItemHasNestedChildren(item: PublicNavItem): boolean {
   return item.children.some((c) => c.children.length > 0);
@@ -356,6 +356,20 @@ function NavDropdown({
     ? `${navLinkBase} text-site-header-nav-light hover:text-site-brand-hover md:transition-colors${flyoutOpen ? " !text-site-brand-hover" : ""}${accentMobileOpen}`
     : `${navLinkBase} text-site-header-hero${flyoutOpen ? " !text-site-brand" : ""}${accentMobileOpen}`;
 
+  /** Kraći naziv na užem desktopu da meni ne prelazi preko jezika/CTA. */
+  const isVirtualTour =
+    /virtuelna-tura/i.test(item.href) ||
+    /virtu[ae]lna tura/i.test(item.label) ||
+    /virtual tour/i.test(item.label);
+  const labelNode = isVirtualTour ? (
+    <>
+      <span className="xl:hidden">Tura</span>
+      <span className="hidden xl:inline">{item.label}</span>
+    </>
+  ) : (
+    item.label
+  );
+
   const caretBase = onLight ? "text-site-brand-muted" : "text-white/80";
   const caret = `${caretBase}${flyoutOpen ? " !text-site-brand-hover" : ""}${accentMobileOpen}`;
 
@@ -420,9 +434,9 @@ function NavDropdown({
       <HeaderMenuLink
         href={resolvePublicHref(locale, item.href)}
         onClose={onNavigate}
-        className={`shrink-0 rounded-none px-2 py-2 md:px-2.5 md:py-2.5 ${linkTop}`}
+        className={`shrink-0 rounded-none px-1.5 py-2 md:px-1.5 md:py-2 lg:px-2 lg:py-2.5 ${linkTop}`}
       >
-        {item.label}
+        {labelNode}
       </HeaderMenuLink>
     );
   }
@@ -436,12 +450,12 @@ function NavDropdown({
     >
       <button
         type="button"
-        className={`flex items-center gap-1 rounded-none px-2 py-2 md:gap-1.5 md:px-2.5 md:py-2.5 ${linkTop}`}
+        className={`flex items-center gap-1 rounded-none px-1.5 py-2 md:gap-1 md:px-1.5 md:py-2 lg:gap-1.5 lg:px-2 lg:py-2.5 ${linkTop}`}
         aria-expanded={flyoutOpen}
         aria-haspopup="true"
         onClick={() => onOpenChange(!isOpen)}
       >
-        {item.label}
+        {labelNode}
         <ChevronDown
           className={[
             "h-3 w-3 shrink-0 transition duration-200 md:h-3.5 md:w-3.5",
@@ -708,12 +722,13 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
       className={`fixed left-0 right-0 top-0 z-[200] w-full pt-[env(safe-area-inset-top)] ${lightHeader ? "transition-colors duration-300" : ""} ${headerShell}`}
     >
       {/* ── Header bar ─────────────────────────────────────────── */}
-      <div className="relative z-[2] mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5 ps-[max(0.75rem,env(safe-area-inset-left))] pe-[max(0.75rem,env(safe-area-inset-right))] sm:gap-3 sm:px-4 sm:py-3 md:grid-cols-[auto_1fr_auto] md:gap-6 md:px-10 md:py-3.5 lg:px-14">
-        {/* Logo */}
+      {/* Desktop: logo | ravnomjerni meni | jezik+CTA */}
+      <div className="relative z-[2] mx-auto flex max-w-7xl items-center gap-4 px-5 py-2.5 ps-[max(1.25rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] sm:px-8 sm:py-3 md:gap-6 md:px-10 lg:gap-8 lg:px-14 xl:px-16">
+        {/* Logo — pomjeren udesno od ruba */}
         <HeaderMenuLink
           href={`/${locale}`}
           onClose={closeAllNav}
-          className="site-header-logo-link relative z-20 flex min-w-0 max-w-[min(100%,76vw)] items-center justify-self-start sm:max-w-[min(100%,80vw)] md:max-w-[min(100%,580px)]"
+          className="site-header-logo-link relative z-20 ml-1 flex shrink-0 items-center md:ml-3 lg:ml-5"
         >
           <Image
             src={resolvedLogoSrc}
@@ -725,18 +740,18 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
             draggable={false}
             tabIndex={-1}
             className={[
-              "pointer-events-none block h-[4.1rem] w-auto max-h-[4.1rem] max-w-full select-none object-contain object-left sm:h-[4.35rem] sm:max-h-[4.35rem] md:h-[5.15rem] md:max-h-[5.15rem] lg:h-[5.5rem] lg:max-h-[5.5rem]",
+              "pointer-events-none block h-[4.25rem] w-auto max-w-[min(52vw,280px)] select-none object-contain object-left sm:h-[4.5rem] md:h-[4.35rem] md:max-w-[240px] lg:h-[4.6rem] lg:max-w-[280px]",
               isHome && !scrolled && !mobileNavOpen ? "site-header-logo-on-hero" : "",
             ].join(" ")}
-            sizes="(max-width: 768px) 80vw, 580px"
+            sizes="(max-width: 768px) 52vw, 280px"
           />
         </HeaderMenuLink>
 
-        {/* Desktop nav */}
+        {/* Desktop nav — nazivi ravnomjerno raspoređeni po sredini */}
         <nav
           ref={navRef}
           aria-label="Glavna navigacija"
-          className="relative z-[35] hidden min-w-0 justify-self-center md:flex md:items-center md:gap-7 lg:gap-10 xl:gap-12"
+          className="relative z-[30] hidden min-w-0 flex-1 items-center justify-evenly md:flex"
         >
           {nav.map((item) => (
             <NavDropdown
@@ -760,10 +775,10 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
           ))}
         </nav>
 
-        {/* Right actions */}
-        <div className="relative z-20 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 md:justify-self-end">
+        {/* Desne akcije */}
+        <div className="relative z-40 ml-auto flex shrink-0 items-center gap-2 md:ml-0 md:gap-3">
           <SiteLanguageSwitcher locale={locale} onLight={lightHeader} compact />
-          {/* CTA u headeru samo na tablet/desktop — na telefonu je u mobilnom meniju (veći, touch-friendly) */}
+          {/* CTA u headeru samo na tablet/desktop — na telefonu je u mobilnom meniju */}
           <HeaderMenuLink
             href={resolvePublicHref(locale, s["header.cta_book_href"] ?? "")}
             onClose={closeAllNav}
@@ -772,7 +787,7 @@ export function SiteHeader({ locale, s, nav, logoUrl }: Props) {
             {s["header.cta_book"]}
           </HeaderMenuLink>
 
-          {/* Hamburger — premium pill style on mobile */}
+          {/* Hamburger — samo mobil */}
           <button
             type="button"
             className={[

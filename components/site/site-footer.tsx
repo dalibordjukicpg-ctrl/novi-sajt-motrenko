@@ -19,7 +19,7 @@ type Props = {
 };
 
 const COL_TITLE =
-  "mb-5 text-[11px] font-semibold uppercase leading-snug tracking-[0.22em] text-site-brand";
+  "mb-5 min-h-[1.25rem] text-[11px] font-semibold uppercase leading-snug tracking-[0.2em] text-site-brand";
 
 const FOOTER_DAY_LABELS = [
   "Ponedjeljak",
@@ -112,11 +112,28 @@ export function SiteFooter({
 
       <div className="mx-auto max-w-7xl px-6 lg:px-14">
           <div className="border-b border-site-line py-14 lg:py-16">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-10 md:gap-y-12 lg:grid-cols-12 lg:items-start lg:gap-x-8 xl:gap-x-10">
-              <FooterSection
-                title={s["footer.hours_title"]}
-                className="md:min-w-0 lg:col-span-3"
-              >
+            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-10 xl:gap-x-14">
+              <FooterSection title={s["footer.col_clinic"]} className="min-w-0">
+                <div className="space-y-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={resolvedLogo}
+                    alt={s["org.brand"]}
+                    className="h-[4.25rem] w-auto max-w-[240px] object-contain object-left drop-shadow-[0_1px_10px_rgba(0,0,0,0.06)]"
+                  />
+                  <p
+                    style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+                    className="text-[13px] font-semibold uppercase leading-snug tracking-[0.12em] text-site-ink"
+                  >
+                    {s["org.brand"]}
+                  </p>
+                  <p className="text-[13px] leading-[1.7] text-zinc-700">
+                    {s["footer.about_body"]}
+                  </p>
+                </div>
+              </FooterSection>
+
+              <FooterSection title={s["footer.hours_title"]} className="min-w-0">
                 <div className="divide-y divide-site-line/80">
                   {FOOTER_DAY_LABELS.map((day, i) => {
                     const time = formatHoursDisplay(hourSlots[i] ?? "");
@@ -142,90 +159,13 @@ export function SiteFooter({
                 </div>
               </FooterSection>
 
-              <FooterSection
-                title={s["footer.social_title"]}
-                className="md:min-w-0 lg:col-span-2"
-              >
-                {socialItems.length > 0 ? (
-                  <div className="flex flex-col gap-2">
-                    {socialItems.map((item) => (
-                      <a
-                        key={item.label}
-                        href={item.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group flex items-center gap-3 text-[13px] text-zinc-800 transition-colors hover:text-site-brand"
-                      >
-                        <IconTile>
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            className="h-3.5 w-3.5"
-                          >
-                            {item.label === "Facebook" && (
-                              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                            )}
-                            {item.label === "Instagram" && (
-                              <>
-                                <rect
-                                  x="2"
-                                  y="2"
-                                  width="20"
-                                  height="20"
-                                  rx="5"
-                                  ry="5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                />
-                                <path
-                                  d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                />
-                                <line
-                                  x1="17.5"
-                                  y1="6.5"
-                                  x2="17.51"
-                                  y2="6.5"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                />
-                              </>
-                            )}
-                            {item.label === "YouTube" && (
-                              <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-2C18.88 4 12 4 12 4s-6.88 0-8.59.42a2.78 2.78 0 0 0-1.95 2C1 8.13 1 12 1 12s0 3.87.46 5.58a2.78 2.78 0 0 0 1.95 2C5.12 20 12 20 12 20s6.88 0 8.59-.42a2.78 2.78 0 0 0 1.95-2C23 15.87 23 12 23 12s0-3.87-.46-5.58zM9.75 15.02V8.98L15.5 12l-5.75 3.02z" />
-                            )}
-                            {item.label === "LinkedIn" && (
-                              <>
-                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z" />
-                                <circle cx="4" cy="4" r="2" />
-                              </>
-                            )}
-                          </svg>
-                        </IconTile>
-                        {item.label}
-                      </a>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-[14px] leading-relaxed text-zinc-700">
-                    Unesite URL u adminu: Footer i kontakt → Društvene mreže.
-                  </p>
-                )}
-              </FooterSection>
-
-              <FooterSection
-                title={s["footer.col_contact"]}
-                className="md:min-w-0 lg:col-span-4"
-              >
+              <FooterSection title={s["footer.col_contact"]} className="min-w-0">
                 <div className="space-y-4">
                   {tagline ? (
                     <p className="text-[13px] leading-relaxed text-zinc-700">{tagline}</p>
                   ) : null}
 
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  <div className="grid gap-3">
                   {primaryPhone && primaryTel ? (
                     <a
                       href={primaryTel}
@@ -267,7 +207,7 @@ export function SiteFooter({
                   {email ? (
                     <a
                       href={`mailto:${email}`}
-                      className="group flex items-start gap-3 break-all text-[13px] transition-colors hover:text-site-brand sm:col-span-2 lg:col-span-1 xl:col-span-2"
+                      className="group flex items-start gap-3 break-all text-[13px] transition-colors hover:text-site-brand"
                     >
                       <IconTile>
                         <Mail size={15} strokeWidth={1.5} aria-hidden />
@@ -340,27 +280,75 @@ export function SiteFooter({
                 </div>
               </FooterSection>
 
-              <FooterSection
-                title={s["footer.col_clinic"]}
-                className="md:min-w-0 md:col-span-2 lg:col-span-3"
-              >
-                <div className="space-y-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={resolvedLogo}
-                    alt={s["org.brand"]}
-                    className="h-[4.25rem] w-auto max-w-[240px] object-contain object-left drop-shadow-[0_1px_10px_rgba(0,0,0,0.06)]"
-                  />
-                  <p
-                    style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                    className="text-[13px] font-semibold uppercase leading-snug tracking-[0.12em] text-site-ink"
-                  >
-                    {s["org.brand"]}
+              <FooterSection title={s["footer.social_title"]} className="min-w-0">
+                {socialItems.length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    {socialItems.map((item) => (
+                      <a
+                        key={item.label}
+                        href={item.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group flex items-center gap-3 text-[13px] text-zinc-800 transition-colors hover:text-site-brand"
+                      >
+                        <IconTile>
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="h-3.5 w-3.5"
+                          >
+                            {item.label === "Facebook" && (
+                              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                            )}
+                            {item.label === "Instagram" && (
+                              <>
+                                <rect
+                                  x="2"
+                                  y="2"
+                                  width="20"
+                                  height="20"
+                                  rx="5"
+                                  ry="5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                />
+                                <path
+                                  d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                />
+                                <line
+                                  x1="17.5"
+                                  y1="6.5"
+                                  x2="17.51"
+                                  y2="6.5"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                />
+                              </>
+                            )}
+                            {item.label === "YouTube" && (
+                              <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-2C18.88 4 12 4 12 4s-6.88 0-8.59.42a2.78 2.78 0 0 0-1.95 2C1 8.13 1 12 1 12s0 3.87.46 5.58a2.78 2.78 0 0 0 1.95 2C5.12 20 12 20 12 20s6.88 0 8.59-.42a2.78 2.78 0 0 0 1.95-2C23 15.87 23 12 23 12s0-3.87-.46-5.58zM9.75 15.02V8.98L15.5 12l-5.75 3.02z" />
+                            )}
+                            {item.label === "LinkedIn" && (
+                              <>
+                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z" />
+                                <circle cx="4" cy="4" r="2" />
+                              </>
+                            )}
+                          </svg>
+                        </IconTile>
+                        {item.label}
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[14px] leading-relaxed text-zinc-700">
+                    Unesite URL u adminu: Footer i kontakt → Društvene mreže.
                   </p>
-                  <p className="text-[13px] leading-[1.7] text-zinc-700">
-                    {s["footer.about_body"]}
-                  </p>
-                </div>
+                )}
               </FooterSection>
             </div>
           </div>
