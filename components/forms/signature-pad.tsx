@@ -14,16 +14,20 @@ type Props = {
   className?: string;
 };
 
-function clientPoint(
+/**
+ * Koordinate u CSS pikselima (ne bitmap). Canvas koristi setTransform(dpr),
+ * pa se ne smije još jednom množiti sa canvas.width/rect.width — to na
+ * telefonima (DPR 2–3) pomjera crtanje van vidljivog polja.
+ */
+function cssPoint(
   canvas: HTMLCanvasElement,
-  e: React.PointerEvent<HTMLCanvasElement>,
+  clientX: number,
+  clientY: number,
 ) {
   const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
   return {
-    x: (e.clientX - rect.left) * scaleX,
-    y: (e.clientY - rect.top) * scaleY,
+    x: clientX - rect.left,
+    y: clientY - rect.top,
   };
 }
 
@@ -39,88 +43,181 @@ export function SignaturePad({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
   const hasInkRef = useRef(false);
+  const activePointerRef = useRef<number | null>(null);
+  /** Zadnji exportovani data URL — da resize ne briše potpis bez potrebe. */
+  const lastExportedRef = useRef(value);
   const [hasInk, setHasInk] = useState(false);
 
-  const resizeCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const parent = canvas.parentElement;
-    if (!parent) return;
-
-    const cssW = Math.max(parent.clientWidth, 280);
-    const cssH = 160;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    canvas.style.width = `${cssW}px`;
-    canvas.style.height = `${cssH}px`;
-    canvas.width = Math.round(cssW * dpr);
-    canvas.height = Math.round(cssH * dpr);
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  const paintBlank = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number) => {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, cssW, cssH);
+    ctx.fillRect(0, 0, w, h);
+  }, []);
 
-    if (value.startsWith("data:image/png")) {
+  const resizeCanvas = useCallback(
+    (restoreFrom: string | null) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const parent = canvas.parentElement;
+      if (!parent) return;
+
+      // Sačuvaj trenutni crtež prije resize-a (npr. rotacija / tastatura).
+      let snapshot: string | null = null;
+      if (hasInkRef.current && canvas.width > 0 && canvas.height > 0) {
+        try {
+          snapshot = canvas.toDataURL("image/png");
+        } catch {
+          snapshot = null;
+        }
+      }
+
+      const cssW = Math.max(parent.clientWidth, 280);
+      const cssH = Math.max(Math.round(Math.min(window.innerWidth, 480) * 0.42), 180);
+      const dpr = Math.min(window.devicePixelRatio || 1, 3);
+
+      canvas.style.width = `${cssW}px`;
+      canvas.style.height = `${cssH}px`;
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      paintBlank(ctx, cssW, cssH);
+
+      const source =
+        restoreFrom?.startsWith("data:image/png")
+          ? restoreFrom
+          : snapshot?.startsWith("data:image/png")
+            ? snapshot
+            : null;
+
+      if (!source) {
+        hasInkRef.current = false;
+        setHasInk(false);
+        return;
+      }
+
       const img = new Image();
       img.onload = () => {
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, cssW, cssH);
+        const live = canvasRef.current?.getContext("2d");
+        if (!live || canvasRef.current !== canvas) return;
+        paintBlank(live, cssW, cssH);
         const scale = Math.min(cssW / img.width, cssH / img.height);
         const w = img.width * scale;
         const h = img.height * scale;
-        ctx.drawImage(img, (cssW - w) / 2, (cssH - h) / 2, w, h);
+        live.drawImage(img, (cssW - w) / 2, (cssH - h) / 2, w, h);
         hasInkRef.current = true;
         setHasInk(true);
       };
-      img.src = value;
-    } else {
+      img.src = source;
+    },
+    [paintBlank],
+  );
+
+  // Inicijalni layout + window (bez re-rendera na svaki onChange — to bi
+  // async reload PNG-a na telefonu obrisao novi potez).
+  useEffect(() => {
+    resizeCanvas(value || null);
+    lastExportedRef.current = value;
+
+    const onResize = () => {
+      if (drawingRef.current) return;
+      resizeCanvas(lastExportedRef.current || null);
+    };
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+    // Samo mount — value se ne stavlja u deps namjerno.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Vanjsko brisanje (npr. reset forme): value === ""
+  useEffect(() => {
+    if (value === "" && hasInkRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      if (canvas && ctx) {
+        paintBlank(ctx, canvas.clientWidth, canvas.clientHeight);
+      }
       hasInkRef.current = false;
       setHasInk(false);
+      lastExportedRef.current = "";
     }
-  }, [value]);
-
-  useEffect(() => {
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-    return () => window.removeEventListener("resize", resizeCanvas);
-  }, [resizeCanvas]);
+  }, [value, paintBlank]);
 
   const exportPng = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !hasInkRef.current) {
+      lastExportedRef.current = "";
       onChange("", false);
       return;
     }
-    onChange(canvas.toDataURL("image/png"), true);
+    const dataUrl = canvas.toDataURL("image/png");
+    lastExportedRef.current = dataUrl;
+    onChange(dataUrl, true);
   }, [onChange]);
 
-  const startStroke = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    canvas.setPointerCapture(e.pointerId);
-    drawingRef.current = true;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const { x, y } = clientPoint(canvas, e);
+  const strokeStyle = (ctx: CanvasRenderingContext2D) => {
     ctx.strokeStyle = "#1a1208";
-    ctx.lineWidth = 2.2;
+    // Deblji potez na touchu — prst je manje precizan od miša.
+    ctx.lineWidth = 2.6;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
+  };
+
+  const startStroke = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Jedan prst / stilus odjednom.
+    if (activePointerRef.current !== null) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch {
+      /* stariji browseri */
+    }
+
+    activePointerRef.current = e.pointerId;
+    drawingRef.current = true;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const { x, y } = cssPoint(canvas, e.clientX, e.clientY);
+    strokeStyle(ctx);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    // Tačka i na tap bez pomjeranja.
+    ctx.lineTo(x + 0.01, y + 0.01);
+    ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
 
   const continueStroke = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!drawingRef.current) return;
+    if (activePointerRef.current !== e.pointerId) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    e.preventDefault();
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const { x, y } = clientPoint(canvas, e);
+    const { x, y } = cssPoint(canvas, e.clientX, e.clientY);
+    strokeStyle(ctx);
     ctx.lineTo(x, y);
     ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
     if (!hasInkRef.current) {
       hasInkRef.current = true;
       setHasInk(true);
@@ -128,14 +225,21 @@ export function SignaturePad({
   };
 
   const endStroke = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (activePointerRef.current !== e.pointerId) return;
     if (!drawingRef.current) return;
+
     drawingRef.current = false;
+    activePointerRef.current = null;
+
     try {
       canvasRef.current?.releasePointerCapture(e.pointerId);
     } catch {
       /* ignore */
     }
-    exportPng();
+
+    if (hasInkRef.current) {
+      exportPng();
+    }
   };
 
   const clear = () => {
@@ -143,12 +247,10 @@ export function SignaturePad({
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const cssW = canvas.clientWidth;
-    const cssH = canvas.clientHeight;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, cssW, cssH);
+    paintBlank(ctx, canvas.clientWidth, canvas.clientHeight);
     hasInkRef.current = false;
     setHasInk(false);
+    lastExportedRef.current = "";
     onChange("", false);
   };
 
@@ -167,7 +269,7 @@ export function SignaturePad({
           <button
             type="button"
             onClick={clear}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 transition hover:text-[#e8682a]"
+            className="inline-flex min-h-11 items-center gap-1.5 px-1 text-xs font-semibold text-neutral-500 transition hover:text-[#e8682a]"
           >
             <Eraser size={14} aria-hidden />
             {clearLabel}
@@ -175,16 +277,21 @@ export function SignaturePad({
         ) : null}
       </div>
       <p className="mt-1 text-xs leading-relaxed text-neutral-500">{hint}</p>
-      <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-inner">
+      <div
+        className="mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-inner"
+        style={{ touchAction: "none" }}
+      >
         <canvas
           ref={canvasRef}
-          className="block w-full touch-none cursor-crosshair"
+          className="block w-full cursor-crosshair touch-none select-none"
+          style={{ touchAction: "none", WebkitUserSelect: "none" }}
           aria-label={title}
           onPointerDown={startStroke}
           onPointerMove={continueStroke}
           onPointerUp={endStroke}
-          onPointerLeave={endStroke}
           onPointerCancel={endStroke}
+          // Ne koristiti onPointerLeave — na iOS/Android često prekine potez
+          // dok prst još crta; setPointerCapture drži događaje do pointerup.
         />
       </div>
     </div>
