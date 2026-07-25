@@ -74,7 +74,14 @@ export function SignaturePad({
       }
 
       const cssW = Math.max(parent.clientWidth, 280);
-      const cssH = Math.max(Math.round(Math.min(window.innerWidth, 480) * 0.42), 180);
+      // Veće polje na telefonu/tabletu — prst treba više prostora od miša.
+      const vw = window.innerWidth;
+      const cssH =
+        vw < 640
+          ? Math.max(Math.round(vw * 0.58), 260)
+          : vw < 1024
+            ? Math.max(Math.round(Math.min(vw, 900) * 0.4), 280)
+            : 200;
       const dpr = Math.min(window.devicePixelRatio || 1, 3);
 
       canvas.style.width = `${cssW}px`;
