@@ -312,8 +312,11 @@ export async function listPublishedBlogSlugsForSitemap(): Promise<
 export type TeamMemberSummary = {
   slug: string;
   title: string;
+  /** ME naslov — za razvrstavanje kad teamRole nije setovan. */
+  titleMe: string;
   excerpt: string | null;
   coverUrl: string | null;
+  teamRole: "doctor" | "embryologist" | "nurse" | null;
 };
 
 /** Objavljeni profili tima (content_role = team), za stranicu /s/tim. */
@@ -324,6 +327,7 @@ export async function listPublishedTeamSummaries(
     .select({
       id: posts.id,
       coverMediaId: posts.coverMediaId,
+      teamRole: posts.teamRole,
     })
     .from(posts)
     .where(
@@ -378,6 +382,10 @@ export async function listPublishedTeamSummaries(
     ]),
   );
 
+  const teamRoleById = new Map(
+    published.map((p) => [p.id, p.teamRole ?? null] as const),
+  );
+
   const draft: TeamMemberSummary[] = [];
   const titlePairs: { localized: string; me: string }[] = [];
   const excerptPairs: { localized: string; me: string }[] = [];
@@ -398,8 +406,10 @@ export async function listPublishedTeamSummaries(
     draft.push({
       slug: t.slug,
       title: locTitle,
+      titleMe: meTitle,
       excerpt: t.excerpt ? preparePublicPlainText(t.excerpt) || null : null,
       coverUrl: coverByPostId.get(id) ?? null,
+      teamRole: teamRoleById.get(id) ?? null,
     });
   }
 

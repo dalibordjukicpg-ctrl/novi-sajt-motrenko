@@ -4,10 +4,37 @@ import Link from "next/link";
 import { CLINIC_PAGE_HERO_BG } from "@/lib/clinic-assets";
 import type { Locale } from "@/lib/i18n";
 import type { TeamMemberSummary } from "@/lib/queries/posts";
-import { splitFeaturedTeamMember } from "@/lib/team-roster-order";
+import {
+  groupPublicTeamRoster,
+  splitFeaturedTeamMember,
+} from "@/lib/team-roster-order";
 import { resolveTeamCardExcerpt } from "@/lib/team-profile-placeholders";
 
 const CARD_MIN_H = "min-h-[260px]";
+
+const SECTION_LABELS: Record<
+  Locale,
+  { doctors: string; embriologists: string; staff: string; other: string }
+> = {
+  me: {
+    doctors: "Doktori",
+    embriologists: "Klinički embriolozi",
+    staff: "Osoblje",
+    other: "Tim",
+  },
+  en: {
+    doctors: "Doctors",
+    embriologists: "Clinical embryologists",
+    staff: "Staff",
+    other: "Team",
+  },
+  ru: {
+    doctors: "Врачи",
+    embriologists: "Клинические эмбриологи",
+    staff: "Персонал",
+    other: "Команда",
+  },
+};
 
 function MemberPhoto({
   coverUrl,
@@ -140,13 +167,40 @@ function MemberCard({
   );
 }
 
-function MemberGrid({ locale, members }: { locale: Locale; members: TeamMemberSummary[] }) {
+function MemberGrid({
+  locale,
+  members,
+}: {
+  locale: Locale;
+  members: TeamMemberSummary[];
+}) {
   return (
     <ul className="grid list-none gap-5 sm:grid-cols-2 sm:items-stretch">
       {members.map((m) => (
         <MemberCard key={m.slug} locale={locale} m={m} />
       ))}
     </ul>
+  );
+}
+
+function RosterSection({
+  title,
+  locale,
+  members,
+}: {
+  title: string;
+  locale: Locale;
+  members: TeamMemberSummary[];
+}) {
+  if (members.length === 0) return null;
+
+  return (
+    <section className="space-y-4">
+      <h2 className="border-b border-[#f0e6dc] pb-2 font-serif text-xl font-semibold tracking-tight text-zinc-900">
+        {title}
+      </h2>
+      <MemberGrid locale={locale} members={members} />
+    </section>
   );
 }
 
@@ -160,6 +214,9 @@ export function SiteTeamPageRoster({
   if (members.length === 0) return null;
 
   const { featured, roster } = splitFeaturedTeamMember(members);
+  const { doctors, embriologists, staff, other } =
+    groupPublicTeamRoster(roster);
+  const labels = SECTION_LABELS[locale] ?? SECTION_LABELS.me;
 
   return (
     <div className="space-y-10" aria-label="Članovi tima">
@@ -169,14 +226,18 @@ export function SiteTeamPageRoster({
         </section>
       ) : null}
 
-      {roster.length > 0 ? (
-        <section className="space-y-4">
-          <h2 className="border-b border-[#f0e6dc] pb-2 font-serif text-xl font-semibold tracking-tight text-zinc-900">
-            Naš tim
-          </h2>
-          <MemberGrid locale={locale} members={roster} />
-        </section>
-      ) : null}
+      <RosterSection
+        title={labels.doctors}
+        locale={locale}
+        members={doctors}
+      />
+      <RosterSection
+        title={labels.embriologists}
+        locale={locale}
+        members={embriologists}
+      />
+      <RosterSection title={labels.staff} locale={locale} members={staff} />
+      <RosterSection title={labels.other} locale={locale} members={other} />
     </div>
   );
 }

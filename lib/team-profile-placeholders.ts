@@ -33,7 +33,7 @@ export function shouldUseTeamFallbackBio(member: TeamMemberSummary): boolean {
 }
 
 function fallbackBioForMember(member: TeamMemberSummary): string {
-  const group = adminTeamGroupForTitle(member.title);
+  const group = adminTeamGroupForTitle(member.titleMe || member.title);
   if (group === "doctors" || isDoctorTitle(member.title)) {
     return "Specijalista u Centru za humanu reprodukciju Budva — dijagnostika, liječenje i podrška parovima.";
   }

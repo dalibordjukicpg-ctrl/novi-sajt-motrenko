@@ -122,10 +122,33 @@ export function splitFeaturedTeamMember(members: TeamMemberSummary[]): {
   const ordered = sortTeamMembersForDisplay(members);
   const featured =
     ordered.find((m) => m.slug === TEAM_FEATURED_SLUG) ??
-    ordered.find((m) => /motrenko/i.test(m.title)) ??
+    ordered.find((m) => /motrenko/i.test(m.titleMe || m.title)) ??
     null;
   const roster = featured
     ? ordered.filter((m) => m.slug !== featured.slug)
     : ordered;
   return { featured, roster };
+}
+
+/** Javni /s/tim: doktori → embriolozi → osoblje (bez featured/Motrenko). */
+export function groupPublicTeamRoster(roster: TeamMemberSummary[]): {
+  doctors: TeamMemberSummary[];
+  embriologists: TeamMemberSummary[];
+  staff: TeamMemberSummary[];
+  other: TeamMemberSummary[];
+} {
+  const doctors: TeamMemberSummary[] = [];
+  const embriologists: TeamMemberSummary[] = [];
+  const staff: TeamMemberSummary[] = [];
+  const other: TeamMemberSummary[] = [];
+
+  for (const m of roster) {
+    const group = adminTeamGroupForRole(m.teamRole, m.titleMe || m.title);
+    if (group === "doctors") doctors.push(m);
+    else if (group === "embriologists") embriologists.push(m);
+    else if (group === "nurses") staff.push(m);
+    else other.push(m);
+  }
+
+  return { doctors, embriologists, staff, other };
 }
