@@ -30,11 +30,13 @@ export function AdminPanel({
   title,
   description,
   className,
+  headerAction,
   children,
 }: {
   title?: string;
   description?: string;
   className?: string;
+  headerAction?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -45,10 +47,15 @@ export function AdminPanel({
       )}
     >
       {title ? (
-        <div className="mb-5">
-          <h2 className="text-lg font-semibold text-[#2a2118]">{title}</h2>
-          {description ? (
-            <p className="mt-1 text-sm text-[#6b5f54]">{description}</p>
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-[#2a2118]">{title}</h2>
+            {description ? (
+              <p className="mt-1 text-sm text-[#6b5f54]">{description}</p>
+            ) : null}
+          </div>
+          {headerAction ? (
+            <div className="shrink-0">{headerAction}</div>
           ) : null}
         </div>
       ) : null}

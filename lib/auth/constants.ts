@@ -4,6 +4,12 @@ export const SESSION_COOKIE_NAME = "session";
 /** Pending OTP verification after password login — `{challengeId}.{64-hex secret}` */
 export const OTP_PENDING_COOKIE_NAME = "admin_otp_pending";
 
+/**
+ * Samo lokalni/dev: privremeni cookie sa OTP kodom kad email nije konfigurisan.
+ * Nikad se ne postavlja u production.
+ */
+export const OTP_DEV_HINT_COOKIE_NAME = "admin_otp_dev_hint";
+
 /** Remember trusted device for 30 days — `{deviceId}.{64-hex secret}` */
 export const TRUSTED_DEVICE_COOKIE_NAME = "admin_trusted_device";
 

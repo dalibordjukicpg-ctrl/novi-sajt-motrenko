@@ -8,6 +8,7 @@ export function revalidateArticlePaths(data: ArticleFormValues): void {
   revalidatePath("/");
   for (const loc of locales) {
     revalidatePath(`/${loc}`);
+    revalidatePath(`/${loc}/s/tim`);
     if (!shouldPersistArticleTranslation(loc, data[loc])) continue;
     const slug = data[loc].slug.trim();
     if (slug.length > 0) {

@@ -17,6 +17,7 @@ import {
   createOtpChallenge,
   generateOtpCode,
   recordOtpSend,
+  setOtpDevHintCookie,
   setOtpPendingCookie,
 } from "@/lib/auth/otp-challenge";
 import { isTrustedDeviceForUser } from "@/lib/auth/trusted-device";
@@ -233,7 +234,9 @@ export async function loginAction(
     }
 
     if (sent.skipped) {
+      // Lokalno bez RESEND_API_KEY: kod nije na emailu — prikaži ga na verify stranici.
       console.info("[auth otp] dev skip — code:", otpCode);
+      await setOtpDevHintCookie(otpCode);
     }
   } catch (e) {
     if (e && typeof e === "object" && "digest" in e) throw e;

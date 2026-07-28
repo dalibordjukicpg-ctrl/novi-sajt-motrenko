@@ -23,6 +23,7 @@ import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
 import {
   articleFormSchema,
+  teamMemberFormSchema,
   type ArticleFormValues,
   type ArticleMutationResult,
 } from "@/lib/validations/article";
@@ -142,7 +143,17 @@ type Props = {
   submitLabel: string;
   successMessage?: (postId: string) => string;
   resetOnSuccess?: boolean;
+  /** Prikaži select kategorije (doktor / embriolog / sestra). */
+  showTeamRole?: boolean;
+  onSuccessNavigate?: (postId: string) => void;
 };
+
+const TEAM_ROLE_OPTIONS = [
+  { value: "doctor", label: "Doktor" },
+  { value: "embryologist", label: "Klinički embriolog" },
+  { value: "nurse", label: "Medicinska sestra / tehničar" },
+] as const;
+
 export function ArticleEditorForm({
   initialValues,
   mediaOptions,
@@ -150,6 +161,8 @@ export function ArticleEditorForm({
   submitLabel,
   successMessage = (id) => `Sačuvano. ID: ${id}`,
   resetOnSuccess = false,
+  showTeamRole = false,
+  onSuccessNavigate,
 }: Props) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
@@ -166,7 +179,9 @@ export function ArticleEditorForm({
     setValue,
     formState: { errors },
   } = useForm<ArticleFormValues>({
-    resolver: zodResolver(articleFormSchema),
+    resolver: zodResolver(
+      showTeamRole ? teamMemberFormSchema : articleFormSchema,
+    ),
     defaultValues: initialValues,
     values: initialValues,
   });
@@ -179,6 +194,10 @@ export function ArticleEditorForm({
       const result = await onSubmit(data);
       if (!result.ok) {
         setServerError(result.error);
+        return;
+      }
+      if (onSuccessNavigate) {
+        onSuccessNavigate(result.postId);
         return;
       }
       setBanner(successMessage(result.postId));
@@ -202,6 +221,28 @@ export function ArticleEditorForm({
           />
           Objavi
         </label>
+        {showTeamRole ? (
+          <div className="w-full sm:max-w-xs">
+            <label className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+              Kategorija
+            </label>
+            <select
+              className="mt-1 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm outline-none transition focus:border-neutral-800 focus:ring-1 focus:ring-neutral-800"
+              {...register("teamRole")}
+            >
+              {TEAM_ROLE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            {errors.teamRole ? (
+              <p className="mt-1 text-xs text-red-600">
+                {errors.teamRole.message}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <TranslateFromMeButton
           disabled={pending}
           className="w-full sm:max-w-md"
@@ -231,8 +272,12 @@ export function ArticleEditorForm({
               setValue(`${loc}.title`, block.title, { shouldDirty: true });
               setValue(`${loc}.excerpt`, block.excerpt, { shouldDirty: true });
               setValue(`${loc}.body`, block.body, { shouldDirty: true });
-              setValue(`${loc}.metaTitle`, block.metaTitle, { shouldDirty: true });
-              setValue(`${loc}.metaDescription`, block.metaDescription, { shouldDirty: true });
+              setValue(`${loc}.metaTitle`, block.metaTitle, {
+                shouldDirty: true,
+              });
+              setValue(`${loc}.metaDescription`, block.metaDescription, {
+                shouldDirty: true,
+              });
             }
             setEditorRevision((n) => n + 1);
 
@@ -240,6 +285,10 @@ export function ArticleEditorForm({
             if (!result.ok) {
               setServerError(result.error);
               return { error: result.error };
+            }
+            if (onSuccessNavigate) {
+              onSuccessNavigate(result.postId);
+              return;
             }
             setBanner(successMessage(result.postId));
             if (resetOnSuccess) reset(initialValues);

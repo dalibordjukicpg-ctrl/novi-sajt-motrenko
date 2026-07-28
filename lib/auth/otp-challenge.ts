@@ -16,6 +16,7 @@ import {
   getOtpMaxWrongAttempts,
   getOtpSendWindowMs,
   isLikelyValidOtpPendingCookieShape,
+  OTP_DEV_HINT_COOKIE_NAME,
   OTP_PENDING_COOKIE_NAME,
 } from "./constants";
 import {
@@ -90,6 +91,8 @@ export async function countRecentOtpSends(userId: string): Promise<number> {
 }
 
 export async function canSendOtpEmail(userId: string): Promise<boolean> {
+  // Lokalno: bez limita — inače 3 pokušaja brzo zaključaju login bez Resend-a.
+  if (process.env.NODE_ENV !== "production") return true;
   const sent = await countRecentOtpSends(userId);
   return sent < getOtpMaxSends();
 }
@@ -169,6 +172,28 @@ export async function setOtpPendingCookie(
 export async function clearOtpPendingCookie(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(OTP_PENDING_COOKIE_NAME);
+  cookieStore.delete(OTP_DEV_HINT_COOKIE_NAME);
+}
+
+/** Lokalno bez Resend-a: sačuvaj OTP u cookie da se prikaže na verify stranici. */
+export async function setOtpDevHintCookie(otpCode: string): Promise<void> {
+  if (process.env.NODE_ENV === "production") return;
+  if (!/^\d{6}$/.test(otpCode)) return;
+  const cookieStore = await cookies();
+  cookieStore.set(OTP_DEV_HINT_COOKIE_NAME, otpCode, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    path: "/",
+    maxAge: Math.ceil(getOtpExpiryMs() / 1000),
+  });
+}
+
+export async function readOtpDevHintCookie(): Promise<string | null> {
+  if (process.env.NODE_ENV === "production") return null;
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(OTP_DEV_HINT_COOKIE_NAME)?.value?.trim() ?? "";
+  return /^\d{6}$/.test(raw) ? raw : null;
 }
 
 async function loadChallengeByCookie(): Promise<

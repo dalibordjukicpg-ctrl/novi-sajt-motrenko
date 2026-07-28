@@ -14,6 +14,7 @@ import {
   getActiveOtpChallenge,
   recordOtpSend,
   refreshOtpOnChallenge,
+  setOtpDevHintCookie,
   verifyOtpCode,
 } from "@/lib/auth/otp-challenge";
 import { createTrustedDevice } from "@/lib/auth/trusted-device";
@@ -25,6 +26,8 @@ import { loginOtpEmailBody, sendAuthEmail } from "@/lib/email/send-auth-email";
 export type VerifyOtpState = {
   error: string | null;
   info: string | null;
+  /** Samo lokalno kad email nije konfigurisan. */
+  devCode?: string | null;
 };
 
 async function requestAuditMeta(): Promise<{
@@ -216,11 +219,17 @@ export async function resendOtpAction(): Promise<VerifyOtpState> {
     };
   }
 
+  if (sent.skipped) {
+    console.info("[auth otp] dev skip — code:", otpCode);
+    await setOtpDevHintCookie(otpCode);
+  }
+
   return {
     error: null,
     info: sent.skipped
-      ? "Kod je generisan (email servis nije konfigurisan u dev okruženju)."
+      ? `Dev kod (email nije konfigurisan): ${otpCode}`
       : "Novi kod je poslan na vašu email adresu.",
+    devCode: sent.skipped ? otpCode : null,
   };
 }
 

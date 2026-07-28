@@ -24,6 +24,16 @@ export function isNurseTitle(title: string): boolean {
 
 export type AdminTeamGroup = "doctors" | "embriologists" | "nurses" | "other";
 
+export function adminTeamGroupForRole(
+  teamRole: "doctor" | "embryologist" | "nurse" | null | undefined,
+  title: string,
+): AdminTeamGroup {
+  if (teamRole === "doctor") return "doctors";
+  if (teamRole === "embryologist") return "embriologists";
+  if (teamRole === "nurse") return "nurses";
+  return adminTeamGroupForTitle(title);
+}
+
 export function adminTeamGroupForTitle(title: string): AdminTeamGroup {
   if (isDoctorTitle(title)) return "doctors";
   if (isEmbriologistTitle(title)) return "embriologists";
@@ -60,7 +70,7 @@ export function groupAdminTeamPosts(rows: AdminPostRow[]): {
   const other: AdminPostRow[] = [];
 
   for (const row of rows) {
-    const group = adminTeamGroupForTitle(row.titleMe ?? "");
+    const group = adminTeamGroupForRole(row.teamRole, row.titleMe ?? "");
     if (group === "doctors") doctors.push(row);
     else if (group === "embriologists") embriologists.push(row);
     else if (group === "nurses") nurses.push(row);

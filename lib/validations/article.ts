@@ -67,12 +67,22 @@ const coverIdSchema = z
 export const articleFormSchema = z.object({
   published: z.boolean(),
   coverMediaId: coverIdSchema,
+  /** Samo za profile tima; blog forme ostavljaju prazno/null. */
+  teamRole: z.enum(["doctor", "embryologist", "nurse"]).nullable().optional(),
   me: primaryArticleLocaleSchema,
   en: optionalArticleLocaleSchema,
   ru: optionalArticleLocaleSchema,
 });
 
 export type ArticleFormValues = z.infer<typeof articleFormSchema>;
+
+export const teamMemberFormSchema = articleFormSchema.extend({
+  teamRole: z.enum(["doctor", "embryologist", "nurse"], {
+    message: "Odaberite kategoriju člana tima.",
+  }),
+});
+
+export type TeamMemberFormValues = z.infer<typeof teamMemberFormSchema>;
 
 export type ArticleMutationResult =
   | { ok: true; postId: string }

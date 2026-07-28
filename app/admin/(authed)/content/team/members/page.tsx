@@ -8,6 +8,17 @@ import { groupAdminTeamPosts } from "@/lib/team-roster-order";
 
 export const dynamic = "force-dynamic";
 
+function AddMemberLink({ role }: { role: "doctor" | "embryologist" | "nurse" }) {
+  return (
+    <Link
+      href={adminPath(`content/team/members/new?role=${role}`)}
+      className="rounded-lg bg-[#f37021] px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#d95f16]"
+    >
+      Dodaj novog člana
+    </Link>
+  );
+}
+
 export default async function AdminTeamMembersPage() {
   const rows = await listPostsForAdmin({ contentRole: "team" });
   const { doctors, embriologists, nurses, other } = groupAdminTeamPosts(rows);
@@ -29,6 +40,7 @@ export default async function AdminTeamMembersPage() {
       <AdminPanel
         title="Doktori"
         description="Ginekolozi i specijalisti reproduktivne medicine."
+        headerAction={<AddMemberLink role="doctor" />}
       >
         <AdminPostList
           rows={doctors}
@@ -39,6 +51,7 @@ export default async function AdminTeamMembersPage() {
       <AdminPanel
         title="Klinički embriolozi"
         description="Laboratorija i embriologija."
+        headerAction={<AddMemberLink role="embryologist" />}
       >
         <AdminPostList
           rows={embriologists}
@@ -49,6 +62,7 @@ export default async function AdminTeamMembersPage() {
       <AdminPanel
         title="Medicinske sestre i tehničari"
         description="Sestre, koordinatori i medicinski tehničari."
+        headerAction={<AddMemberLink role="nurse" />}
       >
         <AdminPostList
           rows={nurses}
@@ -59,7 +73,7 @@ export default async function AdminTeamMembersPage() {
       {other.length > 0 ? (
         <AdminPanel
           title="Ostalo"
-          description="Profili koji nisu automatski razvrstani — provjerite naslov (me)."
+          description="Profili bez kategorije — otvorite uređivanje i odaberite ulogu."
         >
           <AdminPostList rows={other} emptyMessage="" />
         </AdminPanel>

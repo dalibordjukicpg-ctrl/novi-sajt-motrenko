@@ -435,12 +435,23 @@ export const media = mysqlTable("media", {
 
 export const postContentRoleEnum = mysqlEnum("content_role", ["blog", "team"]);
 
+/** Uloga u medicinskom timu (samo za contentRole = team). */
+export const teamRoleEnum = mysqlEnum("team_role", [
+  "doctor",
+  "embryologist",
+  "nurse",
+]);
+
+export type TeamRole = "doctor" | "embryologist" | "nurse";
+
 export const posts = mysqlTable("posts", {
   id: varchar("id", { length: 36 }).primaryKey(),
   published: boolean("published").notNull().default(false),
   publishedAt: datetime("published_at", { mode: "date", fsp: 3 }),
   /** Novosti vs. profili osoblja (WP kategorije). */
   contentRole: postContentRoleEnum.notNull().default("blog"),
+  /** Kategorija člana tima — doctor / embryologist / nurse. */
+  teamRole: teamRoleEnum,
   /** Naslovna slika za listu / karticu (javni prikaz). */
   coverMediaId: varchar("cover_media_id", { length: 36 }).references(
     () => media.id,

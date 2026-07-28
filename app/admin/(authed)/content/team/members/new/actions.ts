@@ -2,18 +2,15 @@
 
 import { randomUUID } from "crypto";
 
-import { and, eq } from "drizzle-orm";
-
 import { assertContentMutationAllowed } from "@/lib/auth/content-access";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { postTranslations, posts } from "@/lib/db/schema";
-import { defaultLocale, locales } from "@/lib/i18n";
+import { locales } from "@/lib/i18n";
 import { revalidateArticlePaths } from "@/lib/revalidate-content";
 import {
-  articleFormSchema,
-  teamMemberFormSchema,
   shouldPersistArticleTranslation,
+  teamMemberFormSchema,
   type ArticleMutationResult,
 } from "@/lib/validations/article";
 
@@ -23,8 +20,7 @@ function norm(s: string | undefined): string | null {
   return t.length === 0 ? null : t;
 }
 
-export async function updatePostWithTranslations(
-  postId: string,
+export async function createTeamMemberWithTranslations(
   raw: unknown,
 ): Promise<ArticleMutationResult> {
   const session = await getSession();
@@ -35,27 +31,14 @@ export async function updatePostWithTranslations(
   const gate = await assertContentMutationAllowed(
     session,
     "post",
-    postId,
-    "update",
+    undefined,
+    "create",
   );
   if (!gate.ok) {
     return { ok: false, error: gate.error };
   }
 
-  const [existing] = await db
-    .select()
-    .from(posts)
-    .where(eq(posts.id, postId))
-    .limit(1);
-
-  if (!existing) {
-    return { ok: false, error: "Članak nije pronađen." };
-  }
-
-  const isTeam = existing.contentRole === "team";
-  const parsed = (
-    isTeam ? teamMemberFormSchema : articleFormSchema
-  ).safeParse(raw);
+  const parsed = teamMemberFormSchema.safeParse(raw);
   if (!parsed.success) {
     const first = parsed.error.flatten().fieldErrors;
     const msg = Object.values(first).flat()[0];
@@ -63,66 +46,27 @@ export async function updatePostWithTranslations(
   }
 
   const data = parsed.data;
+  const postId = randomUUID();
   const now = new Date();
-  const coverMediaId =
-    data.coverMediaId === "" ? null : data.coverMediaId;
-
-  let publishedAt = existing.publishedAt;
-  if (data.published && !existing.published) {
-    publishedAt = now;
-  }
-  if (!data.published) {
-    publishedAt = null;
-  }
+  const publishedAt = data.published ? now : null;
+  const coverMediaId = data.coverMediaId === "" ? null : data.coverMediaId;
 
   try {
     await db.transaction(async (tx) => {
-      await tx
-        .update(posts)
-        .set({
-          published: data.published,
-          publishedAt,
-          updatedAt: now,
-          coverMediaId,
-          ...(isTeam && data.teamRole
-            ? { teamRole: data.teamRole }
-            : {}),
-        })
-        .where(eq(posts.id, postId));
+      await tx.insert(posts).values({
+        id: postId,
+        published: data.published,
+        publishedAt,
+        coverMediaId,
+        contentRole: "team",
+        teamRole: data.teamRole,
+        createdAt: now,
+        updatedAt: now,
+      });
 
       for (const locale of locales) {
         const block = data[locale];
-        if (locale === defaultLocale) {
-          await tx
-            .update(postTranslations)
-            .set({
-              slug: block.slug.trim(),
-              title: block.title.trim(),
-              excerpt: norm(block.excerpt ?? ""),
-              body: norm(block.body ?? ""),
-              metaTitle: norm(block.metaTitle ?? ""),
-              metaDescription: norm(block.metaDescription ?? ""),
-            })
-            .where(
-              and(
-                eq(postTranslations.postId, postId),
-                eq(postTranslations.locale, locale),
-              ),
-            );
-          continue;
-        }
-
-        await tx
-          .delete(postTranslations)
-          .where(
-            and(
-              eq(postTranslations.postId, postId),
-              eq(postTranslations.locale, locale),
-            ),
-          );
-
         if (!shouldPersistArticleTranslation(locale, block)) continue;
-
         await tx.insert(postTranslations).values({
           id: randomUUID(),
           postId,

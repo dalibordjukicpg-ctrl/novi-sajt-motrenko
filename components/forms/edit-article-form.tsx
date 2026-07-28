@@ -10,14 +10,21 @@ type Props = {
   postId: string;
   initialValues: ArticleFormValues;
   mediaOptions: MediaOption[];
+  showTeamRole?: boolean;
 };
 
-export function EditArticleForm({ postId, initialValues, mediaOptions }: Props) {
+export function EditArticleForm({
+  postId,
+  initialValues,
+  mediaOptions,
+  showTeamRole = false,
+}: Props) {
   return (
     <ArticleEditorForm
       key={postId}
       mediaOptions={mediaOptions}
       initialValues={initialValues}
+      showTeamRole={showTeamRole}
       onSubmit={(data) => updatePostWithTranslations(postId, data)}
       submitLabel="Sačuvaj izmjene"
       successMessage={() => "Izmjene su sačuvane."}

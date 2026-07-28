@@ -3,31 +3,53 @@ import { notFound } from "next/navigation";
 
 import { EditArticleForm } from "@/components/forms/edit-article-form";
 import { adminPath } from "@/lib/admin-base-path";
+import type { TeamRole } from "@/lib/db/schema";
 import { listMediaOptions } from "@/lib/queries/media-admin";
 import {
-  getPostContentRoleForAdmin,
   getPostForAdminEdit,
+  getPostTeamMetaForAdmin,
 } from "@/lib/queries/posts";
+import { adminTeamGroupForTitle } from "@/lib/team-roster-order";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ postId: string }> };
 
+function teamRoleFromGroup(
+  group: ReturnType<typeof adminTeamGroupForTitle>,
+): TeamRole | null {
+  if (group === "doctors") return "doctor";
+  if (group === "embriologists") return "embryologist";
+  if (group === "nurses") return "nurse";
+  return null;
+}
+
 export default async function EditPostPage({ params }: Props) {
   const { postId } = await params;
-  const [initial, mediaOptions, contentRole] = await Promise.all([
+  const [initial, mediaOptions, meta] = await Promise.all([
     getPostForAdminEdit(postId),
     listMediaOptions(),
-    getPostContentRoleForAdmin(postId),
+    getPostTeamMetaForAdmin(postId),
   ]);
-  if (!initial) notFound();
+  if (!initial || !meta) notFound();
 
-  const isTeam = contentRole === "team";
+  const isTeam = meta.contentRole === "team";
   const listHref = isTeam
     ? adminPath("content/team/members")
     : adminPath("posts");
   const listLabel = isTeam ? "← Medicinski tim" : "← Blog — novosti";
   const pageTitle = isTeam ? "Uredi profil tima" : "Uredi članak";
+
+  let initialValues = initial;
+  if (isTeam && !initial.teamRole) {
+    const inferred = teamRoleFromGroup(
+      adminTeamGroupForTitle(initial.me.title),
+    );
+    initialValues = {
+      ...initial,
+      teamRole: inferred ?? "doctor",
+    };
+  }
 
   return (
     <main className="min-h-dvh px-4 py-10">
@@ -44,8 +66,9 @@ export default async function EditPostPage({ params }: Props) {
       </div>
       <EditArticleForm
         postId={postId}
-        initialValues={initial}
+        initialValues={initialValues}
         mediaOptions={mediaOptions}
+        showTeamRole={isTeam}
       />
     </main>
   );

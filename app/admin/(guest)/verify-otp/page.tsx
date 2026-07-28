@@ -8,7 +8,7 @@ import {
   HEADER_LOGO_PIXEL_HEIGHT,
   HEADER_LOGO_PIXEL_WIDTH,
 } from "@/lib/clinic-assets";
-import { getActiveOtpChallenge } from "@/lib/auth/otp-challenge";
+import { getActiveOtpChallenge, readOtpDevHintCookie } from "@/lib/auth/otp-challenge";
 import { getSiteBranding } from "@/lib/queries/site-globals";
 
 import { VerifyOtpForm } from "./verify-otp-form";
@@ -45,6 +45,8 @@ export default async function AdminVerifyOtpPage() {
       ? `Verifikacija je privremeno zaključana. Pokušajte ponovo za ${formatRetryAfter(active.retryAfterSec ?? 0)}.`
       : null;
 
+  const devCode = lockedMessage ? null : await readOtpDevHintCookie();
+
   return (
     <main className="relative min-h-dvh px-4 py-14 md:py-20">
       <div className="mx-auto max-w-md">
@@ -68,8 +70,9 @@ export default async function AdminVerifyOtpPage() {
             Verifikacija
           </h1>
           <p className="mx-auto mt-2 max-w-[22rem] text-sm leading-relaxed text-site-muted">
-            Poslali smo 6-cifreni kod na vašu email adresu. Unesite ga ispod
-            da završite prijavu.
+            {devCode
+              ? "Email servis nije konfigurisan lokalno — koristi kod ispod."
+              : "Poslali smo 6-cifreni kod na vašu email adresu. Unesite ga ispod da završite prijavu."}
           </p>
         </div>
 
@@ -89,7 +92,7 @@ export default async function AdminVerifyOtpPage() {
               </p>
             </div>
           ) : (
-            <VerifyOtpForm />
+            <VerifyOtpForm initialDevCode={devCode} />
           )}
         </div>
       </div>

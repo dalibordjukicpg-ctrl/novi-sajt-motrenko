@@ -11,9 +11,15 @@ import {
   type VerifyOtpState,
 } from "./actions";
 
-const initial: VerifyOtpState = { error: null, info: null };
+const initial: VerifyOtpState = { error: null, info: null, devCode: null };
 
-export function VerifyOtpForm({ className }: { className?: string }) {
+export function VerifyOtpForm({
+  className,
+  initialDevCode = null,
+}: {
+  className?: string;
+  initialDevCode?: string | null;
+}) {
   const [state, formAction, pending] = useActionState(verifyOtpAction, initial);
   const [resendState, resendAction, resendPending] = useActionState(
     resendOtpFormAction,
@@ -23,9 +29,19 @@ export function VerifyOtpForm({ className }: { className?: string }) {
 
   const error = state.error ?? resendState.error;
   const info = state.info ?? resendState.info;
+  const devCode = resendState.devCode ?? state.devCode ?? initialDevCode;
 
   return (
     <div className={cn("mx-auto max-w-sm space-y-4", className)}>
+      {devCode ? (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-center text-sm text-amber-950 ring-1 ring-amber-100">
+          Lokalni kod:{" "}
+          <span className="font-mono text-base font-semibold tracking-[0.2em]">
+            {devCode}
+          </span>
+        </p>
+      ) : null}
+
       <form action={formAction} className="space-y-4">
         <div>
           <label
@@ -63,7 +79,7 @@ export function VerifyOtpForm({ className }: { className?: string }) {
             {error}
           </p>
         )}
-        {info && (
+        {info && !devCode && (
           <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800 ring-1 ring-emerald-100">
             {info}
           </p>

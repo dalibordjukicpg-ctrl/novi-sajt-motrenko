@@ -48,6 +48,7 @@ export type AdminPostRow = {
   id: string;
   published: boolean;
   contentRole: "blog" | "team";
+  teamRole: "doctor" | "embryologist" | "nurse" | null;
   updatedAt: Date;
   titleMe: string | null;
   slugMe: string | null;
@@ -65,6 +66,7 @@ export async function listPostsForAdmin(opts?: {
       id: posts.id,
       published: posts.published,
       contentRole: posts.contentRole,
+      teamRole: posts.teamRole,
       updatedAt: posts.updatedAt,
       titleMe: postTranslations.title,
       slugMe: postTranslations.slug,
@@ -92,6 +94,21 @@ export async function getPostContentRoleForAdmin(
     .where(eq(posts.id, postId))
     .limit(1);
   return row?.contentRole ?? null;
+}
+
+export async function getPostTeamMetaForAdmin(postId: string): Promise<{
+  contentRole: "blog" | "team";
+  teamRole: "doctor" | "embryologist" | "nurse" | null;
+} | null> {
+  const [row] = await db
+    .select({
+      contentRole: posts.contentRole,
+      teamRole: posts.teamRole,
+    })
+    .from(posts)
+    .where(eq(posts.id, postId))
+    .limit(1);
+  return row ?? null;
 }
 
 function blockFromRow(row: {
@@ -130,6 +147,7 @@ export async function getPostForAdminEdit(
     .select({
       published: posts.published,
       coverMediaId: posts.coverMediaId,
+      teamRole: posts.teamRole,
     })
     .from(posts)
     .where(eq(posts.id, postId))
@@ -151,6 +169,7 @@ export async function getPostForAdminEdit(
   const values: Record<string, unknown> = {
     published: row.published,
     coverMediaId: row.coverMediaId ?? "",
+    teamRole: row.teamRole ?? null,
   };
   for (const loc of locales) {
     const r = byLocale[loc];
