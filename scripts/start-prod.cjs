@@ -101,6 +101,11 @@ spawnSync(process.execPath, ["scripts/ensure-questionnaire-submissions.cjs"], {
   cwd,
   env: process.env,
 });
+spawnSync(process.execPath, ["scripts/ensure-posts-team-role.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
 
 let nextBin;
 try {
