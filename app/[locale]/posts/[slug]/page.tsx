@@ -7,6 +7,7 @@ import { PageHero } from "@/components/site/page-hero";
 import { CLINIC_PAGE_HERO_BG } from "@/lib/clinic-assets";
 import { getDbConnectionUserMessage, isDbConnectionError } from "@/lib/db-errors";
 import { isLocale } from "@/lib/i18n";
+import { objectPositionFromFocusY } from "@/lib/image-focus";
 import { getPublishedPostBySlug } from "@/lib/queries/posts";
 import { withCanonical } from "@/lib/page-metadata";
 
@@ -67,6 +68,7 @@ export default async function PublicPostPage({ params }: Props) {
   const isTeam = post.contentRole === "team";
   const backHref = isTeam ? `/${raw}/s/tim` : `/${raw}#novosti`;
   const backLabel = isTeam ? "← Nazad na tim" : "← Nazad na novosti";
+  const coverObjectPosition = objectPositionFromFocusY(post.coverFocusY);
 
   return (
     <main className="min-h-screen w-full min-w-0 overflow-x-hidden bg-transparent">
@@ -105,14 +107,16 @@ export default async function PublicPostPage({ params }: Props) {
                       unoptimized
                       priority
                       sizes="(min-width: 1024px) 320px, (min-width: 640px) 280px, 88vw"
-                      className="object-cover object-[center_12%]"
+                      className="object-cover"
+                      style={{ objectPosition: coverObjectPosition }}
                     />
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={post.coverUrl}
                       alt={post.title}
-                      className="absolute inset-0 h-full w-full object-cover object-[center_12%]"
+                      className="absolute inset-0 h-full w-full object-cover"
+                      style={{ objectPosition: coverObjectPosition }}
                     />
                   )}
                 </div>
@@ -140,7 +144,8 @@ export default async function PublicPostPage({ params }: Props) {
                 <img
                   src={post.coverUrl}
                   alt=""
-                  className="absolute inset-0 h-full w-full object-contain object-center"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  style={{ objectPosition: coverObjectPosition }}
                 />
               </div>
             ) : null}

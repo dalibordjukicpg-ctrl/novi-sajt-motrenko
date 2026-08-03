@@ -7,6 +7,8 @@ type Props = {
   alt?: string;
   className?: string;
   placeholderClassName?: string;
+  /** object-position, npr. "center 35%" */
+  objectPosition?: string;
 };
 
 /** Cover slika sa fallbackom ako fajl nedostaje na serveru (npr. nakon redeploya). */
@@ -15,6 +17,7 @@ export function SiteCoverImage({
   alt = "",
   className,
   placeholderClassName,
+  objectPosition,
 }: Props) {
   const [failed, setFailed] = useState(false);
   const placeholder =
@@ -31,6 +34,7 @@ export function SiteCoverImage({
       src={src}
       alt={alt}
       className={className}
+      style={objectPosition ? { objectPosition } : undefined}
       loading="lazy"
       decoding="async"
       onError={() => setFailed(true)}

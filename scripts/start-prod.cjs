@@ -106,6 +106,11 @@ spawnSync(process.execPath, ["scripts/ensure-posts-team-role.cjs"], {
   cwd,
   env: process.env,
 });
+spawnSync(process.execPath, ["scripts/ensure-posts-cover-focus-y.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
 
 let nextBin;
 try {

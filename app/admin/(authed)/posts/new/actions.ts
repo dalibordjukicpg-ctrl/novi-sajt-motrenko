@@ -51,6 +51,7 @@ export async function createPostWithTranslations(
   const publishedAt = data.published ? now : null;
   const coverMediaId =
     data.coverMediaId === "" ? null : data.coverMediaId;
+  const coverFocusY = data.coverFocusY;
 
   try {
     await db.transaction(async (tx) => {
@@ -59,6 +60,7 @@ export async function createPostWithTranslations(
         published: data.published,
         publishedAt,
         coverMediaId,
+        coverFocusY,
         contentRole: "blog",
         createdAt: now,
         updatedAt: now,

@@ -457,6 +457,11 @@ export const posts = mysqlTable("posts", {
     () => media.id,
     { onDelete: "set null" },
   ),
+  /**
+   * Vertikalni fokus naslovnice u 16:10 okviru (object-position Y %).
+   * 0 = vrh, 50 = centar, 100 = dno.
+   */
+  coverFocusY: int("cover_focus_y").notNull().default(50),
   createdAt: datetime("created_at", { mode: "date", fsp: 3 })
     .notNull()
     .$defaultFn(() => new Date()),

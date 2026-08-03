@@ -624,7 +624,7 @@ main {
   border: 1px solid rgb(30 20 10 / 0.04);
 }
 
-/* Blog članci: isti 16:10 okvir, centrirano, bez crop-a. */
+/* Blog članci: isti 16:10 okvir; fokus preko inline object-position (admin). */
 .wp-content--article img {
   display: block;
   width: 100%;
@@ -632,7 +632,7 @@ main {
   aspect-ratio: 16 / 10;
   height: auto;
   max-height: none;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center center;
   background-color: rgb(244 244 245);
   margin: 1.75rem 0;
@@ -651,8 +651,21 @@ main {
   height: 100%;
   margin: 0;
   aspect-ratio: auto;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center center;
+}
+
+/* Tim biografija: body slike bez forsiranih 16:10 kartica. */
+.wp-content--team-profile img {
+  aspect-ratio: auto;
+  object-fit: contain;
+  height: auto;
+  background: transparent;
+}
+
+.wp-content--team-profile figure {
+  aspect-ratio: auto;
+  background: transparent;
 }
 
 .wp-content .wp-youtube-embed,
@@ -786,9 +799,17 @@ main {
   color: var(--site-brand-muted);
   text-decoration: underline;
 }
-.prose-article img {
+.prose-article img,
+.admin-tiptap-editor .ProseMirror img {
+  display: block;
+  width: 100%;
   max-width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: center center;
   border-radius: 0.5rem;
+  margin: 1rem 0;
+  background: #f4f4f5;
 }
 
 .admin-tiptap-editor .wp-youtube-embed {

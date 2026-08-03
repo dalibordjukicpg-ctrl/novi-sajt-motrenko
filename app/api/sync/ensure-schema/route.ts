@@ -86,6 +86,18 @@ async function ensurePostsTeamRole(
   return "posts.team_role added + backfill";
 }
 
+async function ensurePostsCoverFocusY(
+  conn: Awaited<ReturnType<typeof createConnection>>,
+): Promise<string> {
+  if (await columnExists(conn, "posts", "cover_focus_y")) {
+    return "posts.cover_focus_y already exists";
+  }
+  await conn.query(
+    "ALTER TABLE `posts` ADD `cover_focus_y` int NOT NULL DEFAULT 50",
+  );
+  return "posts.cover_focus_y added";
+}
+
 async function handle(req: Request) {
   if (!checkSecret(req)) {
     return new Response("Unauthorized", { status: 401 });
@@ -94,7 +106,8 @@ async function handle(req: Request) {
   const conn = await createConnection(parseDbUrl());
   try {
     const teamRole = await ensurePostsTeamRole(conn);
-    return Response.json({ ok: true, results: { teamRole } });
+    const coverFocusY = await ensurePostsCoverFocusY(conn);
+    return Response.json({ ok: true, results: { teamRole, coverFocusY } });
   } catch (e) {
     return Response.json(
       { ok: false, error: (e as Error).message },

@@ -18,6 +18,7 @@ const defaultLocaleBlock = {
 const emptyForm = {
   published: false,
   coverMediaId: "",
+  coverFocusY: 50,
   teamRole: null,
   ...Object.fromEntries(
     locales.map((loc) => [loc, { ...defaultLocaleBlock }]),

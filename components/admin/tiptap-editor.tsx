@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import type { Editor } from "@tiptap/core";
@@ -19,8 +18,11 @@ import {
   AdminMediaPicker,
   uploadAdminMediaFile,
 } from "@/components/admin/admin-media-picker";
+import { ImageFocusPreview } from "@/components/admin/image-focus-preview";
+import { ArticleImage } from "@/components/admin/tiptap-article-image";
 import { YoutubeEmbedExtension } from "@/components/admin/tiptap-youtube-extension";
 import { normalizeCmsHtmlForEditor } from "@/lib/cms-youtube-html";
+import { clampImageFocusY } from "@/lib/image-focus";
 import type { MediaOption } from "@/lib/queries/media-admin";
 import {
   countYoutubeEmbeds,
@@ -65,11 +67,26 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
   const [sourceHtml, setSourceHtml] = useState(initialHtml || "");
   const [youtubeCount, setYoutubeCount] = useState(0);
   const [youtubeSelected, setYoutubeSelected] = useState(false);
+  const [imageSelected, setImageSelected] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [imageFocusY, setImageFocusY] = useState(50);
   const editorRef = useRef<Editor | null>(null);
 
-  const syncYoutubeMeta = useCallback((ed: Editor) => {
+  const syncEditorMeta = useCallback((ed: Editor) => {
     setYoutubeCount(countYoutubeEmbeds(ed));
     setYoutubeSelected(ed.isActive("youtubeEmbed"));
+    const imgActive = ed.isActive("image");
+    setImageSelected(imgActive);
+    if (imgActive) {
+      const attrs = ed.getAttributes("image") as {
+        src?: string;
+        objectPositionY?: number;
+      };
+      setImageSrc(typeof attrs.src === "string" ? attrs.src : null);
+      setImageFocusY(clampImageFocusY(attrs.objectPositionY));
+    } else {
+      setImageSrc(null);
+    }
   }, []);
 
   const editor = useEditor({
@@ -78,9 +95,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
         heading: { levels: [2, 3] },
         dropcursor: { color: "#e8682a", width: 3 },
       }),
-      Image.configure({
-        HTMLAttributes: { class: "max-w-full rounded-lg" },
-      }),
+      ArticleImage,
       Link.configure({ openOnClick: false, autolink: true }),
       Placeholder.configure({ placeholder }),
       YoutubeEmbedExtension,
@@ -89,7 +104,7 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
     immediatelyRender: false,
     onCreate: ({ editor: ed }) => {
       editorRef.current = ed;
-      syncYoutubeMeta(ed);
+      syncEditorMeta(ed);
     },
     onDestroy: () => {
       editorRef.current = null;
@@ -111,10 +126,10 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
     },
     onUpdate: ({ editor: ed }) => {
       onHtmlChange(ed.getHTML());
-      syncYoutubeMeta(ed);
+      syncEditorMeta(ed);
     },
     onSelectionUpdate: ({ editor: ed }) => {
-      syncYoutubeMeta(ed);
+      syncEditorMeta(ed);
     },
   });
 
@@ -171,6 +186,21 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
       editor.chain().focus().setImage({ src: url }).run();
     },
     [editor],
+  );
+
+  const updateSelectedImageFocusY = useCallback(
+    (y: number) => {
+      if (!editor?.isActive("image")) return;
+      const next = clampImageFocusY(y);
+      setImageFocusY(next);
+      editor
+        .chain()
+        .focus()
+        .updateAttributes("image", { objectPositionY: next })
+        .run();
+      onHtmlChange(editor.getHTML());
+    },
+    [editor, onHtmlChange],
   );
 
   const insertYoutube = useCallback(() => {
@@ -379,6 +409,18 @@ export const TiptapEditor = forwardRef<TiptapEditorHandle, Props>(
             <EditorContent editor={editor} />
           </div>
         )}
+        {!sourceMode && imageSelected && imageSrc ? (
+          <div className="border-t border-neutral-100 bg-neutral-50/90 px-3 py-3">
+            <p className="text-xs font-medium text-neutral-800">
+              Odabrana slika — isti 16:10 okvir; povuci da namjestiš kadar
+            </p>
+            <ImageFocusPreview
+              src={imageSrc}
+              focusY={imageFocusY}
+              onChange={updateSelectedImageFocusY}
+            />
+          </div>
+        ) : null}
       </div>
 
       <AdminMediaPicker

@@ -36,6 +36,7 @@ export function CreateTeamMemberForm({
       ({
         published: false,
         coverMediaId: "",
+        coverFocusY: 50,
         teamRole: initialTeamRole,
         ...Object.fromEntries(
           locales.map((loc) => [loc, { ...defaultLocaleBlock }]),

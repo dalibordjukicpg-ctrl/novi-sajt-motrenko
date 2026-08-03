@@ -8,17 +8,31 @@ import {
   AdminMediaPicker,
   uploadAdminMediaFile,
 } from "@/components/admin/admin-media-picker";
+import { ImageFocusPreview } from "@/components/admin/image-focus-preview";
 import { adminPath } from "@/lib/admin-base-path";
+import { clampImageFocusY } from "@/lib/image-focus";
 import type { MediaOption } from "@/lib/queries/media-admin";
 
 type Props = {
   mediaOptions: MediaOption[];
   value: string;
   onChange: (mediaId: string) => void;
+  focusY: number;
+  onFocusYChange: (focusY: number) => void;
   error?: string;
+  /** Tim profili koriste portret 4:5; blog 16:10. */
+  previewAspect?: "blog" | "team";
 };
 
-export function CoverMediaField({ mediaOptions, value, onChange, error }: Props) {
+export function CoverMediaField({
+  mediaOptions,
+  value,
+  onChange,
+  focusY,
+  onFocusYChange,
+  error,
+  previewAspect = "blog",
+}: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -26,6 +40,9 @@ export function CoverMediaField({ mediaOptions, value, onChange, error }: Props)
 
   const preview =
     mediaOptions.find((m) => m.id === value)?.url ?? previewUrl;
+  const y = clampImageFocusY(focusY);
+  const aspectClass =
+    previewAspect === "team" ? "aspect-[4/5]" : "aspect-[16/10]";
 
   async function uploadFromComputer(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -53,7 +70,7 @@ export function CoverMediaField({ mediaOptions, value, onChange, error }: Props)
         <Link href={adminPath("media")} className="font-medium text-[#c55a15] underline">
           Mediji
         </Link>
-        .
+        . U okviru ispod možeš povući sliku gore/dolje.
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -122,11 +139,11 @@ export function CoverMediaField({ mediaOptions, value, onChange, error }: Props)
       ) : null}
 
       {preview ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <ImageFocusPreview
           src={preview}
-          alt=""
-          className="mt-4 max-h-48 w-full max-w-md rounded-lg border border-neutral-200 object-cover"
+          focusY={y}
+          onChange={onFocusYChange}
+          aspectClassName={aspectClass}
         />
       ) : null}
 

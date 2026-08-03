@@ -176,6 +176,13 @@
       "when": 1748263800000,
       "tag": "0026_posts_team_role",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1748350200000,
+      "tag": "0027_posts_cover_focus_y",
+      "breakpoints": true
     }
   ]
 }

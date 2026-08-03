@@ -8,6 +8,7 @@ import { media, postTranslations, posts } from "@/lib/db/schema";
 import { publicUrlFromMediaStorageKey } from "@/lib/media-public";
 import { resolveBestPublicImageUrl } from "@/lib/media-quality";
 import { resolvePublishedPostIdForSlug } from "@/lib/post-locale-resolve";
+import { clampImageFocusY } from "@/lib/image-focus";
 import { preparePublicHtml, preparePublicPlainText, stripDuplicateTeamCoverFromBody, extractFirstImageSrcFromHtml } from "@/lib/public-cms-html";
 import { sortTeamMembersForDisplay } from "@/lib/team-roster-order";
 import {
@@ -136,6 +137,7 @@ export async function getPostForAdminEdit(
     .select({
       published: posts.published,
       coverMediaId: posts.coverMediaId,
+      coverFocusY: posts.coverFocusY,
       teamRole: posts.teamRole,
     })
     .from(posts)
@@ -158,6 +160,7 @@ export async function getPostForAdminEdit(
   const values: Record<string, unknown> = {
     published: row.published,
     coverMediaId: row.coverMediaId ?? "",
+    coverFocusY: row.coverFocusY ?? 50,
     teamRole: row.teamRole ?? null,
   };
   for (const loc of locales) {
@@ -172,6 +175,7 @@ export type PostSummary = {
   slug: string;
   title: string;
   coverUrl: string | null;
+  coverFocusY: number;
 };
 
 /** Javna lista: objavljeni postovi; naslov/slug za traženi jezik, inače `defaultLocale`. */
@@ -182,6 +186,7 @@ export async function listPublishedSummaries(
     .select({
       id: posts.id,
       coverMediaId: posts.coverMediaId,
+      coverFocusY: posts.coverFocusY,
     })
     .from(posts)
     .where(
@@ -230,9 +235,12 @@ export async function listPublishedSummaries(
   const coverByPostId = new Map(
     published.map((p) => [
       p.id,
-      p.coverMediaId
-        ? (coverUrlByMediaId.get(p.coverMediaId) ?? null)
-        : null,
+      {
+        url: p.coverMediaId
+          ? (coverUrlByMediaId.get(p.coverMediaId) ?? null)
+          : null,
+        focusY: clampImageFocusY(p.coverFocusY),
+      },
     ]),
   );
 
@@ -250,7 +258,8 @@ export async function listPublishedSummaries(
     const locTitle = (t.title ?? "").trim();
     titlePairs.push({ localized: locTitle, me: meTitle });
 
-    let coverUrl = coverByPostId.get(id) ?? null;
+    const coverMeta = coverByPostId.get(id);
+    let coverUrl = coverMeta?.url ?? null;
     if (!coverUrl) {
       // Isto kao na stranici članka: ako nema coverMedia, uzmi prvu sliku iz body-ja.
       const bodyForCover = fallback?.body ?? t.body;
@@ -264,6 +273,7 @@ export async function listPublishedSummaries(
       slug: t.slug,
       title: locTitle,
       coverUrl,
+      coverFocusY: coverMeta?.focusY ?? 50,
     });
   }
 
@@ -441,6 +451,7 @@ export type PublicPost = {
   metaTitle: string | null;
   metaDescription: string | null;
   coverUrl: string | null;
+  coverFocusY: number;
 };
 
 type TransRow = {
@@ -453,6 +464,7 @@ type TransRow = {
   metaTitle: string | null;
   metaDescription: string | null;
   coverKey: string | null;
+  coverFocusY: number;
   locale: string;
 };
 
@@ -475,6 +487,7 @@ export async function getPublishedPostBySlug(
       metaTitle: postTranslations.metaTitle,
       metaDescription: postTranslations.metaDescription,
       coverKey: media.storageKey,
+      coverFocusY: posts.coverFocusY,
       locale: postTranslations.locale,
     })
     .from(postTranslations)
@@ -552,5 +565,6 @@ export async function getPublishedPostBySlug(
     metaTitle,
     metaDescription,
     coverUrl,
+    coverFocusY: clampImageFocusY(row.coverFocusY),
   };
 }

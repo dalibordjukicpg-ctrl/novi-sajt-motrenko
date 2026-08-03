@@ -66,6 +66,7 @@ export async function updatePostWithTranslations(
   const now = new Date();
   const coverMediaId =
     data.coverMediaId === "" ? null : data.coverMediaId;
+  const coverFocusY = data.coverFocusY;
 
   let publishedAt = existing.publishedAt;
   if (data.published && !existing.published) {
@@ -84,6 +85,7 @@ export async function updatePostWithTranslations(
           publishedAt,
           updatedAt: now,
           coverMediaId,
+          coverFocusY,
           ...(isTeam && data.teamRole
             ? { teamRole: data.teamRole }
             : {}),

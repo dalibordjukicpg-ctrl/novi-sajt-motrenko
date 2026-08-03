@@ -50,6 +50,7 @@ export async function createTeamMemberWithTranslations(
   const now = new Date();
   const publishedAt = data.published ? now : null;
   const coverMediaId = data.coverMediaId === "" ? null : data.coverMediaId;
+  const coverFocusY = data.coverFocusY;
 
   try {
     await db.transaction(async (tx) => {
@@ -58,6 +59,7 @@ export async function createTeamMemberWithTranslations(
         published: data.published,
         publishedAt,
         coverMediaId,
+        coverFocusY,
         contentRole: "team",
         teamRole: data.teamRole,
         createdAt: now,

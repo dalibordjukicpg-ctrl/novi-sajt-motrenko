@@ -187,6 +187,7 @@ export function ArticleEditorForm({
   });
 
   const coverId = watch("coverMediaId");
+  const coverFocusY = watch("coverFocusY") ?? 50;
   const submit = (data: ArticleFormValues) => {
     setServerError(null);
     setBanner(null);
@@ -300,9 +301,15 @@ export function ArticleEditorForm({
         mediaOptions={mediaOptions}
         value={coverId ?? ""}
         onChange={(id) => setValue("coverMediaId", id, { shouldDirty: true })}
+        focusY={coverFocusY}
+        onFocusYChange={(y) =>
+          setValue("coverFocusY", y, { shouldDirty: true, shouldValidate: true })
+        }
+        previewAspect={showTeamRole ? "team" : "blog"}
         error={errors.coverMediaId?.message}
       />
       <input type="hidden" {...register("coverMediaId")} />
+      <input type="hidden" {...register("coverFocusY", { valueAsNumber: true })} />
       {locales.map((loc) => (
         <LocaleFields
           key={loc}

@@ -67,6 +67,8 @@ const coverIdSchema = z
 export const articleFormSchema = z.object({
   published: z.boolean(),
   coverMediaId: coverIdSchema,
+  /** Vertikalni fokus naslovnice (object-position Y %). */
+  coverFocusY: z.number().int().min(0).max(100),
   /** Samo za profile tima; blog forme ostavljaju prazno/null. */
   teamRole: z.enum(["doctor", "embryologist", "nurse"]).nullable().optional(),
   me: primaryArticleLocaleSchema,

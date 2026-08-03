@@ -91,6 +91,7 @@ export function HomeNewsMotrenko({
                       <SiteCoverImage
                         src={post.coverUrl}
                         alt=""
+                        objectPosition={`center ${post.coverFocusY ?? 50}%`}
                         className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                       />
                     ) : (

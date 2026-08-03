@@ -13,6 +13,7 @@ import {
   parseYoutubeEmbedUrl,
 } from "@/lib/youtube-hero";
 
+import { applyImageFocusStylesFromDataAttrs } from "@/lib/image-focus";
 import type { Locale } from "@/lib/i18n";
 import { locales } from "@/lib/i18n";
 
@@ -594,7 +595,8 @@ export function preparePublicHtml(html: string | null | undefined, locale: Local
   const withYoutube = embedYoutubeLinksInHtml(cleaned);
   const withStoredEmbeds = ensureYoutubeEmbedsInCmsHtml(withYoutube);
   const layoutEmbeds = unwrapYoutubeFigureWrappers(withStoredEmbeds);
-  return upgradeImageUrlsInHtml(layoutEmbeds);
+  const withImageUrls = upgradeImageUrlsInHtml(layoutEmbeds);
+  return applyImageFocusStylesFromDataAttrs(withImageUrls);
 }
 
 /** Kratki plain/HTML tekst (excerpt, meta) — uklanja WP „n“ smeće. */
