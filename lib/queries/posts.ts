@@ -260,11 +260,21 @@ export async function listPublishedSummaries(
     const meTitle = (fallback?.title ?? t.title).trim();
     const locTitle = (t.title ?? "").trim();
     titlePairs.push({ localized: locTitle, me: meTitle });
+
+    let coverUrl = coverByPostId.get(id) ?? null;
+    if (!coverUrl) {
+      // Isto kao na stranici članka: ako nema coverMedia, uzmi prvu sliku iz body-ja.
+      const bodyForCover = fallback?.body ?? t.body;
+      coverUrl = resolveCoverPublicUrlFromPath(
+        extractFirstImageSrcFromHtml(bodyForCover),
+      );
+    }
+
     draft.push({
       postId: id,
       slug: t.slug,
       title: locTitle,
-      coverUrl: coverByPostId.get(id) ?? null,
+      coverUrl,
     });
   }
 
