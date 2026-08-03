@@ -624,6 +624,27 @@ main {
   border: 1px solid rgb(30 20 10 / 0.04);
 }
 
+/* Blog članci: sve slike isti okvir (kao cover / kartice na početnoj). */
+.wp-content--article img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: center center;
+  margin: 1.75rem 0;
+}
+
+.wp-content--article figure {
+  width: 100%;
+  margin: 1.75rem 0;
+}
+
+.wp-content--article figure img {
+  margin: 0;
+}
+
 .wp-content .wp-youtube-embed,
 .wp-content [data-youtube-url] {
   position: relative;
