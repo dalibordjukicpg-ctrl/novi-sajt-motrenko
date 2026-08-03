@@ -624,26 +624,35 @@ main {
   border: 1px solid rgb(30 20 10 / 0.04);
 }
 
-/* Blog članci: isti okvir, cijela slika (bez crop-a). */
+/* Blog članci: isti 16:10 okvir, centrirano, bez crop-a. */
 .wp-content--article img {
   display: block;
   width: 100%;
   max-width: 100%;
-  height: auto;
   aspect-ratio: 16 / 10;
+  height: auto;
+  max-height: none;
   object-fit: contain;
   object-position: center center;
-  background: rgb(244 244 245);
+  background-color: rgb(244 244 245);
   margin: 1.75rem 0;
 }
 
 .wp-content--article figure {
   width: 100%;
   margin: 1.75rem 0;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background-color: rgb(244 244 245);
 }
 
 .wp-content--article figure img {
+  width: 100%;
+  height: 100%;
   margin: 0;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center center;
 }
 
 .wp-content .wp-youtube-embed,
