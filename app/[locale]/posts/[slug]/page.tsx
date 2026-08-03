@@ -135,9 +135,13 @@ export default async function PublicPostPage({ params }: Props) {
         ) : (
           <>
             {post.coverUrl ? (
-              <div className="relative -mt-8 mb-10 aspect-[21/9] max-h-[min(360px,36vh)] w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-100 shadow-lg">
+              <div className="relative -mt-8 mb-10 w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-100 shadow-lg">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={post.coverUrl} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={post.coverUrl}
+                  alt=""
+                  className="mx-auto max-h-[min(520px,70vh)] w-full object-contain object-center"
+                />
               </div>
             ) : null}
             {post.body ? (
