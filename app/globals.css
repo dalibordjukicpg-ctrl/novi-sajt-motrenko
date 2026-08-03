@@ -539,7 +539,7 @@ main {
 }
 
 .wp-content h4 {
-  font-family: var(--font-lora), Georgia, serif;
+  font-family: var(--font-lora), system-ui, sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1009,7 +1009,7 @@ main {
 
 .admin-sidebar-brand__title {
   display: block;
-  font-family: var(--font-lora), Georgia, serif;
+  font-family: var(--font-lora), system-ui, sans-serif;
   font-size: 1.02rem;
   font-weight: 600;
   line-height: 1.2;

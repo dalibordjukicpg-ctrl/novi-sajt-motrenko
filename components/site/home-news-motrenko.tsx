@@ -42,7 +42,7 @@ export function HomeNewsMotrenko({
               {eyebrow}
             </p>
             <h2
-              style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
+              style={{ fontFamily: "var(--font-lora), system-ui, sans-serif" }}
               className="text-[clamp(1.7rem,3.2vw,2.8rem)] font-medium leading-[1.1] tracking-tight text-site-ink"
             >
               {heading}

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Lora, Outfit, Playfair_Display } from "next/font/google";
+import { Nunito, Outfit, Playfair_Display } from "next/font/google";
 
 import { AnalyticsInjector } from "@/components/site/analytics-injector";
 import { GlobalBackdrop } from "@/components/site/global-backdrop";
@@ -7,11 +7,11 @@ import { getSiteBranding } from "@/lib/queries/site-globals";
 import { getMetadataBase, getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
-const lora = Lora({
+/** Body tekstovi — Nunito Regular (400); teže težine samo za UI naglaske. */
+const nunito = Nunito({
   variable: "--font-lora",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -23,7 +23,7 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-/** Geometrijski sans — samo header / CTA (ostatak sajta: Lora + Playfair). */
+/** Geometrijski sans — samo header / CTA (body: Nunito, naslovi: Playfair). */
 const outfitHeader = Outfit({
   variable: "--font-header-nav",
   subsets: ["latin", "latin-ext"],
@@ -99,10 +99,10 @@ export default async function RootLayout({
   return (
     <html
       lang="me"
-      className={`${lora.variable} ${playfair.variable} ${outfitHeader.variable} h-full min-h-dvh`}
+      className={`${nunito.variable} ${playfair.variable} ${outfitHeader.variable} h-full min-h-dvh`}
       suppressHydrationWarning
     >
-      <body className="relative min-h-dvh font-sans antialiased text-site-ink">
+      <body className="relative min-h-dvh font-sans font-normal antialiased text-site-ink">
         {/* GlobalBackdrop: fiksirana iza svakog sadržaja na svim stranicama */}
         <GlobalBackdrop />
         <AnalyticsInjector

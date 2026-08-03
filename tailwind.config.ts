@@ -26,7 +26,7 @@ const config: Config = {
         "hero-drift": "hero-drift 28s ease-in-out infinite alternate",
       },
       fontFamily: {
-        sans: ["var(--font-lora)", "Georgia", "Cambria", "serif"],
+        sans: ["var(--font-lora)", "system-ui", "Segoe UI", "sans-serif"],
         serif: ["var(--font-playfair)", "Georgia", "Cambria", "serif"],
         "header-nav": [
           "var(--font-header-nav)",

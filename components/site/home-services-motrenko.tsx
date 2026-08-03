@@ -76,7 +76,7 @@ export function HomeServicesMotrenko({
               </p>
             </div>
             <h2
-              style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
+              style={{ fontFamily: "var(--font-lora), system-ui, sans-serif" }}
               className="text-balance text-[clamp(1.55rem,6.5vw,2.6rem)] font-medium leading-[1.12] tracking-[-0.02em] text-site-ink"
             >
               {heading}
@@ -107,7 +107,7 @@ export function HomeServicesMotrenko({
 
                 <div className="flex flex-1 flex-col gap-2">
                   <p
-                    style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
+                    style={{ fontFamily: "var(--font-lora), system-ui, sans-serif" }}
                     className="text-[1rem] font-semibold leading-snug tracking-tight text-site-ink"
                   >
                     {card.title}

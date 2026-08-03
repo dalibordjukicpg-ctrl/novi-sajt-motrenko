@@ -84,7 +84,7 @@ export function HomeTeamTeaser({
               <div className="px-5 py-4 text-center sm:py-5 sm:text-left">
                 <h3
                   className="text-lg font-medium leading-snug text-site-ink sm:text-xl"
-                  style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
+                  style={{ fontFamily: "var(--font-lora), system-ui, sans-serif" }}
                 >
                   {featured?.name}
                 </h3>
@@ -102,7 +102,7 @@ export function HomeTeamTeaser({
 
           <div className="text-center sm:text-left lg:pl-2">
             <h2
-              style={{ fontFamily: "var(--font-lora), Georgia, serif" }}
+              style={{ fontFamily: "var(--font-lora), system-ui, sans-serif" }}
               className="text-[clamp(1.5rem,2.8vw,2.5rem)] font-medium leading-[1.15] tracking-tight text-site-ink"
             >
               {title}
