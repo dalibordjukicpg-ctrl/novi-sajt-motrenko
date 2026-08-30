@@ -1,7 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { CLINIC_PAGE_HERO_BG } from "@/lib/clinic-assets";
-import { objectPositionFromFocusY } from "@/lib/image-focus";
 import type { Locale } from "@/lib/i18n";
 import type { TeamMemberSummary } from "@/lib/queries/posts";
 import {
@@ -38,32 +38,40 @@ const SECTION_LABELS: Record<
 
 function MemberPhoto({
   coverUrl,
-  coverFocusY = 50,
   className = "",
   sizes,
   priority = false,
 }: {
   coverUrl: string | null;
-  coverFocusY?: number;
   className?: string;
   sizes: string;
   priority?: boolean;
 }) {
   const src = coverUrl && coverUrl.length > 0 ? coverUrl : CLINIC_PAGE_HERO_BG;
-  const objectPosition = objectPositionFromFocusY(coverFocusY);
+  const isLocal = src.startsWith("/");
+
+  if (isLocal) {
+    return (
+      <Image
+        src={src}
+        alt=""
+        fill
+        unoptimized
+        priority={priority}
+        sizes={sizes}
+        className={`object-cover object-[center_12%] select-none ${className}`}
+      />
+    );
+  }
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt=""
-      width={800}
-      height={1000}
+      className={`absolute inset-0 h-full w-full object-cover object-[center_12%] select-none ${className}`}
       loading={priority ? "eager" : "lazy"}
       decoding="async"
-      sizes={sizes}
-      className={`absolute inset-0 h-full w-full object-cover select-none ${className}`}
-      style={{ objectPosition }}
     />
   );
 }
@@ -86,7 +94,6 @@ function FeaturedMemberCard({
         <div className="relative aspect-[4/5] min-h-[17rem] max-h-[28rem] bg-site-surface-a md:max-h-none md:min-h-[22rem]">
           <MemberPhoto
             coverUrl={m.coverUrl}
-            coverFocusY={m.coverFocusY}
             sizes="(min-width: 768px) 272px, 88vw"
             priority
           />
@@ -134,11 +141,10 @@ function MemberCard({
         href={`/${locale}/posts/${m.slug}`}
         className={`group flex ${CARD_MIN_H} h-full w-full gap-4 rounded-2xl border border-site-border bg-site-card p-4 shadow-site-card transition hover:border-site-brand/25 hover:shadow-site-lift`}
       >
-        <div className="relative aspect-[4/5] w-[9.5rem] shrink-0 overflow-hidden rounded-xl bg-site-surface-a ring-1 ring-site-border sm:w-[10.5rem]">
+        <div className="relative min-h-[11.5rem] w-[8.25rem] shrink-0 self-stretch overflow-hidden rounded-xl bg-site-surface-a ring-1 ring-site-border sm:w-[8.75rem]">
           <MemberPhoto
             coverUrl={m.coverUrl}
-            coverFocusY={m.coverFocusY}
-            sizes="(min-width: 640px) 168px, 152px"
+            sizes="(min-width: 640px) 148px, 132px"
           />
         </div>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col py-0.5">

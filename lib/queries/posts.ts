@@ -325,7 +325,6 @@ export type TeamMemberSummary = {
   titleMe: string;
   excerpt: string | null;
   coverUrl: string | null;
-  coverFocusY: number;
   teamRole: "doctor" | "embryologist" | "nurse" | null;
 };
 
@@ -337,7 +336,6 @@ export async function listPublishedTeamSummaries(
     .select({
       id: posts.id,
       coverMediaId: posts.coverMediaId,
-      coverFocusY: posts.coverFocusY,
       teamRole: posts.teamRole,
     })
     .from(posts)
@@ -396,9 +394,6 @@ export async function listPublishedTeamSummaries(
   const teamRoleById = new Map(
     published.map((p) => [p.id, p.teamRole ?? null] as const),
   );
-  const coverFocusYById = new Map(
-    published.map((p) => [p.id, clampImageFocusY(p.coverFocusY)] as const),
-  );
 
   const draft: TeamMemberSummary[] = [];
   const titlePairs: { localized: string; me: string }[] = [];
@@ -423,7 +418,6 @@ export async function listPublishedTeamSummaries(
       titleMe: meTitle,
       excerpt: t.excerpt ? preparePublicPlainText(t.excerpt) || null : null,
       coverUrl: coverByPostId.get(id) ?? null,
-      coverFocusY: coverFocusYById.get(id) ?? 50,
       teamRole: teamRoleById.get(id) ?? null,
     });
   }

@@ -44,10 +44,22 @@ function gitPush() {
   if (r.status !== 0) process.exit(r.status ?? 1);
 }
 
+function pushUploadsToProd() {
+  console.log("Deploy: šaljem nedostajuće upload fajlove ...");
+  const r = spawnSync("node", ["scripts/push-uploads-to-prod.mjs"], {
+    cwd: ROOT,
+    stdio: "inherit",
+    shell: true,
+    env: process.env,
+  });
+  if (r.status !== 0) process.exit(r.status ?? 1);
+}
+
 async function main() {
   await pushContentToProd();
+  pushUploadsToProd();
   gitPush();
-  console.log("Deploy: gotovo — kod i sadržaj su na produkciji.");
+  console.log("Deploy: gotovo — kod, sadržaj i slike su na produkciji.");
 }
 
 main().catch((e) => {
