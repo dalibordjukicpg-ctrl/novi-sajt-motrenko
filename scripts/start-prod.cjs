@@ -111,6 +111,11 @@ spawnSync(process.execPath, ["scripts/ensure-posts-cover-focus-y.cjs"], {
   cwd,
   env: process.env,
 });
+spawnSync(process.execPath, ["scripts/ensure-chatbot-tables.cjs"], {
+  stdio: "inherit",
+  cwd,
+  env: process.env,
+});
 
 let nextBin;
 try {

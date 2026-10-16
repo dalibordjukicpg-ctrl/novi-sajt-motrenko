@@ -126,6 +126,21 @@ if (ensureQuestionnaireSubmissions.status !== 0) {
   );
 }
 
+const ensureChatbotTables = spawnSync(
+  process.execPath,
+  ["scripts/ensure-chatbot-tables.cjs"],
+  {
+    stdio: "inherit",
+    cwd,
+    env: process.env,
+  },
+);
+if (ensureChatbotTables.status !== 0) {
+  console.warn(
+    "[run-build] ensure-chatbot-tables nije uspio — chat bot neće raditi dok se ne pokrene migracija 0028.",
+  );
+}
+
 let nextBin;
 try {
   nextBin = require.resolve("next/dist/bin/next");

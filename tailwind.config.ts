@@ -21,9 +21,14 @@ const config: Config = {
           "0%": { transform: "scale(1.08) translate(0, 0)" },
           "100%": { transform: "scale(1.16) translate(-3%, -2%)" },
         },
+        "chat-pop": {
+          "0%": { opacity: "0", transform: "translateY(8px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
       },
       animation: {
         "hero-drift": "hero-drift 28s ease-in-out infinite alternate",
+        "chat-pop": "chat-pop 0.28s ease-out both",
       },
       fontFamily: {
         sans: ["var(--font-lora)", "system-ui", "Segoe UI", "sans-serif"],

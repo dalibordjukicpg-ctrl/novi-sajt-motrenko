@@ -40,7 +40,7 @@ export function ScrollToTopButton() {
     <button
       type="button"
       onClick={scrollUp}
-      className="site-scroll-top-btn fixed z-[170] flex size-11 items-center justify-center rounded-full border border-white/80 bg-site-brand text-white shadow-[0_8px_28px_-4px_rgba(232,104,42,0.45),0_4px_14px_rgba(0,0,0,0.12)] transition hover:bg-site-brand-hover hover:shadow-[0_10px_32px_-4px_rgba(232,104,42,0.55)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-site-brand active:scale-[0.97] bottom-[max(1rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] left-[max(1rem,calc(env(safe-area-inset-left,0px)+0.25rem))] md:left-auto md:right-[max(1rem,calc(env(safe-area-inset-right,0px)+0.25rem))] md:size-12"
+      className="site-scroll-top-btn fixed z-[170] flex size-11 items-center justify-center rounded-full border border-white/80 bg-site-brand text-white shadow-[0_8px_28px_-4px_rgba(232,104,42,0.45),0_4px_14px_rgba(0,0,0,0.12)] transition hover:bg-site-brand-hover hover:shadow-[0_10px_32px_-4px_rgba(232,104,42,0.55)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-site-brand active:scale-[0.97] bottom-[max(1rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] left-[max(1rem,calc(env(safe-area-inset-left,0px)+0.25rem))] md:size-12"
       aria-label="Na vrh stranice"
       title="Na vrh"
     >

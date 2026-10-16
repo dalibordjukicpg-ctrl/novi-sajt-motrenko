@@ -6,6 +6,7 @@ import {
   longtext,
   mysqlEnum,
   mysqlTable,
+  primaryKey,
   text,
   uniqueIndex,
   varchar,
@@ -831,5 +832,104 @@ export const translationRecords = mysqlTable(
       table.targetLocale,
     ),
     index("tr_status").on(table.translationStatus),
+  ],
+);
+
+/** Chat bot (Zygo) — jedan red podešavanja: uključen, ime, avatar, pozdrav po jeziku. */
+export const chatbotSettings = mysqlTable("chatbot_settings", {
+  id: varchar("id", { length: 32 }).primaryKey(),
+  enabled: boolean("enabled").notNull().default(true),
+  botName: varchar("bot_name", { length: 80 }).notNull().default("ZygoBot"),
+  avatarMediaId: varchar("avatar_media_id", { length: 36 }),
+  greetingMe: text("greeting_me"),
+  greetingEn: text("greeting_en"),
+  greetingRu: text("greeting_ru"),
+  greetingDelaySec: int("greeting_delay_sec").notNull().default(3),
+  updatedAt: datetime("updated_at", { mode: "date", fsp: 3 })
+    .notNull()
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date()),
+});
+
+/** Baza znanja bota — jedan unos = jedno pitanje i odgovor (prevodi u posebnoj tabeli). */
+export const chatbotKnowledge = mysqlTable(
+  "chatbot_knowledge",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    category: varchar("category", { length: 32 }).notNull().default("opste"),
+    sortOrder: int("sort_order").notNull().default(0),
+    published: boolean("published").notNull().default(true),
+    /** Opcioni link uz odgovor (npr. /s/cjenovnik ili #kontakt). */
+    linkHref: varchar("link_href", { length: 512 }),
+    createdAt: datetime("created_at", { mode: "date", fsp: 3 })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: datetime("updated_at", { mode: "date", fsp: 3 })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [index("chatbot_knowledge_category_idx").on(table.category)],
+);
+
+export const chatbotKnowledgeTranslations = mysqlTable(
+  "chatbot_knowledge_translations",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    entryId: varchar("entry_id", { length: 36 })
+      .notNull()
+      .references(() => chatbotKnowledge.id, { onDelete: "cascade" }),
+    locale: localeEnum.notNull(),
+    question: varchar("question", { length: 500 }).notNull(),
+    /** Dodatne riječi po kojima bot prepoznaje pitanje (zarez između). */
+    keywords: varchar("keywords", { length: 1000 }),
+    answer: text("answer").notNull(),
+  },
+  (table) => [
+    uniqueIndex("chatbot_kt_entry_locale").on(table.entryId, table.locale),
+  ],
+);
+
+/** Poruke koje pacijent iz chata šalje osoblju (kad bot ne zna ili traži čovjeka). */
+export const chatbotHandoffs = mysqlTable(
+  "chatbot_handoffs",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    locale: localeEnum.notNull(),
+    fullName: varchar("full_name", { length: 200 }).notNull(),
+    /** Telefon ili email — kako osoblje da se javi. */
+    contact: varchar("contact", { length: 255 }).notNull(),
+    message: text("message").notNull(),
+    consentAccepted: boolean("consent_accepted").notNull(),
+    /** new | done */
+    status: varchar("status", { length: 16 }).notNull().default("new"),
+    emailSent: boolean("email_sent").notNull().default(false),
+    createdAt: datetime("created_at", { mode: "date", fsp: 3 })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    ipAddress: varchar("ip_address", { length: 45 }),
+    userAgent: varchar("user_agent", { length: 512 }),
+  },
+  (table) => [
+    index("chatbot_handoffs_created_at_idx").on(table.createdAt),
+    index("chatbot_handoffs_status_idx").on(table.status),
+  ],
+);
+
+/**
+ * Dnevni brojači bota — bez teksta razgovora (privatnost pacijenata).
+ * event: open | question | answered | unknown | medical | handoff; entry_key = koji odgovor je dat.
+ */
+export const chatbotStatsDaily = mysqlTable(
+  "chatbot_stats_daily",
+  {
+    day: varchar("day", { length: 10 }).notNull(),
+    locale: varchar("locale", { length: 8 }).notNull(),
+    event: varchar("event", { length: 24 }).notNull(),
+    entryKey: varchar("entry_key", { length: 120 }).notNull().default(""),
+    count: int("count").notNull().default(0),
+  },
+  (table) => [
+    primaryKey({ columns: [table.day, table.locale, table.event, table.entryKey] }),
   ],
 );

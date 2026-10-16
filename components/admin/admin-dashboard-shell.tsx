@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BookOpen,
+  Bot,
   ClipboardList,
   ImageIcon,
   Languages,
@@ -273,6 +274,39 @@ function SidebarNav({
               }
               onNavigate={onNavigate}
             />
+          </NavSection>
+        ) : null}
+
+        {navFlags.showGlobalSiteContent || navFlags.showBookings ? (
+          <NavSection title="Chat bot" icon={<Bot size={15} strokeWidth={2} />} tone="warm">
+            {navFlags.showGlobalSiteContent ? (
+              <NavItem
+                href={adminPath("chatbot")}
+                label="Baza znanja i statistika"
+                active={
+                  pathname.startsWith(adminPath("chatbot")) &&
+                  !pathname.startsWith(adminPath("chatbot/poruke")) &&
+                  !pathname.startsWith(adminPath("chatbot/podesavanja"))
+                }
+                onNavigate={onNavigate}
+              />
+            ) : null}
+            {navFlags.showBookings ? (
+              <NavItem
+                href={adminPath("chatbot/poruke")}
+                label="Poruke osoblju"
+                active={pathname.startsWith(adminPath("chatbot/poruke"))}
+                onNavigate={onNavigate}
+              />
+            ) : null}
+            {navFlags.showGlobalSiteContent ? (
+              <NavItem
+                href={adminPath("chatbot/podesavanja")}
+                label="Izgled i pozdrav"
+                active={pathname.startsWith(adminPath("chatbot/podesavanja"))}
+                onNavigate={onNavigate}
+              />
+            ) : null}
           </NavSection>
         ) : null}
 

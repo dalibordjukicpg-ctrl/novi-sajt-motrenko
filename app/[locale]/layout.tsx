@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { ChatbotWidget } from "@/components/site/chatbot-widget";
 import { ScrollToTopButton } from "@/components/site/scroll-to-top-button";
+import { getPublicChatbotConfig } from "@/lib/chatbot/settings";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { MaintenanceScreen } from "@/components/site/maintenance-screen";
@@ -92,6 +94,8 @@ export default async function LocaleLayout({ children, params }: Props) {
     s = mergeSiteStrings(raw, SITE_STRING_DEFAULTS[raw]);
   }
 
+  const chatbot = await getPublicChatbotConfig(raw);
+
   const navResolved = await resolveHeaderNav(
     nav.length > 0 ? nav : FALLBACK_HEADER_NAV,
     raw,
@@ -117,6 +121,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <PublicAnalyticsCollector />
       </Suspense>
       <ScrollToTopButton />
+      {chatbot.enabled ? <ChatbotWidget locale={raw} config={chatbot} /> : null}
     </div>
   );
 }
