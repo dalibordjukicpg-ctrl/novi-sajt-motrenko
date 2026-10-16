@@ -19,29 +19,44 @@ type ChatMessage = {
   offerHandoff?: boolean;
 };
 
-const SEEN_KEY = "hrc-chatbot-seen";
-const GREETING_KEY = "hrc-chatbot-greeting-closed";
+/** Pozdrav se pokazuje samo pri prvoj posjeti sajtu (trajno u ovom browseru). */
+const GREETED_KEY = "hrc-zygobot-greeted";
+
+/** Koliko dugo balončić ostaje otvoren prije nego što se sam zatvori. */
+const GREETING_VISIBLE_MS = 7000;
 
 /** ZygoBot avatar (public/zygobot) — dok klinika u adminu ne izabere drugu sliku. */
 const DEFAULT_AVATAR = "/zygobot/zygobot-avatar.webp";
 
 function readFlag(key: string): boolean {
   try {
-    return sessionStorage.getItem(key) === "1";
+    return localStorage.getItem(key) === "1";
   } catch {
-    return false;
+    // Bez pristupa storage-u (privatni prozor, blokirani kolačići) — ne smaramo posjetioca.
+    return true;
   }
 }
 
 function writeFlag(key: string): void {
   try {
-    sessionStorage.setItem(key, "1");
+    localStorage.setItem(key, "1");
   } catch {
-    /* privatni prozor — bez pamćenja */
+    /* bez pamćenja */
   }
 }
 
-function BotAvatar({ url, size = 40, className }: { url: string | null; size?: number; className?: string }) {
+function BotAvatar({
+  url,
+  size = 40,
+  fill = false,
+  className,
+}: {
+  url: string | null;
+  size?: number;
+  /** Popuni roditelja (dugme mijenja veličinu telefon/računar). */
+  fill?: boolean;
+  className?: string;
+}) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -49,8 +64,8 @@ function BotAvatar({ url, size = 40, className }: { url: string | null; size?: n
       alt=""
       width={size}
       height={size}
-      className={cn("shrink-0 rounded-full bg-[#fff5ed] object-cover", className)}
-      style={{ width: size, height: size }}
+      className={cn("shrink-0 rounded-full bg-[#fff5ed] object-cover", fill && "size-full", className)}
+      style={fill ? undefined : { width: size, height: size }}
     />
   );
 }
@@ -83,13 +98,20 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
   const inputRef = useRef<HTMLInputElement>(null);
   const openedOnce = useRef(false);
 
-  // Balončić sa pozdravom iskače poslije par sekundi (jednom po posjeti, dok ga posjetilac ne zatvori).
+  // Prva posjeta: balončić iskače poslije par sekundi i sam se zatvori — kasnije se više ne pojavljuje.
   useEffect(() => {
-    if (readFlag(SEEN_KEY)) return;
-    setUnread(true);
-    if (readFlag(GREETING_KEY)) return;
-    const t = window.setTimeout(() => setGreetingVisible(true), config.greetingDelaySec * 1000);
-    return () => window.clearTimeout(t);
+    if (readFlag(GREETED_KEY)) return;
+    let hide: number | undefined;
+    const show = window.setTimeout(() => {
+      writeFlag(GREETED_KEY);
+      setUnread(true);
+      setGreetingVisible(true);
+      hide = window.setTimeout(() => setGreetingVisible(false), GREETING_VISIBLE_MS);
+    }, config.greetingDelaySec * 1000);
+    return () => {
+      window.clearTimeout(show);
+      if (hide) window.clearTimeout(hide);
+    };
   }, [config.greetingDelaySec]);
 
   useEffect(() => {
@@ -102,14 +124,21 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
       if (e.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Na telefonu je chat preko cijelog ekrana — stranica ispod ne smije da se skroluje.
+    const lockScroll = window.matchMedia("(max-width: 767px)").matches;
+    const prevOverflow = document.body.style.overflow;
+    if (lockScroll) document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (lockScroll) document.body.style.overflow = prevOverflow;
+    };
   }, [open]);
 
   const openChat = useCallback(() => {
     setOpen(true);
     setGreetingVisible(false);
     setUnread(false);
-    writeFlag(SEEN_KEY);
+    writeFlag(GREETED_KEY);
     if (!openedOnce.current) {
       openedOnce.current = true;
       void fetch("/api/chatbot/event", {
@@ -123,7 +152,7 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
 
   const closeGreeting = () => {
     setGreetingVisible(false);
-    writeFlag(GREETING_KEY);
+    setUnread(false);
   };
 
   const push = (m: Omit<ChatMessage, "id">) =>
@@ -163,19 +192,30 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
   const lastBotId = [...messages].reverse().find((m) => m.from === "bot")?.id;
 
   return (
-    <div className="fixed z-[180] flex flex-col items-end gap-3 right-[max(1rem,calc(env(safe-area-inset-right,0px)+0.25rem))] bottom-[max(1rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))]">
+    <div
+      className={cn(
+        "fixed flex flex-col items-end gap-3 right-[max(0.875rem,calc(env(safe-area-inset-right,0px)+0.25rem))] bottom-[max(0.875rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] md:bottom-8 md:right-10",
+        // Otvoren chat na telefonu mora biti iznad fiksnog headera sajta (z-200); z-index omotača ograničava i panel.
+        open ? "z-[450] md:z-[180]" : "z-[180]",
+      )}
+    >
       {open ? (
         <section
           role="dialog"
           aria-label={config.botName}
-          className="flex h-[min(600px,calc(100dvh-7.5rem))] w-[calc(100vw-2rem)] max-w-[390px] animate-chat-pop flex-col overflow-hidden rounded-3xl border border-[#f6d9c2] bg-white shadow-[0_24px_60px_-12px_rgba(160,64,0,0.35)]"
+          className={cn(
+            // Telefon: cijeli ekran iznad headera sajta (z-200) i ispod mobilnog menija (z-500).
+            "fixed inset-0 z-[450] flex flex-col overflow-hidden bg-white pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]",
+            // Računar: kartica iznad dugmeta, ispod fiksnog headera sajta.
+            "md:static md:inset-auto md:z-auto md:h-[min(620px,calc(100dvh-14rem))] md:w-[390px] md:animate-chat-pop md:rounded-3xl md:border md:border-[#f6d9c2] md:p-0 md:shadow-[0_24px_60px_-12px_rgba(160,64,0,0.35)]",
+          )}
         >
-          <header className="relative flex items-center gap-3 overflow-hidden bg-gradient-to-br from-[#ff9a3d] via-[#f07a1a] to-[#d95200] px-4 py-3 text-white">
+          <header className="relative flex shrink-0 items-center gap-3 overflow-hidden bg-gradient-to-br from-[#ff9a3d] via-[#f07a1a] to-[#d95200] px-4 py-2.5 text-white md:py-3">
             <span
               className="pointer-events-none absolute -right-10 -top-12 size-40 rounded-full bg-white/10 blur-sm"
               aria-hidden
             />
-            <BotAvatar url={config.avatarUrl} size={46} className="ring-2 ring-white/80" />
+            <BotAvatar url={config.avatarUrl} size={42} className="ring-2 ring-white/80" />
             <div className="relative min-w-0 flex-1">
               <p className="truncate text-[16px] [&_span]:!text-white">
                 <BotName name={config.botName} />
@@ -189,29 +229,35 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
               type="button"
               onClick={() => setOpen(false)}
               aria-label={copy.closeChat}
-              className="relative flex size-9 items-center justify-center rounded-full text-white/90 transition hover:bg-white/15"
+              className="relative flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 md:size-9 md:bg-transparent"
             >
-              <X size={18} />
+              <X size={20} />
             </button>
           </header>
-          <p className="border-b border-[#fbe6d6] bg-[#fff8f2] px-4 py-2 text-[11px] leading-snug text-[#8a5a3a]">
+          <p className="shrink-0 border-b border-[#fbe6d6] bg-[#fff8f2] px-4 py-1.5 text-[11px] leading-snug text-[#8a5a3a] md:py-2">
             {copy.disclaimer}
           </p>
 
           <div
             ref={listRef}
-            className="flex-1 space-y-3 overflow-y-auto bg-[radial-gradient(circle_at_85%_0%,#fff3e8,transparent_55%)] px-4 py-4"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-[radial-gradient(circle_at_85%_0%,#fff3e8,transparent_55%)] px-3.5 py-3 md:px-4 md:py-4"
             aria-live="polite"
           >
             {/* Brend blok: ilustracija bez teksta, natpis i podnaslov su pravi tekst (oštar, preveden). */}
-            <div className="flex flex-col items-center pb-1 text-center">
+            <div className="flex flex-col items-center text-center md:pb-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/zygobot/zygobot-art.webp" alt="" width={166} height={110} className="h-[110px] w-[166px]" />
-              <p className="mt-1 font-sans text-[26px] leading-none tracking-[0.08em]">
+              <img
+                src="/zygobot/zygobot-art.webp"
+                alt=""
+                width={166}
+                height={110}
+                className="h-[72px] w-[109px] md:h-[110px] md:w-[166px]"
+              />
+              <p className="mt-1 font-sans text-[20px] leading-none tracking-[0.08em] md:text-[26px]">
                 <span className="font-extrabold text-[#c94f00]">ZYGO</span>{" "}
                 <span className="font-light text-[#e8761f]">BOT</span>
               </p>
-              <p className="mt-2 max-w-[260px] text-[10.5px] font-semibold uppercase leading-snug tracking-[0.08em] text-[#803000]">
+              <p className="mt-1.5 max-w-[250px] text-[9.5px] font-semibold uppercase leading-snug tracking-[0.08em] text-[#803000] md:mt-2 md:text-[10.5px]">
                 {copy.tagline}
               </p>
             </div>
@@ -220,7 +266,7 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
                 {m.from === "bot" ? <BotAvatar url={config.avatarUrl} size={26} className="mb-0.5" /> : null}
                 <div
                   className={cn(
-                    "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed",
+                    "max-w-[84%] rounded-2xl px-3 py-2 text-[14px] leading-normal md:px-3.5 md:py-2.5 md:leading-relaxed",
                     m.from === "user"
                       ? "rounded-br-md bg-gradient-to-br from-[#ff9233] to-[#e0640c] text-white shadow-[0_4px_12px_-4px_rgba(217,82,0,0.5)]"
                       : "rounded-bl-md border border-[#fbe3d0] bg-[#fff6ee] text-[#3a2416]",
@@ -276,13 +322,14 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
               </div>
             ))}
             {messages.length === 1 ? (
-              <div className="flex flex-wrap gap-2 pl-[34px] pt-1">
+              // Telefon: jedan red koji se povlači prstom; računar: prelamanje u više redova.
+              <div className="-mx-3.5 flex gap-2 overflow-x-auto px-3.5 pb-1 pt-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:pl-[34px] md:pr-0 [&::-webkit-scrollbar]:hidden">
                 {copy.chips.map((c) => (
                   <button
                     key={c.label}
                     type="button"
                     onClick={() => void ask(c.q)}
-                    className="rounded-full border border-[#f6cfae] bg-white px-3 py-1.5 text-[13px] font-medium text-[#c2510a] shadow-sm transition hover:border-[#ff9233] hover:bg-[#fff1e5]"
+                    className="shrink-0 whitespace-nowrap rounded-full border border-[#f6cfae] bg-white px-3 py-1.5 text-[13px] font-medium text-[#c2510a] shadow-sm transition hover:border-[#ff9233] hover:bg-[#fff1e5]"
                   >
                     {c.label}
                   </button>
@@ -322,7 +369,7 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
               e.preventDefault();
               void ask(input);
             }}
-            className="flex items-center gap-2 border-t border-[#fbe6d6] bg-white px-3 py-3"
+            className="flex shrink-0 items-center gap-2 border-t border-[#fbe6d6] bg-white px-3 py-2.5 md:py-3"
           >
             <input
               ref={inputRef}
@@ -331,7 +378,7 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
               placeholder={copy.placeholder}
               maxLength={500}
               aria-label={copy.placeholder}
-              className="min-w-0 flex-1 rounded-full border border-[#f3d6bf] bg-[#fffaf6] px-4 py-2.5 text-[16px] text-[#3a2416] outline-none transition placeholder:text-[#b58a6c] focus:border-[#ff9233] focus:bg-white focus:ring-2 focus:ring-[#ff9233]/20 md:text-[14px]"
+              className="min-w-0 flex-1 rounded-full border border-[#f3d6bf] bg-[#fffaf6] px-4 py-2 text-[16px] md:py-2.5 text-[#3a2416] outline-none transition placeholder:text-[#b58a6c] focus:border-[#ff9233] focus:bg-white focus:ring-2 focus:ring-[#ff9233]/20 md:text-[14px]"
             />
             <button
               type="submit"
@@ -346,10 +393,10 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
       ) : null}
 
       {!open && greetingVisible ? (
-        <div className="relative flex max-w-[300px] animate-chat-pop items-start gap-3 rounded-2xl rounded-br-md border border-[#fbe0cb] bg-white py-3 pl-3 pr-8 shadow-[0_12px_36px_-8px_rgba(160,64,0,0.3)]">
-          <button type="button" onClick={openChat} className="flex items-start gap-3 text-left">
-            <BotAvatar url={config.avatarUrl} size={44} className="ring-2 ring-[#ffe2c8]" />
-            <span className="text-[14px] leading-snug text-[#3a2416]">
+        <div className="relative flex w-[min(300px,calc(100vw-5.5rem))] animate-chat-pop items-start gap-2.5 rounded-2xl rounded-br-md border border-[#fbe0cb] bg-white py-2.5 pl-2.5 pr-8 shadow-[0_12px_36px_-8px_rgba(160,64,0,0.3)] md:gap-3 md:py-3 md:pl-3">
+          <button type="button" onClick={openChat} className="flex items-start gap-2.5 text-left md:gap-3">
+            <BotAvatar url={config.avatarUrl} size={40} className="ring-2 ring-[#ffe2c8]" />
+            <span className="text-[13px] leading-snug text-[#3a2416] md:text-[14px]">
               <span className="mb-0.5 block text-[12px]">
                 <BotName name={config.botName} />
               </span>
@@ -372,7 +419,7 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
           type="button"
           onClick={() => (greetingVisible ? closeGreeting() : setGreetingVisible(true))}
           aria-label={copy.notifications}
-          className="relative flex size-12 items-center justify-center rounded-full bg-white text-[#c2510a] shadow-[0_6px_20px_-4px_rgba(160,64,0,0.3)] ring-1 ring-[#fbe0cb] transition hover:text-[#ff9233]"
+          className="relative hidden size-12 items-center md:flex justify-center rounded-full bg-white text-[#c2510a] shadow-[0_6px_20px_-4px_rgba(160,64,0,0.3)] ring-1 ring-[#fbe0cb] transition hover:text-[#ff9233]"
         >
           <Bell size={21} strokeWidth={1.8} />
           {unread ? (
@@ -386,15 +433,22 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
         onClick={() => (open ? setOpen(false) : openChat())}
         aria-label={open ? copy.closeChat : copy.openChat}
         aria-expanded={open}
-        className="group relative flex size-[64px] items-center justify-center rounded-full bg-gradient-to-br from-[#ff9a3d] to-[#d95200] p-[3px] shadow-[0_10px_28px_-6px_rgba(217,82,0,0.65)] transition hover:scale-105 active:scale-95"
+        className={cn(
+          "group relative size-14 items-center justify-center rounded-full bg-gradient-to-br from-[#ff9a3d] to-[#d95200] p-[3px] shadow-[0_10px_28px_-6px_rgba(217,82,0,0.65)] transition hover:scale-105 active:scale-95 md:size-16",
+          // Na telefonu otvoren chat ima svoje dugme za zatvaranje u zaglavlju.
+          open ? "hidden md:flex" : "flex",
+        )}
       >
         {open ? (
           <X size={26} className="text-white" />
         ) : (
           <>
-            <BotAvatar url={config.avatarUrl} size={58} />
-            <span className="absolute -bottom-0.5 -right-0.5 flex size-6 items-center justify-center rounded-full bg-[#d95200] text-white ring-2 ring-white">
-              <MessageCircle size={13} fill="currentColor" strokeWidth={1.5} />
+            <BotAvatar url={config.avatarUrl} size={58} fill />
+            {unread ? (
+              <span className="absolute -right-0.5 -top-0.5 size-3.5 rounded-full bg-[#e5484d] ring-2 ring-white md:hidden" aria-hidden />
+            ) : null}
+            <span className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-[#d95200] text-white ring-2 ring-white md:size-6">
+              <MessageCircle size={12} fill="currentColor" strokeWidth={1.5} />
             </span>
           </>
         )}
