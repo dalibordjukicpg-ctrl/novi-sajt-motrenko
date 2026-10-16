@@ -220,9 +220,9 @@ export function ChatbotWidget({ locale, config }: { locale: Locale; config: Publ
               <p className="truncate text-[16px] [&_span]:!text-white">
                 <BotName name={config.botName} />
               </p>
-              <p className="flex items-center gap-1.5 text-xs text-white/85">
-                <span className="size-2 rounded-full bg-[#7dffb0] shadow-[0_0_6px_#7dffb0]" aria-hidden />
-                {copy.status}
+              <p className="flex min-w-0 items-center gap-1.5 text-[11px] leading-tight text-white/90 md:text-xs">
+                <span className="size-2 shrink-0 rounded-full bg-[#7dffb0] shadow-[0_0_6px_#7dffb0]" aria-hidden />
+                <span>{copy.status}</span>
               </p>
             </div>
             <button

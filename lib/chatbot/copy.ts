@@ -67,7 +67,7 @@ export const CHATBOT_COPY: Record<Locale, ChatbotCopy> = {
   me: {
     tagline: "Vaš vodič za reproduktivno zdravlje & potpomognutu oplodnju",
     greeting: "Hej, zdravo! 👋 Dobrodošli na naš sajt. Ukoliko imate pitanja, tu sam.",
-    status: "Virtuelni asistent",
+    status: "Virtuelni asistent Humane reprodukcije",
     openChat: "Otvori chat",
     closeChat: "Zatvori chat",
     closeGreeting: "Zatvori poruku",
@@ -127,7 +127,7 @@ export const CHATBOT_COPY: Record<Locale, ChatbotCopy> = {
   en: {
     tagline: "Your guide to reproductive health & assisted reproduction",
     greeting: "Hi there! 👋 Welcome to our website. If you have any questions, I'm here.",
-    status: "Virtual assistant",
+    status: "Human Reproduction virtual assistant",
     openChat: "Open chat",
     closeChat: "Close chat",
     closeGreeting: "Dismiss message",
@@ -187,7 +187,7 @@ export const CHATBOT_COPY: Record<Locale, ChatbotCopy> = {
   ru: {
     tagline: "Ваш гид по репродуктивному здоровью и ЭКО",
     greeting: "Здравствуйте! 👋 Добро пожаловать на наш сайт. Если у вас есть вопросы, я здесь.",
-    status: "Виртуальный ассистент",
+    status: "Виртуальный ассистент Human Reproduction",
     openChat: "Открыть чат",
     closeChat: "Закрыть чат",
     closeGreeting: "Закрыть сообщение",
